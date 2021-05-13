@@ -1,0 +1,6 @@
+dependencies:
+- name: common
+  repository: https://ganarganar.github.io/helm-charts/
+  version: 1.4.3
+digest: sha256:f7cd21400a4af7a01fec2afc722e07c6461278fc9fd2757fdcb35b2dab95fef7
+generated: "2021-04-28T19:42:38.458198471-03:00"

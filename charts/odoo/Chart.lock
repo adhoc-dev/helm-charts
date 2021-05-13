@@ -1,0 +1,9 @@
+dependencies:
+- name: postgresql
+  repository: https://ganarganar.github.io/helm-charts/
+  version: 10.3.18
+- name: common
+  repository: https://ganarganar.github.io/helm-charts/
+  version: 1.4.3
+digest: sha256:a6413579dfe73d265023e33919ff8297c65c4b0632309860b8236752bad5de4d
+generated: "2021-04-28T20:20:03.174949241-03:00"
