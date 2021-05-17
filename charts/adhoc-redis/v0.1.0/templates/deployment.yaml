@@ -35,12 +35,12 @@ spec:
           {{- if .Values.redis.arguments }}
           args:
           {{- range $key, $value := .Values.redis.arguments }}
-            {{- if $value }}
-            - --{{ $key }}
-            - {{ $value }}
-            {{- else }}
-            - --{{ $key }}
-            {{- end }}
+          {{- if $value }}
+          - --{{ $key }}
+          - {{ $value }}
+          {{- else }}
+          - --{{ $key }}
+          {{- end }}
           {{- end }}
           {{- end }}
           ports:
