@@ -2,39 +2,44 @@
     "$schema": "http://json-schema.org/schema#",
     "type": "object",
     "properties": {
-      "redis": {
-        "type": "object",
-        "title": "Configuration",
-        "form": true,
-        "properties": {
-          "port": {
-            "type": "integer",
+        "redis": {
+            "type": "object",
+            "title": "Configuration",
             "form": true,
-            "title": "Use password authentication",
-            "default": 6379
-          },
-          "arguments": {
-            "requirepass": {
-                "type": "string",
-                "title": "Redis password",
-                "form": true,
-                "description": "Defaults to a random 10-character alphanumeric string if not set"
-            },
-            "appendonly": {
-                "type": "string",
-                "title": "Redis password",
-                "form": true,
-                "description": "The AOF persistence logs every write operation received by the server, that will be played again at server startup, reconstructing the original dataset. Commands are logged using the same format as the Redis protocol itself, in an append-only fashion. Redis is able to rewrite the log in the background when it gets too big. https://redis.io/topics/persistence",
-                "default": "yes"
-            },
-            "maxclients": {
-                "type": "integer",
-                "title": "Maximum number of clients",
-                "form": true,
-                "default": 100000
+            "properties": {
+                "port": {
+                    "type": "integer",
+                    "form": true,
+                    "title": "Use password authentication",
+                    "default": 6379
+                },
+                "arguments": {
+                    "type": "object",
+                    "title": "Arguments",
+                    "form": true,
+                    "properties": {
+                        "requirepass": {
+                            "type": "string",
+                            "title": "Redis password",
+                            "form": true,
+                            "description": "Defaults to a random 10-character alphanumeric string if not set"
+                        },
+                        "appendonly": {
+                            "type": "string",
+                            "title": "Redis password",
+                            "form": true,
+                            "description": "The AOF persistence logs every write operation received by the server, that will be played again at server startup, reconstructing the original dataset. Commands are logged using the same format as the Redis protocol itself, in an append-only fashion. Redis is able to rewrite the log in the background when it gets too big. https://redis.io/topics/persistence",
+                            "default": "yes"
+                        },
+                        "maxclients": {
+                            "type": "integer",
+                            "title": "Maximum number of clients",
+                            "form": true,
+                            "default": 100000
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
+}
