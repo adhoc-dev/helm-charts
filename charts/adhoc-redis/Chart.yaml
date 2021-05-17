@@ -23,4 +23,4 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "6-alpine"
 
-icon: "https://bitnami.com/assets/stacks/redis/img/redis-stack-220x234.png"
+icon: "https://raw.githubusercontent.com/adhoc-dev/helm-charts/baec4ad5ca69800c4f55787fd6934ecdfe797db3/charts/adhoc-redis/img/Redis_Logo.svg"
