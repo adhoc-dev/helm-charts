@@ -26,7 +26,7 @@
                         },
                         "appendonly": {
                             "type": "string",
-                            "title": "Redis password",
+                            "title": "Append Only",
                             "form": true,
                             "description": "The AOF persistence logs every write operation received by the server, that will be played again at server startup, reconstructing the original dataset. Commands are logged using the same format as the Redis protocol itself, in an append-only fashion. Redis is able to rewrite the log in the background when it gets too big. https://redis.io/topics/persistence",
                             "default": "yes"
