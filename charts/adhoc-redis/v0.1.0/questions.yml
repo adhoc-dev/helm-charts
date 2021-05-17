@@ -1,7 +1,7 @@
 questions:
   - variable: redis.arguments.maxclients
     label: "Maximum number of clients"
-    type: "integer"
+    type: "int"
     required: true
     default: 100000
   - variable: redis.arguments.appendonly
