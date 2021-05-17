@@ -59,6 +59,6 @@ affinity: {}
 redis:
   arguments:
     maxclients: 100000
-    appendonly: yes
+    appendonly: "yes"
     requirepass: "asd"
   port: 6379
