@@ -31,18 +31,18 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["redis-server"]
-          {{- if .Values.redis.arguments }}
-          args:
-          {{- range $key, $value := .Values.redis.arguments }}
-          {{- if $value }}
-          - --{{ $key }}
-          - {{ $value }}
-          {{- else }}
-          - --{{ $key }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
+          # command: ["redis-server"]
+          # {{- if .Values.redis.arguments }}
+          # args:
+          # {{- range $key, $value := .Values.redis.arguments }}
+          # {{- if $value }}
+          # - --{{ $key }}
+          # - {{ $value }}
+          # {{- else }}
+          # - --{{ $key }}
+          # {{- end }}
+          # {{- end }}
+          # {{- end }}
           ports:
             - name: redis
               containerPort: {{ .Values.redis.port }}
