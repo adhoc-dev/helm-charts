@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-pg.fullname" . }}
+  labels:
+    {{- include "adhoc-pg.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "adhoc-pg.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "adhoc-pg.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-pg.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgredb
+          - mountPath: /dev/shm
+            name: dshm
+          ports:
+            - name: pg
+              containerPort: 5432
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          command: ["docker-entrypoint.sh"]
+          args:
+          - postgres
+          - "-c max_connections={{ .Values.pg.args.maxConn }}"
+          - "-c shared_buffers={{ .Values.pg.args.sharedBuffers }}"
+          - "-c work_mem={{ .Values.pg.args.workMem }}"
+          - "-c effective_cache_size={{ .Values.pg.args.ecs }}"
+          {{- if .Values.pg.args.maxParallelWorkersPerGather }}
+          - "-c max_parallel_workers_per_gather={{ .Values.pg.args.maxParallelWorkersPerGather }}"
+          {{- end }}
+          {{- if .Values.pg.args.minWalSize }}
+          - "-c min_wal_size={{ .Values.pg.args.minWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWalSize }}
+          - "-c max_wal_size={{ .Values.pg.args.maxWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.effectiveIOConcurrency }}
+          - "-c effective_io_concurrency={{ .Values.pg.args.effectiveIOConcurrency }}"
+          {{- end }}
+          {{- if .Values.pg.args.maintenanceWorkMem }}
+          - "-c maintenance_work_mem={{ .Values.pg.args.maintenanceWorkMem }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWorkerProcesses }}
+          - "-c max_worker_processes={{ .Values.pg.args.maxWorkerProcesses }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxParallelWorkers }}
+          - "-c max_parallel_workers={{ .Values.pg.args.maxParallelWorkers }}"
+          {{- end }}
+          {{- if .Values.pg.args.randomPageCost }}
+          - "-c random_page_cost={{ .Values.pg.args.randomPageCost }}"
+          {{- end }}
+          {{- if .Values.pg.args.checkpointCompletionTarget }}
+          - "-c checkpoint_completion_target={{ .Values.pg.args.checkpointCompletionTarget }}"
+          {{- end }}
+          {{- if .Values.pg.args.walBuffers }}
+          - "-c wal_buffers={{ .Values.pg.args.walBuffers }}"
+          {{- end }}
+          {{- if .Values.pg.libs }}
+          - "-c shared_preload_libraries={{ .Values.pg.libs }}"
+          {{- end }}
+          {{- if contains "pg_stat_statements" .Values.pg.libs }}
+          {{- if .Values.pg.stats.target }}
+          - "-c default_statistics_target={{ .Values.pg.stats.target }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsMax }}
+          - "-c pg_stat_statements.max={{ .Values.pg.stats.statementsMax }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsTrack }}
+          - "-c pg_stat_statements.track={{ .Values.pg.stats.statementsTrack }}"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pg.extraArgs }}
+          - {{ .Values.pg.extraArgs | quote }}
+          {{- end }}
+          env:
+            # - name: "PGDATA"
+            #   value: {{ .Values.pg.data }}
+            # SqlSrv
+            - name: "POSTGRES_DB"
+              value: {{ .Values.pg.db }}
+            - name: "POSTGRES_USER"
+              value: {{ .Values.pg.user }}
+            - name: "POSTGRES_PASSWORD"
+              value: {{ .Values.pg.pass }}
+            # SqlCli
+            - name: "PGDATABASE"
+              value: {{ .Values.pg.db }}
+            - name: "PGUSER"
+              value: {{ .Values.pg.user }}
+            - name: "PGPASSWORD"
+              value: {{ .Values.pg.pass }}
+            - name: "PGPORT"
+              value: {{ .Values.service.port  }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: postgredb
+        persistentVolumeClaim:
+          claimName: {{ include "adhoc-pg.fullname" . }}-pvc
+      # This is a shm workarrund
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
