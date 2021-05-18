@@ -110,25 +110,25 @@ spec:
           {{- if .Values.pg.extraArgs }}
           - {{ .Values.pg.extraArgs | quote }}
           {{- end }}
-          # env:
-          # # - name: "PGDATA"
-          # #   value: {{ .Values.pg.data }}
-          # # SqlSrv
-          # - name: "POSTGRES_DB"
-          #   value: {{ .Values.pg.db }}
-          # - name: "POSTGRES_USER"
-          #   value: {{ .Values.pg.user }}
-          # - name: "POSTGRES_PASSWORD"
-          #   value: {{ .Values.pg.pass }}
-          # # SqlCli
-          # - name: "PGDATABASE"
-          #   value: {{ .Values.pg.db }}
-          # - name: "PGUSER"
-          #   value: {{ .Values.pg.user }}
-          # - name: "PGPASSWORD"
-          #   value: {{ .Values.pg.pass }}
-          # - name: "PGPORT"
-          #   value: {{ .Values.service.port  }}
+          env:
+          # - name: "PGDATA"
+          #   value: {{ .Values.pg.data }}
+          # SqlSrv
+          - name: "POSTGRES_DB"
+            value: {{ .Values.pg.db }}
+          - name: "POSTGRES_USER"
+            value: {{ .Values.pg.user }}
+          - name: "POSTGRES_PASSWORD"
+            value: {{ .Values.pg.pass }}
+          # SqlCli
+          - name: "PGDATABASE"
+            value: {{ .Values.pg.db }}
+          - name: "PGUSER"
+            value: {{ .Values.pg.user }}
+          - name: "PGPASSWORD"
+            value: {{ .Values.pg.pass }}
+          - name: "PGPORT"
+            value: {{ .Values.service.port  }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

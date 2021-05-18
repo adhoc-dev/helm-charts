@@ -60,7 +60,7 @@ tolerations: []
 affinity: {}
 
 nodeSelector:
-  pg: true
+  pg: "true"
 
 pg:
   data: ""
