@@ -58,7 +58,9 @@ spec:
           args:
           - postgres
           - "-c max_connections={{ .Values.pg.args.maxConn }}"
+          {{- if .Values.pg.args.sharedBuffers }}
           - "-c shared_buffers={{ .Values.pg.args.sharedBuffers }}"
+          {{- end }}
           - "-c work_mem={{ .Values.pg.args.workMem }}"
           - "-c effective_cache_size={{ .Values.pg.args.ecs }}"
           {{- if .Values.pg.args.maxParallelWorkersPerGather }}

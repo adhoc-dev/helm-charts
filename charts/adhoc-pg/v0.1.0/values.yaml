@@ -71,10 +71,10 @@ pg:
   port: 5432
   args:
     maxConn: 1000
-    sharedBuffers: 0
     workMem: 0
-    ecs: 0
+    ecs: 4GB
     # Optionals
+    sharedBuffers: 32MB
     # maxParallelWorkersPerGather: 2
     # minWalSize: 2GB
     # maxWalSize: 8GB
