@@ -22,13 +22,13 @@ spec:
             env:
             # SqlCli
             - name: "PGDATABASE"
-              value: {{ .Values.pg.db }}
+              value: {{ .Values.pg.db | quote }}
             - name: "PGUSER"
-              value: {{ .Values.pg.user }}
+              value: {{ .Values.pg.user | quote }}
             - name: "PGPASSWORD"
-              value: {{ .Values.pg.pass }}
+              value: {{ .Values.pg.pass | quote }}
             - name: "PGPORT"
-              value: {{ .Values.service.port  }}
+              value: {{ .Values.service.port }}
             - name: "PGHOST"
               value: {{ include "adhoc-pg.fullname" . }}
           restartPolicy: OnFailure

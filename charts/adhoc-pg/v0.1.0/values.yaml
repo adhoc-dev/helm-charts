@@ -36,7 +36,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 5432
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -70,7 +70,7 @@ pg:
   port: 5432
   args:
     maxConn: 1000
-    workMem: 0
+    workMem: 64MB
     ecs: 4GB
     # Optionals
     sharedBuffers: 32MB

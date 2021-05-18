@@ -36,25 +36,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
-          volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgredb
-          - mountPath: /dev/shm
-            name: dshm
-          ports:
-            - name: pg
-              containerPort: 5432
-              protocol: TCP
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          command: ["docker-entrypoint.sh"]
+          command: [ "docker-entrypoint.sh" ]
           args:
           - postgres
           - "-c max_connections={{ .Values.pg.args.maxConn }}"
@@ -110,25 +92,44 @@ spec:
           {{- if .Values.pg.extraArgs }}
           - {{ .Values.pg.extraArgs | quote }}
           {{- end }}
+          ports:
+            - name: pg
+              containerPort: 5432
+              protocol: TCP
+          # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgredb
+          - mountPath: /dev/shm
+            name: dshm
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 60
+            periodSeconds: 30
+
           env:
-          # - name: "PGDATA"
-          #   value: {{ .Values.pg.data }}
           # SqlSrv
           - name: "POSTGRES_DB"
-            value: {{ .Values.pg.db }}
+            value: {{ .Values.pg.db | quote }}
           - name: "POSTGRES_USER"
-            value: {{ .Values.pg.user }}
+            value: {{ .Values.pg.user | quote }}
           - name: "POSTGRES_PASSWORD"
-            value: {{ .Values.pg.pass }}
+            value: {{ .Values.pg.pass | quote }}
           # SqlCli
           - name: "PGDATABASE"
-            value: {{ .Values.pg.db }}
+            value: {{ .Values.pg.db | quote }}
           - name: "PGUSER"
-            value: {{ .Values.pg.user }}
+            value: {{ .Values.pg.user | quote }}
           - name: "PGPASSWORD"
-            value: {{ .Values.pg.pass }}
+            value: {{ .Values.pg.pass | quote  }}
           - name: "PGPORT"
-            value: {{ .Values.service.port  }}
+            value: {{ .Values.service.port }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
