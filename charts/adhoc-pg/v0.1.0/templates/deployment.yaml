@@ -39,6 +39,7 @@ spec:
           command: [ "docker-entrypoint.sh" ]
           args:
           - postgres
+          - -p 5432
           - -c max_connections={{- .Values.pg.args.maxConn }}
           {{- if .Values.pg.args.sharedBuffers }}
           - -c shared_buffers={{- .Values.pg.args.sharedBuffers }}
@@ -102,16 +103,16 @@ spec:
           #   name: postgredb
           - mountPath: /dev/shm
             name: dshm
-          readinessProbe:
-            tcpSocket:
-              port: 5432
-            initialDelaySeconds: 60
-            periodSeconds: 60
-          livenessProbe:
-            tcpSocket:
-              port: 5432
-            initialDelaySeconds: 60
-            periodSeconds: 30
+          # readinessProbe:
+          #   tcpSocket:
+          #     port: 5432
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 60
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: 5432
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 30
 
           env:
           # SqlSrv
