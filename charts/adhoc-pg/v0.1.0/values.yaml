@@ -57,10 +57,21 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 tolerations: []
-affinity: {}
 
-nodeSelector:
-  pg: "true"
+#affinity: {}
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: pg
+          operator: In
+          values:
+          - "true"
+
+nodeSelector: {}
+#nodeSelector:
+#  pg: "true"
 
 pg:
   data: ""
