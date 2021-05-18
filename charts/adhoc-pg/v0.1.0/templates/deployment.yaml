@@ -98,8 +98,8 @@ spec:
               protocol: TCP
           # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
           volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgredb
+          # - mountPath: /var/lib/postgresql/data
+          #   name: postgredb
           - mountPath: /dev/shm
             name: dshm
           readinessProbe:
@@ -133,9 +133,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: postgredb
-        persistentVolumeClaim:
-          claimName: {{ include "adhoc-pg.fullname" . }}-pvc
+      # - name: postgredb
+      #   persistentVolumeClaim:
+      #     claimName: {{ include "adhoc-pg.fullname" . }}-pvc
       # This is a shm workarrund
       - name: dshm
         emptyDir:
