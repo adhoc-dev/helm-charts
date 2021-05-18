@@ -39,7 +39,7 @@ spec:
           command: [ "docker-entrypoint.sh" ]
           args:
           - postgres
-          - "-c max_connections={{ .Values.pg.args.maxConn }}"
+          #- "-c max_connections= .Values.pg.args.maxConn "
           {{- if .Values.pg.args.sharedBuffers }}
           - "-c shared_buffers={{ .Values.pg.args.sharedBuffers }}"
           {{- end }}
