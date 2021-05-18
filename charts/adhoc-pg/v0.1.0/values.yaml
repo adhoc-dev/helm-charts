@@ -62,7 +62,6 @@ affinity: {}
 nodeSelector:
   pg: true
 
-
 pg:
   data: ""
   db: ""
