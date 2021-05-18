@@ -10,7 +10,7 @@
                 "port": {
                     "type": "integer",
                     "form": true,
-                    "title": "Use password authentication",
+                    "title": "service port",
                     "default": 6379
                 },
                 "arguments": {
