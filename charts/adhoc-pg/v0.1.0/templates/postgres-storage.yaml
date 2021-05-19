@@ -15,3 +15,16 @@ allowedTopologies:
     values:
     - southamerica-east1-a
     - southamerica-east1-b
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "adhoc-pg.fullname" . }}-sc
+  labels:
+    {{- include "adhoc-pg.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ include "adhoc-pg.fullname" . }}-sc
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
