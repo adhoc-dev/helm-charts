@@ -40,7 +40,7 @@ spec:
           - "docker-entrypoint.sh"
           - "postgres"
           - -p 5432
-          - -c max_connections={{- .Values.pg.args.maxConn }}
+          - -c max_connections=1000
           ports:
             - name: pg
               containerPort: 5432
