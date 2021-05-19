@@ -97,7 +97,7 @@ spec:
           # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
           volumeMounts:
           - mountPath: /var/lib/postgresql/data
-            name: postgredb
+            name: {{ include "adhoc-pg.fullname" . }}-pvc
           - mountPath: /dev/shm
             name: dshm
           readinessProbe:
@@ -150,7 +150,7 @@ spec:
       {{- end }}
   volumeClaimTemplates:
   - metadata:
-      name: postgredb
+      name: {{ include "adhoc-pg.fullname" . }}-pvc
     spec:
       storageClassName: {{ include "adhoc-pg.fullname" . }}-sc
       accessModes: [ "ReadWriteOnce" ]
