@@ -85,9 +85,9 @@ questions:
     group: "optionals"
     label: "Sets the minimum size to shrink the WAL to"
     description: |
-      As long as WAL disk usage stays below this setting, old WAL files are always recycled for future use at a checkpoint, rather than removed.
+      As long as WAL disk usage stays below this setting, old WAL files are always recycled for future use at a checkpoint, rather than removed. ("min_wal_size" debe ser al menos el doble de "wal_segment_size" def 16MB )
     required: false
-    default: "2MB"
+    default: "32MB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.effectiveIOConcurrency
