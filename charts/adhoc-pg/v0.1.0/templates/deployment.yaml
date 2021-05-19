@@ -36,9 +36,63 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-          - "sleep"
-          - "infinity"
+          command: [ "docker-entrypoint.sh" ]
+          args:
+          - postgres
+          - -p 5432
+          - --max_connections={{- .Values.pg.args.maxConn }}
+          {{- if .Values.pg.args.sharedBuffers }}
+          - --shared_buffers={{- .Values.pg.args.sharedBuffers }}
+          {{- end }}
+          - "--work_mem={{ .Values.pg.args.workMem }}"
+          - "--effective_cache_size={{ .Values.pg.args.ecs }}"
+          {{- if .Values.pg.args.maxParallelWorkersPerGather }}
+          - "--max_parallel_workers_per_gather={{ .Values.pg.args.maxParallelWorkersPerGather }}"
+          {{- end }}
+          {{- if .Values.pg.args.minWalSize }}
+          - "--min_wal_size={{ .Values.pg.args.minWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWalSize }}
+          - "--max_wal_size={{ .Values.pg.args.maxWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.effectiveIOConcurrency }}
+          - "--effective_io_concurrency={{ .Values.pg.args.effectiveIOConcurrency }}"
+          {{- end }}
+          {{- if .Values.pg.args.maintenanceWorkMem }}
+          - "--maintenance_work_mem={{ .Values.pg.args.maintenanceWorkMem }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWorkerProcesses }}
+          - "--max_worker_processes={{ .Values.pg.args.maxWorkerProcesses }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxParallelWorkers }}
+          - "--max_parallel_workers={{ .Values.pg.args.maxParallelWorkers }}"
+          {{- end }}
+          {{- if .Values.pg.args.randomPageCost }}
+          - "--random_page_cost={{ .Values.pg.args.randomPageCost }}"
+          {{- end }}
+          {{- if .Values.pg.args.checkpointCompletionTarget }}
+          - "--checkpoint_completion_target={{ .Values.pg.args.checkpointCompletionTarget }}"
+          {{- end }}
+          {{- if .Values.pg.args.walBuffers }}
+          - "--wal_buffers={{ .Values.pg.args.walBuffers }}"
+          {{- end }}
+          {{- if .Values.pg.libs }}
+          - "--shared_preload_libraries={{ .Values.pg.libs }}"
+          {{- end }}
+          {{- if contains "pg_stat_statements" .Values.pg.libs }}
+          {{- if .Values.pg.stats.target }}
+          - "--default_statistics_target={{ .Values.pg.stats.target }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsMax }}
+          - "--pg_stat_statements.max={{ .Values.pg.stats.statementsMax }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsTrack }}
+          - "--pg_stat_statements.track={{ .Values.pg.stats.statementsTrack }}"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pg.extraArgs }}
+          - {{ .Values.pg.extraArgs | quote }}
+          {{- end }}
           ports:
             - name: pg
               containerPort: 5432
