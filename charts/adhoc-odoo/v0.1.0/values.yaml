@@ -79,7 +79,7 @@ affinity:
     - weight: 100
       podAffinityTerm:
         labelSelector: ~
-        TopologyKey: "node"
+        topologyKey: "node"
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
