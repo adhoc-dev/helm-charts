@@ -60,7 +60,7 @@ spec:
             - name: "PGHOST"
               value: {{ .Values.odoo.pg.host | quote }}
             - name: "PGPORT"
-              value: {{ .Values.odoo.pg.port }}
+              value: {{ .Values.odoo.pg.port | quote }}
             - name: "PGDATABASE"
               value: {{ .Values.odoo.pg.db | quote }}
             # Base Config
@@ -69,54 +69,58 @@ spec:
             - name: "DBFILTER"
               value: {{ .Values.odoo.basic.dbFilter | quote }}
             - name: "LIST_DB"
-              value: false
+              value: "false"
             - name: "LOG_LEVEL"
-              value: false
+            {{- if eq "false" .Values.odoo.basic.logLevel}}
+              value: "false"
+            {{- else }}
+              value: {{ .Values.odoo.basic.logLevel }}
+            {{- end }}
             - name: "UNACCENT"
-              value: true
+              value: "true"
             - name: "PROXY_MODE"
-              value: true
+              value: "true"
             - name: "WITHOUT_DEMO"
-              value: true
+              value: "true"
             - name: "SERVER_WIDE_MODULES"
-              value: {{ .Values.odoo.basic.wideModules }}
+              value: {{ .Values.odoo.basic.wideModules | quote }}
             # Performance Config
             {{- if .Values.odoo.performance.workers }}
             - name: "WORKERS"
-              value: {{ .Values.odoo.performance.workers }}
+              value: {{ .Values.odoo.performance.workers | quote }}
             {{- end }}
             {{- if .Values.odoo.performance.maxCronTh }}
             - name: "MAX_CRON_THREADS"
-              value: {{ .Values.odoo.performance.maxCronTh }}
+              value: {{ .Values.odoo.performance.maxCronTh | quote }}
             {{- end }}
             - name: "DB_MAXCONN"
-              value: {{ .Values.odoo.performance.maxDbConn }}
+              value: {{ .Values.odoo.performance.maxDbConn | quote }}
             - name: "LIMIT_MEMORY_HARD"
-              value: {{ .Values.odoo.performance.maxMemHard }}
+              value: {{ .Values.odoo.performance.maxMemHard | quote }}
             - name: "LIMIT_MEMORY_SOFT"
-              value: {{ .Values.odoo.performance.maxMemSoft }}
+              value: {{ .Values.odoo.performance.maxMemSoft | quote }}
             - name: "LIMIT_TIME_CPU"
-              value: {{ .Values.odoo.performance.maxTimeCpu }}
+              value: {{ .Values.odoo.performance.maxTimeCpu | quote }}
             - name: "LIMIT_TIME_REAL"
-              value: {{ .Values.odoo.performance.maxTimeReal }}
+              value: {{ .Values.odoo.performance.maxTimeReal | quote }}
             - name: "LIMIT_TIME_REAL_CRON"
-              value: {{ .Values.odoo.performance.maxTimeCron }}
+              value: {{ .Values.odoo.performance.maxTimeCron | quote }}
             - name: "FILESTORE_COPY_HARD_LINK"
-              value: true
+              value: "true"
             - name: "FILESTORE_OPERATIONS_THREADS"
-              value: 3
+              value: "3"
             # SaaS Config
             - name: "SERVER_MODE"
-              value: {{ .Values.odoo.saas.mode }}
+              value: {{ .Values.odoo.saas.mode | quote }}
             - name: "DISABLE_SESSION_GC"
-              value: true
+              value: "true"
             # Entrypoint
             - name: "WAIT_PG"
-              value: true
+              value: "true"
             - name: "FIXDBS"
-              value: {{ .Values.odoo.entrypoint.fixdbs }}
+              value: {{ .Values.odoo.entrypoint.fixdbs | quote }}
             - name: "FIX_DB_WEB_DISABLED"
-              value: true
+              value: "true"
             # Dynamic Entrypoint
             - name: "REPOS_YAML"
               value: {{ .Values.odoo.entrypoint.repos | quote }}
@@ -140,13 +144,13 @@ spec:
             - name: "ENABLE_REDIS"
               value: true
             - name: "REDIS_HOST"
-              value: {{ .Values.redis.host }}
+              value: {{ .Values.redis.host | quote }}
             - name: "REDIS_PORT"
-              value: 6379
+              value: "6379"
             - name: "REDIS_PASS"
-              value: {{ .Values.redis.pass }}
+              value: {{ .Values.redis.pass | quote  }}
             - name: "REDIS_DBINDEX"
-              value: 1
+              value: "1"
             {{- end }}
             {{- range $key, $value := .Values.odoo.basic.auxEnv }}
             - name: "{{ $key }}"
@@ -154,15 +158,29 @@ spec:
             {{- end}}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          # Don't co-locate pods of this service with any other pods including pods of this service
+          # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector: ~
+                topologyKey: "node"
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: {{ .Values.nodeTag }}
+                  operator: In
+                  values:
+                  - "true"
+
       {{- with .Values.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -226,12 +226,14 @@ questions:
     description: "Required if Store Session on Redis"
     type: "string"
     required: false
+    show_if: "redis.enabled=true"
   - variable: redis.pass
     group: redis
     label: "Redis Password (optional)"
     type: "string"
     required: false
     default: "False"
+    show_if: "redis.enabled=true"
 
 # Custom Environment Variables
   - variable: multiEnvVariables
@@ -281,21 +283,21 @@ questions:
 #     default: ""
 
 
-  # - variable: "enumLogLevel"
-  #   label: "Log Level"
-  #   type: enum
-  #   default: "info"
-  #   options:
-  #     - critical
-  #     - error
-  #     - warn
-  #     - info
-  #     - test
-  #     - debug
-  #     - debug_rpc
-  #     - debug_sql
-  #     - debug_rpc_answer
-  #     - notset
+  - variable: "odoo.basic.logLevel"
+    label: "Log Level"
+    type: enum
+    default: "info"
+    options:
+      - critical
+      - error
+      - warn
+      - info
+      - test
+      - debug
+      - debug_rpc
+      - debug_sql
+      - debug_rpc_answer
+      - false
 
   # - variable: strOdooDataFilestore
   #   label: "Odoo Filestore Path"
