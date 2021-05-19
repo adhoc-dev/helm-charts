@@ -113,6 +113,8 @@ spec:
             periodSeconds: 30
 
           env:
+          - name: "PGDATA"
+            value: "/var/lib/postgresql/data/{{ include "adhoc-pg.fullname" . }}"
           # SqlSrv
           - name: "POSTGRES_DB"
             value: {{ .Values.pg.db | quote }}
