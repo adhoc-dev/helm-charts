@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "adhoc-pg.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "adhoc-pg.fullname" . }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
