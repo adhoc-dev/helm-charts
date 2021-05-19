@@ -101,6 +101,7 @@ pg:
     statementsMax: 10000
     statementsTrack: all
   extraArgs:
+  diskSize: 10
 
 killer:
   cron: "*/30 12-22 * * *"

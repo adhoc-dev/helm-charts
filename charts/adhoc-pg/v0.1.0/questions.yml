@@ -1,4 +1,11 @@
 questions:
+  - variable: pg.diskSize
+    label: "Disk size in GB"
+    description: |
+      Size of persistent in GB
+    required: true
+    default: "10"
+    type: "int"
   - variable: pg.port
     description: |
       Port where postgres server will listen.
