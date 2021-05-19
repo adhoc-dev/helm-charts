@@ -197,13 +197,13 @@ questions:
     label: "SMTP Password"
     type: "password"
     required: false
-  - variable: "host_label"
-    group: smtp
-    description: "Host label where to run odoongins service."
-    label: "Host label:"
-    required: true
-    default: "odoo=true"
-    type: "string"
+  # - variable: "host_label"
+  #   group: smtp
+  #   description: "Host label where to run odoongins service."
+  #   label: "Host label:"
+  #   required: true
+  #   default: "odoo=true"
+  #   type: "string"
   # TODO we would like to build this with the stack name + traefik domain
   - variable: odoo.smtp.catchall
     group: smtp
