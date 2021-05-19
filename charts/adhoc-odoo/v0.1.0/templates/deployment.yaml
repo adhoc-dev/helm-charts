@@ -74,7 +74,7 @@ spec:
             {{- if eq "false" .Values.odoo.basic.logLevel}}
               value: "false"
             {{- else }}
-              value: {{ .Values.odoo.basic.logLevel }}
+              value: {{ .Values.odoo.basic.logLevel | quote }}
             {{- end }}
             - name: "UNACCENT"
               value: "true"
@@ -132,7 +132,7 @@ spec:
             - name: "SMTP_PORT"
               value: {{ .Values.odoo.smtp.port | quote }}
             - name: "SMTP_SSL"
-              value: {{ .Values.odoo.smtp.ssl }}
+              value: {{ .Values.odoo.smtp.ssl | quote }}
             - name: "SMTP_USER"
               value: {{ .Values.odoo.smtp.user | quote }}
             - name: "SMTP_PASSWORD"
@@ -142,7 +142,7 @@ spec:
             # Redis Config
             {{- if .Values.redis.enabled }}
             - name: "ENABLE_REDIS"
-              value: true
+              value: "true"
             - name: "REDIS_HOST"
               value: {{ .Values.redis.host | quote }}
             - name: "REDIS_PORT"
