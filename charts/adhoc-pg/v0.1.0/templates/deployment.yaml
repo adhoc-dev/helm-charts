@@ -135,15 +135,6 @@ spec:
       - name: dshm
         emptyDir:
           medium: Memory
-      volumeClaimTemplates:
-      - metadata:
-          name: postgredb
-        spec:
-          storageClassName: {{ include "adhoc-pg.fullname" . }}-sc
-          accessModes: [ "ReadWriteOnce" ]
-          resources:
-            requests:
-              storage: 10Gi
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -156,3 +147,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: postgredb
+    spec:
+      storageClassName: {{ include "adhoc-pg.fullname" . }}-sc
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
