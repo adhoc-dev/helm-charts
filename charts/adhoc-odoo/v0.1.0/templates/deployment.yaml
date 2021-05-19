@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8069
+              protocol: TCP
+            - name: longpolling
+              containerPort: 8072
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          env:
+            # Database parameters
+            - name: "PGUSER"
+              value: {{ .Values.odoo.pg.user | quote }}
+            - name: "PGPASSWORD"
+              value: {{ .Values.odoo.pg.pass | quote }}
+            - name: "PGHOST"
+              value: {{ .Values.odoo.pg.host | quote }}
+            - name: "PGPORT"
+              value: {{ .Values.odoo.pg.port }}
+            - name: "PGDATABASE"
+              value: {{ .Values.odoo.pg.db | quote }}
+            # Base Config
+            - name: "ADMIN_PASSWORD"
+              value: {{ .Values.odoo.basic.adminPass | quote }}
+            - name: "DBFILTER"
+              value: {{ .Values.odoo.basic.dbFilter | quote }}
+            - name: "LIST_DB"
+              value: false
+            - name: "LOG_LEVEL"
+              value: false
+            - name: "UNACCENT"
+              value: true
+            - name: "PROXY_MODE"
+              value: true
+            - name: "WITHOUT_DEMO"
+              value: true
+            - name: "SERVER_WIDE_MODULES"
+              value: {{ .Values.odoo.basic.wideModules }}
+            # Performance Config
+            {{- if .Values.odoo.performance.workers }}
+            - name: "WORKERS"
+              value: {{ .Values.odoo.performance.workers }}
+            {{- end }}
+            {{- if .Values.odoo.performance.maxCronTh }}
+            - name: "MAX_CRON_THREADS"
+              value: {{ .Values.odoo.performance.maxCronTh }}
+            {{- end }}
+            - name: "DB_MAXCONN"
+              value: {{ .Values.odoo.performance.maxDbConn }}
+            - name: "LIMIT_MEMORY_HARD"
+              value: {{ .Values.odoo.performance.maxMemHard }}
+            - name: "LIMIT_MEMORY_SOFT"
+              value: {{ .Values.odoo.performance.maxMemSoft }}
+            - name: "LIMIT_TIME_CPU"
+              value: {{ .Values.odoo.performance.maxTimeCpu }}
+            - name: "LIMIT_TIME_REAL"
+              value: {{ .Values.odoo.performance.maxTimeReal }}
+            - name: "LIMIT_TIME_REAL_CRON"
+              value: {{ .Values.odoo.performance.maxTimeCron }}
+            - name: "FILESTORE_COPY_HARD_LINK"
+              value: true
+            - name: "FILESTORE_OPERATIONS_THREADS"
+              value: 3
+            # SaaS Config
+            - name: "SERVER_MODE"
+              value: {{ .Values.odoo.saas.mode }}
+            - name: "DISABLE_SESSION_GC"
+              value: true
+            # Entrypoint
+            - name: "WAIT_PG"
+              value: true
+            - name: "FIXDBS"
+              value: {{ .Values.odoo.entrypoint.fixdbs }}
+            - name: "FIX_DB_WEB_DISABLED"
+              value: true
+            # Dynamic Entrypoint
+            - name: "REPOS_YAML"
+              value: {{ .Values.odoo.entrypoint.repos | quote }}
+            - name: "CUSTOM_CONFIG"
+              value: {{ .Values.odoo.entrypoint.custom | quote }}
+            # SMTP Config
+            - name: "SMTP_SERVER"
+              value: {{ .Values.odoo.smtp.host | quote }}
+            - name: "SMTP_PORT"
+              value: {{ .Values.odoo.smtp.port | quote }}
+            - name: "SMTP_SSL"
+              value: {{ .Values.odoo.smtp.ssl }}
+            - name: "SMTP_USER"
+              value: {{ .Values.odoo.smtp.user | quote }}
+            - name: "SMTP_PASSWORD"
+              value: {{ .Values.odoo.smtp.pass | quote }}
+            - name: "MAIL_CATCHALL_DOMAIN"
+              value: {{ .Values.odoo.smtp.catchall | quote }}
+            # Redis Config
+            {{- if .Values.redis.enabled }}
+            - name: "ENABLE_REDIS"
+              value: true
+            - name: "REDIS_HOST"
+              value: {{ .Values.redis.host }}
+            - name: "REDIS_PORT"
+              value: 6379
+            - name: "REDIS_PASS"
+              value: {{ .Values.redis.pass }}
+            - name: "REDIS_DBINDEX"
+              value: 1
+            {{- end }}
+            {{- range $key, $value := .Values.odoo.basic.auxEnv }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+            {{- end}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
