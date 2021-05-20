@@ -52,32 +52,35 @@ spec:
             {{- if .Values.odoo.pg.user }}
             - name: "PGUSER"
               value: {{ .Values.odoo.pg.user | quote }}
-            {{- end}}
+            {{- end }}
             {{- if .Values.odoo.pg.pass }}
             - name: "PGPASSWORD"
               value: {{ .Values.odoo.pg.pass | quote }}
-            {{- end}}
+            {{- end }}
             {{- if .Values.odoo.pg.host }}
             - name: "PGHOST"
               value: {{ .Values.odoo.pg.host | quote }}
-            {{- end}}
+            {{- end }}
             {{- if .Values.odoo.pg.port }}
             - name: "PGPORT"
               value: {{ .Values.odoo.pg.port | quote }}
-            {{- end}}
+            {{- end }}
             {{- if .Values.odoo.pg.db }}
+            # TODO: ¿lo usa odoo?
+            - name: "DATABASE"
+              value: {{ .Values.odoo.pg.db | quote }}
             - name: "PGDATABASE"
               value: {{ .Values.odoo.pg.db | quote }}
-            {{- end}}
+            {{- end }}
             # Base Config
             {{- if .Values.odoo.basic.adminPass }}
             - name: "ADMIN_PASSWORD"
               value: {{ .Values.odoo.basic.adminPass | quote }}
-            {{- end}}
+            {{- end }}
             {{- if .Values.odoo.basic.dbFilter }}
             - name: "DBFILTER"
               value: {{ .Values.odoo.basic.dbFilter | quote }}
-            {{- end}}
+            {{- end }}
             - name: "LIST_DB"
               value: "false"
             - name: "LOG_LEVEL"
@@ -96,6 +99,14 @@ spec:
             - name: "SERVER_WIDE_MODULES"
               value: {{ .Values.odoo.basic.wideModules | quote }}
             {{- end }}
+            {{- if .Values.odoo.basic.aerooHost }}
+            - name: "AEROO_DOCS_HOST"
+              value: {{ .Values.odoo.basic.aerooHost | quote }}
+            {{- end }}
+            {{- if .Values.odoo.basic.emailFrom }}
+            - name: "EMAIL_FROM"
+              value: {{ .Values.odoo.basic.emailFrom | quote }}
+            {{- end }}
             # Performance Config
             {{- if .Values.odoo.performance.workers }}
             - name: "WORKERS"
@@ -108,6 +119,10 @@ spec:
             {{- if .Values.odoo.performance.maxDbConn }}
             - name: "DB_MAXCONN"
               value: {{ .Values.odoo.performance.maxDbConn | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.maxDbConn }}
+            - name: "DB_TEMPLATE"
+              value: {{ .Values.odoo.performance.dbTemplate | quote }}
             {{- end }}
             {{- if .Values.odoo.performance.maxMemHard }}
             - name: "LIMIT_MEMORY_HARD"
@@ -133,6 +148,14 @@ spec:
               value: "true"
             - name: "FILESTORE_OPERATIONS_THREADS"
               value: "3"
+            {{- if .Values.odoo.performance.maxHttpTh }}
+            - name: "ODOO_MAX_HTTP_THREADS"
+              value: {{ .Values.odoo.performance.maxHttpTh | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.saasPath }}
+            - name: "ODOO_SAAS_PATH"
+              value: {{ .Values.odoo.performance.saasPath | quote }}
+            {{- end }}
             # SaaS Config
             {{- if .Values.odoo.saas.mode }}
             - name: "SERVER_MODE"
@@ -142,10 +165,14 @@ spec:
               value: "true"
             # Entrypoint
             - name: "WAIT_PG"
-              value: "true"
+              value: "false"
             {{- if .Values.odoo.entrypoint.fixdbs }}
             - name: "FIXDBS"
               value: {{ .Values.odoo.entrypoint.fixdbs | quote }}
+            {{- end }}
+            {{- if .Values.odoo.entrypoint.fixdbsAdhoc }}
+            - name: "FIXDBS_ADHOC"
+              value: {{ .Values.odoo.entrypoint.fixdbsAdhoc | quote }}
             {{- end }}
             - name: "FIX_DB_WEB_DISABLED"
               value: "true"
@@ -179,6 +206,10 @@ spec:
             - name: "SMTP_PASSWORD"
               value: {{ .Values.odoo.smtp.pass | quote }}
             {{- end }}
+            {{- if .Values.odoo.smtp.whiteList }}
+            - name: "SMTP_DOMAIN_WHITELIST"
+              value: {{ .Values.odoo.smtp.whiteList | quote }}
+            {{- end }}
             {{- if .Values.odoo.smtp.catchall }}
             - name: "MAIL_CATCHALL_DOMAIN"
               value: {{ .Values.odoo.smtp.catchall | quote }}
@@ -199,7 +230,7 @@ spec:
             {{- range $key, $value := .Values.odoo.basic.auxEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
-            {{- end}}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       affinity:

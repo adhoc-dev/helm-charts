@@ -87,9 +87,11 @@ odoo:
   # Base Config
   basic:
     adminPass: "admin"
-    dbFilter: ".*"
+    dbFilter: "false"
     wideModules: "base,web,server_mode,saas_client"
     logLevel: "info"
+#    aerooHost: ""
+    emailFrom: "notifications@adhoc.nubeadhoc.com"
     auxEnv:
 #      example: "yes"
   # Performance Config
@@ -99,13 +101,17 @@ odoo:
     workers: 0
     maxCronTh: 1
     maxDbConn: 96
+    dbTemplate: "template0"
     maxMemHard: "4777721600"
     maxMemSoft: "3147484000"
     maxTimeCpu: 3000
     maxTimeReal: 1600
     maxTimeCron: 6000
+    maxHttpTh: 8
+    saasPath: "/home/odoo/src/repositories/ingadhoc-odoo-saas"
   entrypoint:
     fixdbs: false
+    fixdbsAdhoc: true
     # Dynamic Entrypoint
     repos: ""
     custom: ""
@@ -117,6 +123,7 @@ odoo:
     user: ""
     pass: ""
     catchall: ""
+    whiteList: "adhoc.nubeadhoc.com"
 # Redis Config
 redis:
   enabled: false

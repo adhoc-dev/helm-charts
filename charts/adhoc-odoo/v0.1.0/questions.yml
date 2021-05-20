@@ -89,6 +89,18 @@ questions:
   #   type: "boolean"
   #   required: false
   #   default: True
+  - variable: odoo.basic.aerooHost
+    group: basic
+    label: "Aeroo docs host"
+    description: ""
+    type: "string"
+    required: false
+    default: ""
+  - variable: odoo.basic.emailFrom
+    label: "Email From"
+    type: "string"
+    required: false
+    default: "notifications@adhoc.nubeadhoc.com"
 # SaaS
   - variable: odoo.saas.mode
     label: "Odoo SERVER_MODE"
@@ -162,6 +174,23 @@ questions:
     type: "int"
     required: true
     default: 1600
+  - variable: odoo.performance.maxHttpTh
+    group: performance
+    label: "Odoo max http threads"
+    description: "Odoo max http threads"
+    type: "int"
+    required: true
+    default: 8
+  - variable: odoo.performance.dbTemplate
+    label: "DB Template"
+    type: "string"
+    required: false
+    default: "template0"
+  - variable: odoo.performance.saasPath
+    label: "Saas Path"
+    type: "string"
+    required: true
+    default: "/home/odoo/src/repositories/ingadhoc-odoo-saas"
   # - variable: odoo.performance.disableSessionGC
   #   label: "Disable Odoo Sessions Garbage Collector"
   #   type: "string"
@@ -173,6 +202,13 @@ questions:
     description: "Try to fix database before starting odoo."
     type: "boolean"
     default: false
+    required: false
+  - variable: odoo.entrypoint.fixdbsAdhoc
+    group: entrypoint
+    label: "FIX DBS AdHoc"
+    description: "Try to fix database before starting odoo."
+    type: "boolean"
+    default: true
     required: false
   - variable: odoo.entrypoint.repos
     group: entrypoint
@@ -217,6 +253,12 @@ questions:
     label: "SMTP Password"
     type: "password"
     required: false
+  - variable: odoo.smtp.whiteList
+    group: smtp
+    label: "White list"
+    type: "string"
+    required: false
+    default: "adhoc.nubeadhoc.com"
   # - variable: "host_label"
   #   group: smtp
   #   description: "Host label where to run odoongins service."
@@ -250,7 +292,7 @@ questions:
   - variable: redis.pass
     group: redis
     label: "Redis Password (optional)"
-    type: "string"
+    type: "password"
     required: false
     default: "False"
     show_if: "redis.enabled=true"
