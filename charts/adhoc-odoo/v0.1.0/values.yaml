@@ -8,9 +8,9 @@ image:
   repository: adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "13.0.2021.01.09-enterprise"
+  tag: "13.0.2021.05.17-enterprise"
+  pullSecret: "regcred"
 
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 

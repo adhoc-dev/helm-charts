@@ -11,6 +11,11 @@ questions:
     type: "string"
     required: true
     default: "13.0.2021.01.09-enterprise"
+  - variable: image.pullSecret
+    label: "pullSecret"
+    type: "string"
+    required: false
+    default: "regcred"
 
 # Database Configuration
   - variable: odoo.pg.db
@@ -64,6 +69,21 @@ questions:
     type: "string"
     required: true
     default: ".*"
+  - variable: "odoo.basic.logLevel"
+    label: "Log Level"
+    type: enum
+    default: "info"
+    options:
+      - critical
+      - error
+      - warn
+      - info
+      - test
+      - debug
+      - debug_rpc
+      - debug_sql
+      - debug_rpc_answer
+      - false
   # - variable: odoo.basic.listDb
   #   label: "LIST DBs"
   #   type: "boolean"
@@ -281,23 +301,6 @@ questions:
 #     type: "string"
 #     required: false
 #     default: ""
-
-
-  - variable: "odoo.basic.logLevel"
-    label: "Log Level"
-    type: enum
-    default: "info"
-    options:
-      - critical
-      - error
-      - warn
-      - info
-      - test
-      - debug
-      - debug_rpc
-      - debug_sql
-      - debug_rpc_answer
-      - false
 
   # - variable: strOdooDataFilestore
   #   label: "Odoo Filestore Path"
