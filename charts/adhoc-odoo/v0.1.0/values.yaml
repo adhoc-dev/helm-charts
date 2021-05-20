@@ -8,7 +8,7 @@ image:
   repository: adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "13.0.2021.05.17-enterprise"
+  tag: "13.0-enterprise"
   pullSecret: "regcred"
 
 nameOverride: ""
@@ -45,6 +45,8 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
+    # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
+    nginx.ingress.kubernetes.io/affinity: cookie
   hosts:
     - host: test.syn.com.ar
   tls: []
