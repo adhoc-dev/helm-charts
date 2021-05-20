@@ -10,7 +10,7 @@ questions:
     label: "Odoo Image Tag"
     type: "string"
     required: true
-    default: "13.0.2021.01.09-enterprise"
+    default: "13.0-enterprise"
   - variable: image.pullSecret
     label: "pullSecret"
     type: "string"
