@@ -45,14 +45,14 @@ spec:
               port: http
             initialDelaySeconds: 600
             periodSeconds: 600
-            successThreshold: 3
+            #successThreshold: 1
           readinessProbe:
             httpGet:
               path: /
               port: http
             initialDelaySeconds: 600
             periodSeconds: 600
-            successThreshold: 3
+            #successThreshold: 1
           env:
             # Database parameters
             {{- if .Values.odoo.pg.user }}
