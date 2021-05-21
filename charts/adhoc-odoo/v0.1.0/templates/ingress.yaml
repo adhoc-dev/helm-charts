@@ -33,11 +33,11 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: {{ include "adhoc-odoo.fullname" . }}-http
+              serviceName: {{ $fullName }}-http
               servicePort: 80
           - path: /longpolling/
             backend:
-              serviceName: {{ include "adhoc-odoo.fullname" . }}-longpolling
+              serviceName: {{ $fullName }}-longpolling
               servicePort: 80
     {{- end }}
 {{- end }}
