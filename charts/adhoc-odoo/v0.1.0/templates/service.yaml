@@ -26,6 +26,6 @@ spec:
     - port: {{ .Values.service.port }}
       targetPort: longpolling
       protocol: TCP
-      name: http
+      name: longpolling
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
