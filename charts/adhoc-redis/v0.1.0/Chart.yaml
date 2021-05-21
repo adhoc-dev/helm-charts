@@ -23,4 +23,4 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "6-alpine"
 
-icon: "https://raw.githubusercontent.com/adhoc-dev/helm-charts/0aa6aef4719efe728f99258b00c780a8d195213f/img/Redis_Logo.svg"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/Redis_Logo.svg"

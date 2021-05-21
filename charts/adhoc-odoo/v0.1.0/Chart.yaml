@@ -23,4 +23,4 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
 
-icon: "https://raw.githubusercontent.com/adhoc-dev/helm-charts/972521f03f1ea32b69a3cc4fc5f140de5ca23a8f/img/Odoo_logo.svg"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg"
