@@ -36,23 +36,37 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /web/login
+    port: http
+  initialDelaySeconds: 600
+  periodSeconds: 600
+  # Must be 1 for liveness and startup
+  #successThreshold: 1
+readinessProbe:
+  httpGet:
+    path: /web/login
+    port: http
+  initialDelaySeconds: 600
+  periodSeconds: 600
+
 service:
   type: ClusterIP
   port: 80
 
 ingress:
   enabled: true
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: "true"
-    # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
-    nginx.ingress.kubernetes.io/affinity: cookie
   hosts:
     - host: test.syn.com.ar
+    - host: test2.syn.com.ar
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+  # True for Google Ingress or false for internal NGINX Ingress
+  useGoogleCloudExternalLB: false
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
