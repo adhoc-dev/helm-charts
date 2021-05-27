@@ -1,0 +1,7 @@
+questions:
+  - variable: issuerEmail
+    label: "Email"
+    description: "email used for let's encrypt notifications"
+    type: "string"
+    required: true
+    default: "bot@adhoc.com.ar"

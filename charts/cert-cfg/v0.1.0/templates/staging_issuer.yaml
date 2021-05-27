@@ -1,0 +1,38 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: adhoc-letsencrypt-staging-issuer
+  namespace: cert-manager
+spec:
+  acme:
+    # https://cert-manager.io/docs/configuration/acme/
+    # The ACME server URL
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: {{ .Values.issuerEmail }}
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: {{ include "cert-cfg.fullname" . }}-letsencrypt-staging
+    solvers:
+    # https://cert-manager.io/docs/configuration/acme/http01/
+    # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
+    - http01:
+        ingress:
+          class:  nginx
+    # https://cert-manager.io/docs/configuration/acme/dns01/
+    - dns01:
+        cloudDNS:
+            project: {{ .Values.issuerCloudDNS.project }}
+            hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
+            # This was created in cert-manager namespace by terraform, so it's a constant.
+            serviceAccountSecretRef:
+              # The key of the entry in the Secret resource's `data` field to be used. Some
+              # instances of this field may be defaulted, in others it may be required.
+              key: key.json
+              # Name of the resource being referred to. More info:
+              # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+              name: clouddns-dns01-solver-svc-acct
+      selector:
+        dnsNames:
+        - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+        - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'

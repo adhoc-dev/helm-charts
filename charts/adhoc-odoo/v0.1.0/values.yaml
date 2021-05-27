@@ -41,16 +41,16 @@ livenessProbe:
   httpGet:
     path: /web/login
     port: http
-  initialDelaySeconds: 600
-  periodSeconds: 600
+  initialDelaySeconds: 60
+  periodSeconds: 60
   # Must be 1 for liveness and startup
   #successThreshold: 1
 readinessProbe:
   httpGet:
     path: /web/login
     port: http
-  initialDelaySeconds: 600
-  periodSeconds: 600
+  initialDelaySeconds: 60
+  periodSeconds: 60
 
 service:
   type: ClusterIP
@@ -58,13 +58,15 @@ service:
 
 ingress:
   enabled: true
+  # adhoc-letsencrypt-prod-issuer
+  # adhoc-letsencrypt-staging-issuer
+  issuer: adhoc-letsencrypt-staging-issuer
+  enableHttps: true
   hosts:
     - host: test.syn.com.ar
     - host: test2.syn.com.ar
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - host: cliente.dev-adhoc.com
+
   # True for Google Ingress or false for internal NGINX Ingress
   useGoogleCloudExternalLB: false
 
