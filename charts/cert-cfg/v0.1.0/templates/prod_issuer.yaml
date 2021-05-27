@@ -26,7 +26,7 @@ spec:
         - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
       # https://cert-manager.io/docs/configuration/acme/dns01/
       dns01:
-        cloudDNS:
+        clouddns:
           project: {{ .Values.issuerCloudDNS.project }}
           hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
           # This was created in cert-manager namespace by terraform, so it's a constant.
