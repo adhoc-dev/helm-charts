@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1
+apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   name: adhoc-letsencrypt-staging-issuer
@@ -15,10 +15,11 @@ spec:
       name: {{ include "cert-cfg.fullname" . }}-letsencrypt-staging
     solvers:
     # https://cert-manager.io/docs/configuration/acme/http01/
-    # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
     - http01:
         ingress:
           class:  nginx
+      # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
+      selector: {}
     # https://cert-manager.io/docs/configuration/acme/dns01/
     - dns01:
         cloudDNS:

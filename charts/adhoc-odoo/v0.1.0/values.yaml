@@ -41,16 +41,19 @@ livenessProbe:
   httpGet:
     path: /web/login
     port: http
-  initialDelaySeconds: 60
-  periodSeconds: 60
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 20
   # Must be 1 for liveness and startup
   #successThreshold: 1
 readinessProbe:
   httpGet:
     path: /web/login
     port: http
-  initialDelaySeconds: 60
-  periodSeconds: 60
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 2
 
 service:
   type: ClusterIP
