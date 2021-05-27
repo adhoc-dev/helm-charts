@@ -12,7 +12,9 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
-    cert-manager.io/issuer: {{ .Values.ingress.issuer | quote }}
+    {{- if .Values.ingress.enableHttps }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    {{- end }}
     {{- if .Values.ingress.useGoogleCloudExternalLB }}
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "true"
