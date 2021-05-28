@@ -6,6 +6,7 @@ metadata:
 data:
   enable-real-ip: "true"
   use-forwarded-headers: "true"
+  use-proxy-protocol: "true"
   proxy-read-timeout: "720s"
   proxy-send-timeout: "720s"
   proxy-connect-timeout: "720s"
