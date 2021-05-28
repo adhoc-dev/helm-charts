@@ -18,11 +18,11 @@ metadata:
 spec:
   rules:
     - http:
-      paths:
-      - path: /
-#        pathType: Prefix
-        backend:
-          serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
-          servicePort: 80
+        paths:
+        - path: /
+  #        pathType: Prefix
+          backend:
+            serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
+            servicePort: 80
 
 {{- end }}
