@@ -2,11 +2,13 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: wildcard-certificate
+  namespace: cert-manager
 spec:
   commonName: '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
   dnsNames:
   - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
   - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
   issuerRef:
+    kind: ClusterIssuer
     name: adhoc-letsencrypt-prod-issuer
   secretName: wildcard-domain-com-tls
