@@ -66,9 +66,9 @@ ingress:
   issuer: adhoc-letsencrypt-staging-issuer
   enableHttps: true
   # AltHost
-  hosts:
-    - host: test.syn.com.ar
-    - host: test2.syn.com.ar
+  hosts: {}
+#    - host: test.syn.com.ar
+#    - host: test2.syn.com.ar
   cloudMainDomain: dev-adhoc.com
 
   # True for Google Ingress or false for internal NGINX Ingress

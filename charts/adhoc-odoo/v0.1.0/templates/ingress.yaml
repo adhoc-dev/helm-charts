@@ -37,7 +37,7 @@ spec:
     {{- end }}
     - hosts:
         - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
-      #secretName omitted to use default wildcard certificate
+      secretName: "wildcard-domain-com-tls"
   {{- end }}
   rules:
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
