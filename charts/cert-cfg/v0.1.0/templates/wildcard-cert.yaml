@@ -1,45 +1,45 @@
-apiVersion: cert-manager.io/v1alpha2
-kind: ClusterIssuer
-metadata:
-  name: adhoc-letsencrypt-prod-issuer-wildcard
-  namespace: cert-manager
-spec:
-  acme:
-    # The ACME server URL
-    server: https://acme-v02.api.letsencrypt.org/directory
-    # Email address used for ACME registration
-    email: {{ .Values.issuerEmail }}
-    # Name of a secret used to store the ACME account private key
-    privateKeySecretRef:
-      name: {{ include "cert-cfg.fullname" . }}-letsencrypt-prod
-    # Enable the HTTP-01 challenge provider
-    solvers:
-    # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
-    - dns01:
-        clouddns:
-          project: {{ .Values.issuerCloudDNS.project }}
-          hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
-          # This was created in cert-manager namespace by terraform, so it's a constant.
-          serviceAccountSecretRef:
-            # The key of the entry in the Secret resource's `data` field to be used. Some
-            # instances of this field may be defaulted, in others it may be required.
-            key: key.json
-            # Name of the resource being referred to. More info:
-            # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-            name: clouddns-dns01-solver-svc-acct
+# apiVersion: cert-manager.io/v1alpha2
+# kind: ClusterIssuer
+# metadata:
+#   name: adhoc-letsencrypt-prod-issuer-wildcard
+#   namespace: cert-manager
+# spec:
+#   acme:
+#     # The ACME server URL
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     # Email address used for ACME registration
+#     email: {{ .Values.issuerEmail }}
+#     # Name of a secret used to store the ACME account private key
+#     privateKeySecretRef:
+#       name: {{ include "cert-cfg.fullname" . }}-letsencrypt-prod
+#     # Enable the HTTP-01 challenge provider
+#     solvers:
+#     # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
+#     - dns01:
+#         clouddns:
+#           project: {{ .Values.issuerCloudDNS.project }}
+#           hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
+#           # This was created in cert-manager namespace by terraform, so it's a constant.
+#           serviceAccountSecretRef:
+#             # The key of the entry in the Secret resource's `data` field to be used. Some
+#             # instances of this field may be defaulted, in others it may be required.
+#             key: key.json
+#             # Name of the resource being referred to. More info:
+#             # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+#             name: clouddns-dns01-solver-svc-acct
 
 
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Certificate
-metadata:
-  name: wildcard-certificate
-  namespace: cert-manager
-spec:
-  dnsNames:
-  - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
-  - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
-  issuerRef:
-    kind: ClusterIssuer
-    name: adhoc-letsencrypt-prod-issuer-wildcard
-  secretName: wildcard-domain-com-tls
+# ---
+# apiVersion: cert-manager.io/v1alpha2
+# kind: Certificate
+# metadata:
+#   name: wildcard-certificate
+#   namespace: cert-manager
+# spec:
+#   commonName:  '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+#   dnsNames:
+#   - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+#   issuerRef:
+#     kind: ClusterIssuer
+#     name: adhoc-letsencrypt-prod-issuer-wildcard
+#   secretName: wildcard-domain-com-tls

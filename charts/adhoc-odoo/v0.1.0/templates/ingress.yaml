@@ -36,8 +36,8 @@ spec:
         - {{ .host | quote }}
     {{- end }}
     - hosts:
-        - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
-      secretName: "wildcard-domain-com-tls"
+        - "*.{{.Values.ingress.cloudMainDomain}}"
+      secretName: "*.{{.Values.ingress.cloudMainDomain}}"
   {{- end }}
   rules:
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
