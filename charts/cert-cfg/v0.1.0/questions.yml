@@ -5,3 +5,9 @@ questions:
     type: "string"
     required: true
     default: "bot@adhoc.com.ar"
+  - variable: issuerCloudDNS.hostedZoneName
+    label: "CloudDomain"
+    description: ""
+    type: "string"
+    required: true
+    default: "dev-adhoc.com"

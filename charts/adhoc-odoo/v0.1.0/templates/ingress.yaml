@@ -35,8 +35,22 @@ spec:
       hosts:
         - {{ .host | quote }}
     {{- end }}
+    - hosts:
+        - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+      #secretName omitted to use default wildcard certificate
   {{- end }}
   rules:
+    - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ $fullName }}-http
+              servicePort: 80
+          - path: /longpolling/
+            backend:
+              serviceName: {{ $fullName }}-longpolling
+              servicePort: 80
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
