@@ -28,7 +28,7 @@ spec:
     #   dns01:
     #     clouddns:
     #       project: {{ .Values.issuerCloudDNS.project }}
-    #       hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
+    #       #hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
     #       # This was created in cert-manager namespace by terraform, so it's a constant.
     #       serviceAccountSecretRef:
     #         # The key of the entry in the Secret resource's `data` field to be used. Some
