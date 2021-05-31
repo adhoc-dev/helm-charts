@@ -18,8 +18,9 @@ spec:
     # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
     - dns01:
         clouddns:
+          name: gpc-dns
           project: {{ .Values.issuerCloudDNS.project }}
-          #hostedZoneName: {{ .Values.issuerCloudDNS.hostedZoneName }}
+          hostedZoneName: "devadhoc-com"
           # This was created in cert-manager namespace by terraform, so it's a constant.
           serviceAccountSecretRef:
             # The key of the entry in the Secret resource's `data` field to be used. Some
@@ -37,11 +38,18 @@ metadata:
   name: wildcard-certificate
   namespace: cert-manager
 spec:
-  commonName:  '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  commonName:  '{{ .Values.issuerCloudDNS.hostedZoneName }}'
   dnsNames:
-  - '.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
   - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
   issuerRef:
     kind: ClusterIssuer
     name: adhoc-wildcard
   secretName: wildcard-domain-com-tls
+  acme:
+    config:
+    - dns01:
+        provider: gpc-dns
+      domains:
+      - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+      - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
