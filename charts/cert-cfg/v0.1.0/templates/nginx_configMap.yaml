@@ -10,4 +10,5 @@ data:
   proxy-read-timeout: "720s"
   proxy-send-timeout: "720s"
   proxy-connect-timeout: "720s"
+  ssl-redirect: "true"
   # client-max-body-size: "2m"
