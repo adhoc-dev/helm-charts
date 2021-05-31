@@ -11,3 +11,9 @@ questions:
     type: "string"
     required: true
     default: "dev-adhoc.com"
+  - variable: issuerCloudDNS.dnsZoneName
+    label: "CloudDomain"
+    description: "DNS Zone in Google Compute Engine"
+    type: "string"
+    required: true
+    default: "devadhoc-com"
