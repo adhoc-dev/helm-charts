@@ -35,8 +35,8 @@ spec:
       hosts:
         - {{ .host | quote }}
     {{- end }}
-    # - hosts:
-    #     - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+    - hosts:
+        - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
     #   secretName: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
   {{- end }}
   rules:
