@@ -63,7 +63,7 @@ ingress:
   enabled: true
   # adhoc-letsencrypt-prod-issuer
   # adhoc-letsencrypt-staging-issuer
-  issuer: adhoc-letsencrypt-staging-issuer
+  issuer: adhoc-letsencrypt-prod-issuer
   enableHttps: true
   # AltHost
   hosts: {}

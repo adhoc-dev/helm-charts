@@ -355,3 +355,34 @@ questions:
   #   required: true
   #   default: "odoo_data_filestore"
   #   type: "string"
+
+# Ingress Configuration
+  - variable: ingress.enableHttps
+    group: ingress
+    label: "Enable TLS (HTTPs)"
+    type: "boolean"
+    required: true
+    default: true
+  - variable: ingress.cloudMainDomain
+    group: ingress
+    label: "Adhoc Cloud Host"
+    description: ""
+    type: "string"
+    required: false
+    default: "dev-adhoc.com"
+  - variable: ingress.issuer
+    group: ingress
+    label: "HTTP let's encrypt issuer name"
+    description: ""
+    type: "string"
+    required: true
+    default: "adhoc-letsencrypt-prod-issuer"
+    show_if: "ingress.enableHttps=true"
+  # - variable: ingress.hosts
+  #   group: ingress
+  #   label: "host"
+  #   description: ""
+  #   type: "string"
+  #   required: true
+  #   default: "adhoc-letsencrypt-prod-issuer"
+  #   show_if: "ingress.enableHttps=true"

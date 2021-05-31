@@ -35,11 +35,14 @@ spec:
       hosts:
         - {{ .host | quote }}
     {{- end }}
+    {{- if .Values.odoo.pg.db }}
     - hosts:
         - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+    {{- end  }}
     #   secretName: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
   {{- end }}
   rules:
+    {{- if .Values.odoo.pg.db }}
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
       http:
         paths:
@@ -51,6 +54,7 @@ spec:
             backend:
               serviceName: {{ $fullName }}-longpolling
               servicePort: 80
+    {{- end  }}
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
