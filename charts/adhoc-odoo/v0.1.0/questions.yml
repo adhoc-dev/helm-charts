@@ -378,11 +378,10 @@ questions:
     required: true
     default: "adhoc-letsencrypt-prod-issuer"
     show_if: "ingress.enableHttps=true"
-  # - variable: ingress.hosts
-  #   group: ingress
-  #   label: "host"
-  #   description: ""
-  #   type: "string"
-  #   required: true
-  #   default: "adhoc-letsencrypt-prod-issuer"
-  #   show_if: "ingress.enableHttps=true"
+  - variable: ingress.hosts
+    group: ingress
+    label: "hosts"
+    description: "hosts (comma separed values)"
+    type: "string"
+    required: false
+    default: ""

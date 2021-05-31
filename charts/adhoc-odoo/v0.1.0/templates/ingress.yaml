@@ -28,18 +28,20 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: cookie
     {{- end }}
 spec:
-  {{- if and .Values.ingress.enableHttps .Values.ingress.hosts }}
+  {{- if and .Values.ingress.enableHttps }}
   tls:
-    {{- range .Values.ingress.hosts }}
-    - secretName: {{ .host | quote }}
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts}}
+    - secretName: {{ . | quote }}
       hosts:
-        - {{ .host | quote }}
+        - {{ . | quote }}
     {{- end }}
     {{- if .Values.odoo.pg.db }}
     - hosts:
         - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
     {{- end  }}
-    #   secretName: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+    {{- end  }}
   {{- end }}
   rules:
     {{- if .Values.odoo.pg.db }}
@@ -55,8 +57,10 @@ spec:
               serviceName: {{ $fullName }}-longpolling
               servicePort: 80
     {{- end  }}
-    {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts }}
+    - host: {{ . | quote }}
       http:
         paths:
           - path: /
@@ -67,6 +71,7 @@ spec:
             backend:
               serviceName: {{ $fullName }}-longpolling
               servicePort: 80
+    {{- end }}
     {{- end }}
 {{- end }}
 
