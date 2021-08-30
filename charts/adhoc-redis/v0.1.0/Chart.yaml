@@ -1,4 +1,4 @@
-apiVersion: v2
+apiVersion: v1
 name: adhoc-redis
 description: Redis for odoo sessions
 
