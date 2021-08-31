@@ -2,9 +2,9 @@
 {{- $fullName := include "adhoc-odoo.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 {{- else -}}
-apiVersion: extensions/v1beta1
+apiVersion: extensions/v1
 {{- end }}
 kind: Ingress
 metadata:
@@ -17,7 +17,7 @@ metadata:
     {{- end }}
     {{- if .Values.ingress.useGoogleCloudExternalLB }}
     kubernetes.io/ingress.class: "gce"
-    networking.gke.io/v1beta1.FrontendConfig: {{ include "adhoc-odoo.fullname" . }}-frontend-config
+    networking.gke.io/v1.FrontendConfig: {{ include "adhoc-odoo.fullname" . }}-frontend-config
     # networking.gke.io/managed-certificates: "{{ $fullName }}-cert"
     {{- else }}
     # nginx
@@ -78,7 +78,7 @@ spec:
 {{- if .Values.ingress.useGoogleCloudExternalLB }}
 ---
 
-apiVersion: networking.gke.io/v1beta1
+apiVersion: networking.gke.io/v1
 kind: FrontendConfig
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-frontend-config
@@ -90,7 +90,7 @@ spec:
     responseCodeName: TEMPORARY_REDIRECT
   # sslPolicy:
 ---
-apiVersion: cloud.google.com/v1beta1
+apiVersion: cloud.google.com/v1
 kind: backendconfig
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-backend-config
