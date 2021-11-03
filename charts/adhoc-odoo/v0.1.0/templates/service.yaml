@@ -4,10 +4,10 @@ metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-http
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
-  {{- if .Values.ingress.useGoogleCloudExternalLB }}
-  annotations:
-    beta.cloud.google.com/backend-config: {{ include "adhoc-odoo.fullname" . }}-backend-config
-  {{- end }}
+  # {{- if .Values.ingress.useGoogleCloudExternalLB }}
+  # annotations:
+  #   beta.cloud.google.com/backend-config: {{ include "adhoc-odoo.fullname" . }}-backend-config
+  # {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:

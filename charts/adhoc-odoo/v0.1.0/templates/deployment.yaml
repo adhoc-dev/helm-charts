@@ -4,11 +4,11 @@ metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
-  annotations:
-    # https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager
-    {{- if .Values.ingress.enableHttps }}
-    certmanager.k8s.io/disable-auto-restart: "true"
-    {{- end }}
+  # annotations:
+  #   # https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager
+  #   {{- if .Values.ingress.enableHttps }}
+  #   certmanager.k8s.io/disable-auto-restart: "true"
+  #   {{- end }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
