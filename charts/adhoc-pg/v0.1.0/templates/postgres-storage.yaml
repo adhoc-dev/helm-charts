@@ -7,7 +7,7 @@ metadata:
 provisioner: pd.csi.storage.gke.io
 parameters:
   # pd-ssd, pd-standard or pd-balanced
-  type: pd-standard
+  type: pd-ssd
 #  replication-type: regional-pd
 reclaimPolicy: Retain
 allowVolumeExpansion: true
