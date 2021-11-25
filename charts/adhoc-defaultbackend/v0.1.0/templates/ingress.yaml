@@ -22,7 +22,12 @@ spec:
         - path: /
   #        pathType: Prefix
           backend:
-            serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
-            servicePort: 80
+#            serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
+#            servicePort: 80
+            service:
+              name: {{ include "adhoc-defaultbackend.fullname" . }}
+              port:
+                number: 80
+
 
 {{- end }}
