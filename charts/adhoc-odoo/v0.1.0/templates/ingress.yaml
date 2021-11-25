@@ -48,7 +48,7 @@ spec:
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
       http:
         paths:
-          backend:
+        -  backend:
             service:
               name: {{ $fullName }}-http
               port:
