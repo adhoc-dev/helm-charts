@@ -50,12 +50,20 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: {{ $fullName }}-http
-              servicePort: 80
+              service:
+                name: {{ $fullName }}-http
+                port:
+                  number: 80
+#              serviceName: {{ $fullName }}-http
+#              servicePort: 80
           - path: /longpolling/
             backend:
-              serviceName: {{ $fullName }}-longpolling
-              servicePort: 80
+              service:
+                name: {{ $fullName }}-longpolling
+                port:
+                  number: 80
+#              serviceName: {{ $fullName }}-longpolling
+#              servicePort: 80
     {{- end  }}
     {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
@@ -65,12 +73,16 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: {{ $fullName }}-http
-              servicePort: 80
+              service:
+                name: {{ $fullName }}-http
+                port:
+                  number: 80
           - path: /longpolling/
             backend:
-              serviceName: {{ $fullName }}-longpolling
-              servicePort: 80
+              service:
+                name: {{ $fullName }}-longpolling
+                port:
+                  number: 80
     {{- end }}
     {{- end }}
 {{- end }}
