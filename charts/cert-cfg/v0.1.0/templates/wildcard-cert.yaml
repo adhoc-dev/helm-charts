@@ -17,7 +17,7 @@ spec:
     solvers:
     # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
     - dns01:
-        clouddns:
+        cloudDNS:
           project: {{ .Values.issuerCloudDNS.project }}
           hostedZoneName: {{ .Values.issuerCloudDNS.dnsZoneName }}
           # This was created in cert-manager namespace by terraform, so it's a constant.
