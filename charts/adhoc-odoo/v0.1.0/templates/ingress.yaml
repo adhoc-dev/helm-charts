@@ -48,16 +48,17 @@ spec:
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
       http:
         paths:
-        -  backend:
-            service:
-              name: {{ $fullName }}-http
-              port:
-                number: 80
-          path: /
-          pathType: Prefix
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-http
+                port:
+                  number: 80
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
           - path: /longpolling/
+            pathType: Prefix
             backend:
               service:
                 name: {{ $fullName }}-longpolling
@@ -73,12 +74,14 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
               service:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
           - path: /longpolling/
+            pathType: Prefix
             backend:
               service:
                 name: {{ $fullName }}-longpolling
