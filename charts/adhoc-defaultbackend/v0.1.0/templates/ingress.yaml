@@ -20,7 +20,7 @@ spec:
     - http:
         paths:
         - path: /
-          pathType: Prefix
+          pathType: "Prefix"
           backend:
 #            serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
 #            servicePort: 80
