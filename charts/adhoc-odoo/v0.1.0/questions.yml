@@ -15,7 +15,7 @@ questions:
     label: "pullSecret"
     type: "string"
     required: false
-    default: "regcred"
+    default: "adhocsa"
 
 # Database Configuration
   - variable: odoo.pg.db
