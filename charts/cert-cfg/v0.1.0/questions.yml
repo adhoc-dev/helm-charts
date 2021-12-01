@@ -16,4 +16,10 @@ questions:
     description: "DNS Zone in Google Compute Engine"
     type: "string"
     required: true
-    default: "devadhoc-com"
+    default: "dev-adhoc"
+  - variable: issuerCloudDNS.project
+    label: "Project"
+    description: "Google Compute Engine Project"
+    type: "string"
+    required: true
+    default: "adhoc-k8s-v4"
