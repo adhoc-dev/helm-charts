@@ -220,7 +220,7 @@ spec:
               value: {{ .Values.odoo.smtp.catchall | quote }}
             {{- end }}
             # Redis Config
-            {{- if not .Values.redis.enabled }}
+            {{- if .Values.redis.enabled }}
             - name: "ENABLE_REDIS"
               value: "true"
             - name: "REDIS_HOST"
