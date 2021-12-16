@@ -12,7 +12,7 @@ questions:
     default: "yes"
   - variable: redis.arguments.requirepass
     label: "Password"
-    type: "string"
+    type: "password"
     required: true
   - variable: redis.port
     label: "port"
