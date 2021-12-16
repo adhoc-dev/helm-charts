@@ -10,4 +10,4 @@ issuerEmail: "bot@adhoc.com.ar"
 issuerCloudDNS:
   hostedZoneName: "dev-adhoc.com"
   dnsZoneName: "dev-adhoc"
-  project: "adhoc-k8s-v5"
+  project: "proyecto-laboratorios"

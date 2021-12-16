@@ -22,4 +22,4 @@ questions:
     description: "Google Compute Engine Project"
     type: "string"
     required: true
-    default: "adhoc-k8s-v4"
+    default: "proyecto-laboratorios"
