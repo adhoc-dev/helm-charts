@@ -38,18 +38,16 @@ securityContext: {}
 
 # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
-  httpGet:
-    path: /web/login
-    port: http
+  tcpSocket:
+    port: 8069
   initialDelaySeconds: 10
   periodSeconds: 10
   failureThreshold: 20
   # Must be 1 for liveness and startup
   #successThreshold: 1
 readinessProbe:
-  httpGet:
-    path: /web/login
-    port: http
+  tcpSocket:
+    port: 8069
   initialDelaySeconds: 10
   periodSeconds: 10
   successThreshold: 1
