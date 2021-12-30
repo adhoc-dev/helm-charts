@@ -232,7 +232,8 @@ spec:
             - name: "REDIS_DBINDEX"
               value: "1"
             {{- end }}
-            {{- range $key, $value := .Values.odoo.basic.auxEnv }}
+            # Other environment variables
+            {{- range $key, $value := .Values.odoo.basic.multiEnvVariables }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}

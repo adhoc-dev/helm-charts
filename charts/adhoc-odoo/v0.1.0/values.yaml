@@ -108,6 +108,9 @@ odoo:
     logLevel: "info"
 #    aerooHost: ""
     emailFrom: "notifications@adhoc.nubeadhoc.com"
+    multiEnvVariables:
+    #  example: "yes"
+    #  example2: "no"
     auxEnv:
 #      example: "yes"
   # Performance Config
