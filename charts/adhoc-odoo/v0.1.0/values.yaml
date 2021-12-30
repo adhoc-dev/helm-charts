@@ -92,6 +92,10 @@ autoscaling:
 nodeSelector: {}
 tolerations: {}
 
+multiEnvVariables:
+  # example: "yes"
+  # example2: "no"
+
 odoo:
   # Database parameters
   pg:
@@ -108,11 +112,6 @@ odoo:
     logLevel: "info"
 #    aerooHost: ""
     emailFrom: "notifications@adhoc.nubeadhoc.com"
-    multiEnvVariables:
-    #  example: "yes"
-    #  example2: "no"
-    auxEnv:
-#      example: "yes"
   # Performance Config
   saas:
     mode: false

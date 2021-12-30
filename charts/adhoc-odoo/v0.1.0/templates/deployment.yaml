@@ -233,7 +233,7 @@ spec:
               value: "1"
             {{- end }}
             # Other environment variables
-            {{- range $key, $value := .Values.odoo.basic.multiEnvVariables }}
+            {{- range $key, $value := .Values.multiEnvVariables }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
