@@ -274,9 +274,35 @@ questions:
     type: "string"
     required: false
     default: "example.com"
-# Sessions
 
-# Filestore / Sessions
+# Storage (por ahora solo permitimos s3)
+  - variable: storage.aws_region
+    group: storage
+    label: "Storage Region"
+    type: "string"
+    required: true
+  - variable: storage.aws_host
+    group: storage
+    label: "Storage Host"
+    type: "string"
+    required: true
+  - variable: storage.aws_bucketname
+    group: storage
+    label: "Storage Bucketname"
+    type: "string"
+    required: true
+  - variable: storage.aws_access_key_id
+    group: storage
+    label: "Storage Access Key Id"
+    type: "string"
+    required: true
+  - variable: storage.aws_secret_access_key
+    group: storage
+    label: "Storage Secret Access Key"
+    type: "password"
+    required: true
+
+# Sessions
   - variable: redis.enabled
     group: redis
     label: "Store sessions on redis?"
@@ -298,10 +324,10 @@ questions:
     show_if: "redis.enabled=true"
 
 # Custom Environment Variables
-  - variable: multiEnvVariables
-    label: "Environment Variables"
-    description: "- ENV1: 'val1' (one per line)"
-    type: multiline
+  # - variable: multiEnvVariables
+  #   label: "Environment Variables"
+  #   description: "- ENV1: 'val1' (one per line)"
+  #   type: multiline
 
   # - variable: strOdooDataSessions
   #   label: "Odoo Sessions Path"

@@ -148,4 +148,13 @@ redis:
   host: ""
   pass: ""
 
+# Storage
+storage:
+  ir_attachment_location: "s3"
+  aws_region: "US-EAST1"
+  aws_host: "https://storage.googleapis.com"
+  aws_bucketname: "acp-us-east1-test"
+  aws_access_key_id: "keyId"
+  aws_secret_access_key: "secret"
+
 nodeTag: "prod"

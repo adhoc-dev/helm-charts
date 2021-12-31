@@ -219,6 +219,19 @@ spec:
             - name: "MAIL_CATCHALL_DOMAIN"
               value: {{ .Values.odoo.smtp.catchall | quote }}
             {{- end }}
+            # Storage Config
+            - name: "IR_ATTACHMENT_LOCATION"
+              value: {{ .Values.storage.ir_attachment_location | quote }}
+            - name: "AWS_REGION"
+              value: {{ .Values.storage.aws_region | quote }}
+            - name: "AWS_HOST"
+              value: {{ .Values.storage.aws_host | quote }}
+            - name: "AWS_BUCKETNAME"
+              value: {{ .Values.storage.aws_bucketname | quote }}
+            - name: "AWS_ACCESS_KEY_ID"
+              value: {{ .Values.storage.aws_access_key_id | quote }}
+            - name: "AWS_SECRET_ACCESS_KEY"
+              value: {{ .Values.storage.aws_secret_access_key | quote }}
             # Redis Config
             {{- if .Values.redis.enabled }}
             - name: "ENABLE_REDIS"
@@ -232,11 +245,11 @@ spec:
             - name: "REDIS_DBINDEX"
               value: "1"
             {{- end }}
-            # Other environment variables
-            {{- range $key, $value := .Values.multiEnvVariables }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
-            {{- end }}
+            # Other environment variables (no funciona asi)
+            # {{- range $key, $value := .Values.multiEnvVariables }}
+            # - name: "{{ $key }}"
+            #   value: "{{ $value }}"
+            # {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       affinity:
