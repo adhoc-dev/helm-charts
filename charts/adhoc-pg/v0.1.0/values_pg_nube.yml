@@ -1,0 +1,31 @@
+---
+  pg:
+    diskSize: "10"
+    port: "5432"
+    db: "postgres"
+    user: "odoo"
+    pass: ""
+    args:
+      maxConn: "2000"
+      sharedBuffers: "7680MB"
+      ecs: "23040MB"
+      workMem: "24MB"
+      extraArgs: ""
+      maxParallelWorkersPerGather: "2"
+      maxWalSize: "8GB"
+      minWalSize: "2GB"
+      effectiveIOConcurrency: "200"
+      maintenanceWorkMem: "1920MB"
+      maxWorkerProcesses: "4"
+      maxParallelWorkers: "4"
+      randomPageCost: "1.1"
+      checkpointCompletionTarget: "0.9"
+      walBuffers: "256MB"
+    libs: "pg_stat_statements"
+    stats:
+      target: "100"
+      statementsMax: "10000"
+      statementsTrack: "all"
+  killer:
+    cron: "*/30 12-22 * * *"
+    max: "60"
