@@ -26,9 +26,6 @@ metadata:
     # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/affinity: cookie
-    nginx.ingress.kubernetes.io/server-snippet: |
-      gzip on;
-      gzip-types application/atom+xml application/javascript application/x-javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/svg+xml image/x-icon text/css text/javascript text/plain text/x-component text/xml
     {{- end }}
 spec:
   {{- if and .Values.ingress.enableHttps }}
