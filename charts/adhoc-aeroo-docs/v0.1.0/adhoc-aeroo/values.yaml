@@ -36,6 +36,23 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  tcpSocket:
+    port: 8989
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 20
+  # Must be 1 for liveness and startup
+  #successThreshold: 1
+readinessProbe:
+  tcpSocket:
+    port: 8989
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 2
+  failureThreshold: 3
+
 service:
   type: ClusterIP
   port: 8989
@@ -67,15 +84,6 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
-health_check:
-  port: 8989
-  interval: 2000
-  # initializing_timeout: 60000
-  unhealthy_threshold: 3
-  strategy: recreate
-  healthy_threshold: 2
-  response_timeout: 2000
 
 autoscaling:
   enabled: false
