@@ -68,6 +68,15 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+health_check:
+  port: 8989
+  interval: 2000
+  # initializing_timeout: 60000
+  unhealthy_threshold: 3
+  strategy: recreate
+  healthy_threshold: 2
+  response_timeout: 2000
+
 autoscaling:
   enabled: false
   minReplicas: 1
