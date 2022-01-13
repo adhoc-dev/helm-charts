@@ -99,7 +99,7 @@ odoo:
     pass: ""
     host: "adhoc-pg.adhoc-pg.svc.cluster.local"
     port: 5432
-    db: ""
+    db: "adhoc-pg"
   # Base Config
   basic:
     adminPass: "admin"

@@ -57,6 +57,7 @@ spec:
                   number: 80
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
+          {{- if .Values.odoo.performance.workers }}
           - path: /longpolling/
             pathType: Prefix
             backend:
@@ -66,6 +67,7 @@ spec:
                   number: 80
 #              serviceName: {{ $fullName }}-longpolling
 #              servicePort: 80
+          {{- end  }}
     {{- end  }}
     {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
@@ -80,6 +82,7 @@ spec:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
+          {{- if .Values.odoo.performance.workers }}
           - path: /longpolling/
             pathType: Prefix
             backend:
@@ -87,6 +90,7 @@ spec:
                 name: {{ $fullName }}-longpolling
                 port:
                   number: 80
+          {{- end  }}
     {{- end }}
     {{- end }}
 {{- end }}
