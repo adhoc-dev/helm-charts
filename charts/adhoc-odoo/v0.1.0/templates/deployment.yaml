@@ -252,6 +252,7 @@ spec:
             # {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.isProd }}
       affinity:
           # Don't co-locate pods of this service with any other pods including pods of this service
           # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
@@ -269,11 +270,14 @@ spec:
                   operator: In
                   values:
                   - "true"
-
+      {{- end }}
+      {{ if .Values.isProd }}
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
