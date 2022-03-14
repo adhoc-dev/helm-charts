@@ -134,6 +134,12 @@ questions:
     type: "string"
     required: false
     default: ""
+  - variable: odoo.saas.nodeTag
+    label: "Odoo NODE_TAG"
+    description: "Odoo NODE_TAG var (prod, train, test, demo, new, bu)"
+    type: "string"
+    required: false
+    default: "prod"
 # Performance Configuration
   - variable: odoo.performance.workers
     group: performance
