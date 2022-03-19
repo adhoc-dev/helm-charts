@@ -104,5 +104,6 @@ pg:
   diskSize: 10
 
 killer:
-  cron: "*/30 0-23 * * *"
+  # UTC
+  cron: "*/30 10-23 * * *"
   max: 30

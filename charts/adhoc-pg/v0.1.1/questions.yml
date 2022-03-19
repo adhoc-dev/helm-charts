@@ -201,8 +201,8 @@ questions:
     label: "Cron schedule for pgkiller"
     description: "Cron schedule expression UTC ( https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/ )"
     required: true
-    # At every 30th minute past every hour from 0 through 23
-    default: "*/30 0-23 * * *"
+    # At every 30th minute past every hour from 6 through 23
+    default: "*/30 10-23 * * *"
     type: "string"
   - variable: killer.max
     label: "Maximum time for idle connections in minutes"
