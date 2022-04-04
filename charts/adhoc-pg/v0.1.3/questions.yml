@@ -1,0 +1,211 @@
+questions:
+  - variable: pg.diskSize
+    label: "Disk size in GB"
+    description: |
+      Size of persistent in GB
+    required: true
+    default: "10"
+    type: "int"
+  - variable: pg.port
+    description: |
+      Port where postgres server will listen.
+    label: "Server Port"
+    required: true
+    default: "5432"
+    type: "int"
+  - variable: pg.db
+    description: "Postgres Database"
+    label: "Postgres Database"
+    required: true
+    default: "postgres"
+    type: "string"
+  - variable: pg.user
+    description: "Postgres User"
+    label: "Postgres User"
+    required: true
+    default: "postgres_user"
+    type: "string"
+  - variable: pg.pass
+    description: "Postgres Password"
+    label: "Postgres Password"
+    required: true
+    default: "postgres_password"
+    type: "password"
+  - variable: pg.args.maxConn
+    label: "Max Connections"
+    required: true
+    default: "1000"
+    type: "int"
+  - variable: pg.args.sharedBuffers
+    label: "Shared Buffers"
+    description: |
+      Odoo suggest more than 55% of ram on VM
+      Example: 35GB
+    required: false
+    default: "32MB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.ecs
+    label: "Effective Cache Size"
+    description: |
+      Odoo suggest between 50% and 75% of ram (75 to aggressive)
+      Example: 30GB
+      Sets the planner's assumption about the effective size of the disk cache that is available to a single query. This is factored into estimates of the cost of using an index; a higher value makes it more likely index scans will be used, a lower value makes it more likely sequential scans will be used. When setting this parameter you should consider both PostgreSQL's shared buffers and the portion of the kernel's disk cache that will be used for PostgreSQL data files, though some data might exist in both places. Also, take into account the expected number of concurrent queries on different tables, since they will have to share the available space. This parameter has no effect on the size of shared memory allocated by PostgreSQL, nor does it reserve kernel disk cache; it is used only for estimation purposes. The system also does not assume data remains in the disk cache between queries. The default is 4 gigabytes (4GB).
+    required: true
+    default: "4GB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.workMem
+    label: "Work Mem"
+    description: "Odoo suggest to start with 64MB"
+    required: true
+    default: "64MB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.extraArgs
+    label: "Additional configuration parameters to be set"
+    description: |
+      List of additional configurations to be set. You can check for parameters suggestions on this site https://pgtune.leopard.in.ua/#/
+      Example: --shared_buffers=256MB --work_mem=64mb
+    required: false
+    default: ""
+    type: "string"
+  - variable: pg.args.maxParallelWorkersPerGather
+    group: "optionals"
+    label: "Maximum number of workers per Gather"
+    description: |
+      Sets the maximum number of workers that can be started by a single Gather or Gather Merge node
+      Note: that parallel queries may consume very substantially more resources than non-parallel queries, because each worker process is a completely separate process which has roughly the same impact on the system as an additional user session
+    required: false
+    default: 2
+    type: "int"
+  - variable: pg.args.maxWalSize
+    group: "optionals"
+    label: "Sets the WAL size that triggers a checkpoint"
+    description: |
+      Maximum size to let the WAL grow during automatic checkpoints. This is a soft limit; WAL size can exceed max_wal_size under special circumstances, such as heavy load.
+    required: false
+    default: "1GB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.minWalSize
+    group: "optionals"
+    label: "Sets the minimum size to shrink the WAL to"
+    description: |
+      As long as WAL disk usage stays below this setting, old WAL files are always recycled for future use at a checkpoint, rather than removed. ("min_wal_size" debe ser al menos el doble de "wal_segment_size" def 16MB )
+    required: false
+    default: "64MB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.effectiveIOConcurrency
+    group: "optionals"
+    label: "Number of simultaneous requests that can be handled efficiently by the disk subsystem"
+    description: |
+      Sets the number of concurrent disk I/O operations that PostgreSQL expects can be executed simultaneously. Raising this value will increase the number of I/O operations that any individual PostgreSQL session attempts to initiate in parallel. The allowed range is 1 to 1000, or zero to disable issuance of asynchronous I/O requests
+    required: false
+    default: 1
+    type: "int"
+  - variable: pg.args.maintenanceWorkMem
+    group: "optionals"
+    label: "Sets the maximum memory to be used for maintenance operations"
+    description: |
+      Specifies the maximum amount of memory to be used by maintenance operations, such as VACUUM, CREATE INDEX, and ALTER TABLE ADD FOREIGN KEY. If this value is specified without units, it is taken as kilobytes. It defaults to 64 megabytes (64MB). Since only one of these operations can be executed at a time by a database session, and an installation normally doesn't have many of them running concurrently, it's safe to set this value significantly larger than work_mem. Larger settings might improve performance for vacuuming and for restoring database dumps.
+    required: false
+    default: "64MB"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)"
+  - variable: pg.args.maxWorkerProcesses
+    group: "optionals"
+    label: "Maximum number of concurrent worker processes"
+    description: |
+      Sets the maximum number of background processes that the system can support. This parameter can only be set at server start. The default is 8.
+      When running a standby server, you must set this parameter to the same or higher value than on the master server. Otherwise, queries will not be allowed in the standby server.
+      When changing this value, consider also adjusting max_parallel_workers, max_parallel_maintenance_workers, and max_parallel_workers_per_gather.
+    required: false
+    default: 8
+    type: "int"
+  - variable: pg.args.maxParallelWorkers
+    group: "optionals"
+    label: "Sets the maximum number of parallel workers that can be active at one time"
+    description: |
+      Sets the maximum number of workers that the system can support for parallel operations. The default value is 8. When increasing or decreasing this value, consider also adjusting max_parallel_maintenance_workers and max_parallel_workers_per_gather. Also, note that a setting for this value which is higher than max_worker_processes will have no effect, since parallel workers are taken from the pool of worker processes established by that setting.
+    required: false
+    default: 8
+    type: "int"
+  - variable: pg.args.randomPageCost
+    group: "optionals"
+    label: "Sets the planner's estimate of the cost of a nonsequentially fetched disk page"
+    description: |
+      If you believe a 90% cache rate is an incorrect assumption for your workload, you can increase random_page_cost to better reflect the true cost of random storage reads. Correspondingly, if your data is likely to be completely in cache, such as when the database is smaller than the total server memory, decreasing random_page_cost can be appropriate. Storage that has a low random read cost relative to sequential, e.g., solid-state drives, might also be better modeled with a lower value for random_page_cost, e.g., 1.1.
+    required: false
+    default: "4.0"
+    type: "string"
+    valid_chars: "[0-9]{1}\\.[0-9]{1}"
+  - variable: pg.args.checkpointCompletionTarget
+    group: "optionals"
+    label: "Time spent flushing dirty buffers during checkpoint, as fraction of checkpoint interval"
+    description: |
+      Specifies the target of checkpoint completion, as a fraction of total time between checkpoints. The default is 0.5. This parameter can only be set in the postgresql.conf file or on the server command line.
+    required: false
+    default: "0.9"
+    type: "string"
+    valid_chars: "[0-9]{1}\\.[0-9]{1}"
+  - variable: pg.args.walBuffers
+    group: "optionals"
+    label: "Sets the number of disk-page buffers in shared memory for WAL"
+    description: |
+      Specifies the maximum amount of memory to be used by maintenance operations, such as VACUUM, CREATE INDEX, and ALTER TABLE ADD FOREIGN KEY. If this value is specified without units, it is taken as kilobytes. It defaults to 64 megabytes (64MB). Since only one of these operations can be executed at a time by a database session, and an installation normally doesn't have many of them running concurrently, it's safe to set this value significantly larger than work_mem. Larger settings might improve performance for vacuuming and for restoring database dumps.
+    required: false
+    default: "-1"
+    type: "string"
+    valid_chars: "[0-9]{1,10}(GB|MB)?"
+  - variable: pg.libs
+    group: "optionals"
+    label: "pg shared libraries (comma separated list without spaces)"
+    required: false
+    default: ""
+    type: "string"
+    invalid_chars: "\\s+"
+  - variable: pg.stats.target
+    group: "stats"
+    label: "Sets the default statistics target"
+    description: |
+      Sets the default statistics target for table columns without a column-specific target set via ALTER TABLE SET STATISTICS. Larger values increase the time needed to do ANALYZE, but might improve the quality of the planner's estimates. The default is 100. For more information on the use of statistics by the PostgreSQL query planner, refer to planner-stats.
+    required: false
+    default: 100
+    type: "int"
+    show_if: "pg.libs=pg_stat_statements"
+  - variable: pg.stats.statementsMax
+    group: "stats"
+    label: "Maximum number of statements tracked"
+    description: |
+      Is the maximum number of statements tracked by the module (i.e., the maximum number of rows in the pg_stat_statements view). If more distinct statements than that are observed, information about the least-executed statements is discarded. The default value is 5000. This parameter can only be set at server start.
+    required: false
+    default: 10000
+    type: "int"
+    show_if: "pg.libs=pg_stat_statements"
+  - variable: pg.stats.statementsTrack
+    group: "stats"
+    label: "Which statements are counted by the module"
+    description: |
+      Controls which statements are counted by the module. Specify top to track top-level statements (those issued directly by clients), all to also track nested statements (such as statements invoked within functions), or none to disable statement statistics collection. The default value is top. Only superusers can change this setting.
+    required: false
+    default: "all"
+    type: "enum"
+    options:
+      - all
+      - none
+      - top
+    show_if: "pg.libs=pg_stat_statements"
+  - variable: killer.cron
+    label: "Cron schedule for pgkiller"
+    description: "Cron schedule expression UTC ( https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/ )"
+    required: true
+    # At every 30th minute past every hour from 6 through 23
+    default: "*/30 10-23 * * *"
+    type: "string"
+  - variable: killer.max
+    label: "Maximum time for idle connections in minutes"
+    required: true
+    default: "30"
+    type: "int"
