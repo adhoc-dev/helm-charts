@@ -39,16 +39,14 @@ service:
   port: 5432
 
 resources:
-# memory request: 80% memoria asignada
-# cpu request: 50% cpu asignada
-# memory limit: 150% memoria asignada
-# cpu limit: 150% cpu asignada
-  limits:
-    cpu: 6000m
-    memory: 168960Mi
+# Según leímos, es una buena práctica no setear límites para los PG
+#  limits:
+#    cpu: 6000m
+#    memory: 168960Mi
+# Request de acuerdo a mediciones random de los pods
   requests:
-    cpu: 2000m
-    memory: 92160Mi
+    cpu: 300m
+#    memory: 15907Mi
 
 autoscaling:
   enabled: false
