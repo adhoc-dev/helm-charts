@@ -10,6 +10,7 @@ questions:
     description: "The postgres tag to associate with this server. Choose any valid tag from https://hub.docker.com/_/postgres"
     label: "Postgres TAG"
     required: true
+    default: "12.7"
     type: "string"
   - variable: pg.port
     description: |
