@@ -6,6 +6,11 @@ questions:
     required: true
     default: "10"
     type: "int"
+  - variable: image.tag
+    description: "The postgres tag to associate with this server. Choose any valid tag from https://hub.docker.com/_/postgres"
+    label: "Postgres TAG"
+    required: true
+    type: "string"
   - variable: pg.port
     description: |
       Port where postgres server will listen.
