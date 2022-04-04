@@ -80,22 +80,22 @@ pg:
   pass: ""
   port: 5432
   args:
-    maxConn: 1000
-    workMem: 64MB
-    ecs: 4GB
+    maxConn: 2500
+    workMem: 24MB
+    ecs: 11520MB
     # Optionals
-    sharedBuffers: 32MB
-    # maxParallelWorkersPerGather: 2
-    minWalSize: 64MB
-    # maxWalSize: 8GB
-    # effectiveIOConcurrency: 200
-    # maintenanceWorkMem: 1280MB
-    # maxWorkerProcesses: 6
-    # maxParallelWorkers: 6
-    # randomPageCost: 1.1
-    # checkpointCompletionTarget: 0.9
-    # walBuffers: 256MB
-  libs: "" #"pg_stat_statements"
+    sharedBuffers: 3840MB
+    maxParallelWorkersPerGather: 2
+    minWalSize: 1GB
+    maxWalSize: 4GB
+    effectiveIOConcurrency: 200
+    maintenanceWorkMem: 1920MB
+    maxWorkerProcesses: 2
+    maxParallelWorkers: 2
+    randomPageCost: 1.1
+    checkpointCompletionTarget: 0.9
+    walBuffers: 256MB
+  libs: "pg_stat_statements"
   stats:
     target: 100
     statementsMax: 10000
@@ -105,4 +105,4 @@ pg:
 
 killer:
   cron: "*/30 12-22 * * *"
-  max: 60
+  max: 30
