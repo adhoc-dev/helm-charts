@@ -444,4 +444,4 @@ questions:
     description: "Tag to schedule pods in nodes"
     type: "string"
     required: true
-    default: "prod"
+    default: "Prod"
