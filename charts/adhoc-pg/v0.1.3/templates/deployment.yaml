@@ -64,6 +64,9 @@ spec:
           {{- if .Values.pg.args.maxParallelWorkers }}
           - "--max_parallel_workers={{ .Values.pg.args.maxParallelWorkers }}"
           {{- end }}
+          {{- if .Values.pg.args.maxParallelMaintenanceWorkers }}
+          - "--max_parallel_maintenance_workers={{ .Values.pg.args.maxParallelMaintenanceWorkers }}"
+          {{- end }}
           {{- if .Values.pg.args.randomPageCost }}
           - "--random_page_cost={{ .Values.pg.args.randomPageCost }}"
           {{- end }}

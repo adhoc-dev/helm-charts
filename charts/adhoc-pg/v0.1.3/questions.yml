@@ -2,7 +2,7 @@ questions:
   - variable: pg.diskSize
     label: "Disk size in GB"
     description: |
-      Size of persistent in GB
+      Size of persistent in GB (prod = 500, demo = 100, boggio = 400)
     required: true
     default: "10"
     type: "int"
@@ -23,10 +23,10 @@ questions:
     description: "Postgres User"
     label: "Postgres User"
     required: true
-    default: "postgres_user"
+    default: "odoo"
     type: "string"
   - variable: pg.pass
-    description: "Postgres Password"
+    description: "Postgres Password (sólo usar alfanuméricos)"
     label: "Postgres Password"
     required: true
     default: "postgres_password"
@@ -72,7 +72,7 @@ questions:
     type: "string"
   - variable: pg.args.maxParallelWorkersPerGather
     group: "optionals"
-    label: "Maximum number of workers per Gather"
+    label: "Maximum number of workers per Gather (2 → is_demo 1)"
     description: |
       Sets the maximum number of workers that can be started by a single Gather or Gather Merge node
       Note: that parallel queries may consume very substantially more resources than non-parallel queries, because each worker process is a completely separate process which has roughly the same impact on the system as an additional user session
@@ -131,6 +131,14 @@ questions:
       Sets the maximum number of workers that the system can support for parallel operations. The default value is 8. When increasing or decreasing this value, consider also adjusting max_parallel_maintenance_workers and max_parallel_workers_per_gather. Also, note that a setting for this value which is higher than max_worker_processes will have no effect, since parallel workers are taken from the pool of worker processes established by that setting.
     required: false
     default: 8
+    type: "int"
+  - variable: pg.args.maxParallelMaintenanceWorkers
+    group: "optionals"
+    label: "Sets the maximum number of parallel workers that can be active at one time"
+    description: |
+      ...
+    required: false
+    default: 2
     type: "int"
   - variable: pg.args.randomPageCost
     group: "optionals"

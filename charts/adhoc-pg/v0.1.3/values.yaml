@@ -43,10 +43,10 @@ resources:
 #  limits:
 #    cpu: 6000m
 #    memory: 168960Mi
-# Request de acuerdo a mediciones random de los pods
+# Request de acuerdo a estimaciones amplias (y tener visibilidad si intenta schedulear y no encuentra nodo)
   requests:
-    cpu: 300m
-#    memory: 15907Mi
+    cpu: 1000m
+    memory: 15907Mi
 
 autoscaling:
   enabled: false
@@ -73,23 +73,25 @@ nodeSelector: {}
 
 pg:
   data: ""
-  db: ""
-  user: ""
+  db: "postgres"
+  user: "odoo"
   pass: ""
   port: 5432
   args:
-    maxConn: 2500
+    maxConn: 2000
     workMem: 24MB
-    ecs: 11520MB
+    ecs: 23040MB
     # Optionals
-    sharedBuffers: 3840MB
+    sharedBuffers: 7680MB
+    # max_parallel_workers_per_gather = 2 → is_demo 1
     maxParallelWorkersPerGather: 2
     minWalSize: 1GB
     maxWalSize: 4GB
     effectiveIOConcurrency: 200
-    maintenanceWorkMem: 1920MB
-    maxWorkerProcesses: 2
-    maxParallelWorkers: 2
+    maintenanceWorkMem: 2GB
+    maxWorkerProcesses: 4
+    maxParallelWorkers: 4
+    maxParallelMaintenanceWorkers: 2
     randomPageCost: 1.1
     checkpointCompletionTarget: 0.9
     walBuffers: 256MB
@@ -99,7 +101,8 @@ pg:
     statementsMax: 10000
     statementsTrack: all
   extraArgs:
-  diskSize: 10
+  # prod = 500, demo = 100, boggio = 400
+  diskSize: 500
 
 killer:
   # UTC
