@@ -113,14 +113,10 @@ spec:
               value: {{ .Values.odoo.basic.emailFrom | quote }}
             {{- end }}
             # Performance Config
-            {{- if .Values.odoo.performance.workers }}
             - name: "WORKERS"
               value: {{ .Values.odoo.performance.workers | quote }}
-            {{- end }}
-            {{- if .Values.odoo.performance.maxCronTh }}
             - name: "MAX_CRON_THREADS"
               value: {{ .Values.odoo.performance.maxCronTh | quote }}
-            {{- end }}
             {{- if .Values.odoo.performance.maxDbConn }}
             - name: "DB_MAXCONN"
               value: {{ .Values.odoo.performance.maxDbConn | quote }}
@@ -141,14 +137,10 @@ spec:
             - name: "LIMIT_TIME_CPU"
               value: {{ .Values.odoo.performance.maxTimeCpu | quote }}
             {{- end }}
-            {{- if .Values.odoo.performance.maxTimeReal }}
             - name: "LIMIT_TIME_REAL"
               value: {{ .Values.odoo.performance.maxTimeReal | quote }}
-            {{- end }}
-            {{- if .Values.odoo.performance.maxTimeCron }}
             - name: "LIMIT_TIME_REAL_CRON"
               value: {{ .Values.odoo.performance.maxTimeCron | quote }}
-            {{- end }}
             - name: "FILESTORE_COPY_HARD_LINK"
               value: "true"
             - name: "FILESTORE_OPERATIONS_THREADS"
