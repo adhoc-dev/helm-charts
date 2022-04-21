@@ -57,15 +57,7 @@ autoscaling:
 tolerations: []
 
 #affinity: {}
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: pg
-          operator: In
-          values:
-          - "true"
+nodeTag: "pg"
 
 nodeSelector: {}
 #nodeSelector:

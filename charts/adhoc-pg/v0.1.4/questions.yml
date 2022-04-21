@@ -19,6 +19,13 @@ questions:
     required: true
     default: "10"
     type: "int"
+# NodeTag - Affinity
+  - variable: nodeTag
+    label: "Node tag for node affinity"
+    description: "Tag to schedule pods in nodes"
+    type: "string"
+    required: true
+    default: "pg"
 # pg values
   - variable: pg.port
     description: |
