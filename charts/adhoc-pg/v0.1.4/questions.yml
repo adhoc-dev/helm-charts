@@ -1,4 +1,17 @@
 questions:
+# Pods limits and requests
+  - variable: resources.requests.cpu
+    label: "Pods CPU Request"
+    description: "Generalmente usamos aca el mismo valor que en pgtune para estimar el resto de los parámetros"
+    type: "string"
+    required: true
+    default: "1000m"
+  - variable: resources.requests.memory
+    label: "Pods Memory Request"
+    description: "Generalmente usamos aca el mismo valor que en pgtune para estimar el resto de los parámetros"
+    type: "string"
+    required: true
+    default: "15907Mi"
   - variable: pg.diskSize
     label: "Disk size in GB"
     description: |
@@ -6,6 +19,7 @@ questions:
     required: true
     default: "10"
     type: "int"
+# pg values
   - variable: pg.port
     description: |
       Port where postgres server will listen.
@@ -36,6 +50,7 @@ questions:
     required: true
     default: "1000"
     type: "int"
+# pg tune performance parameters
   - variable: pg.args.sharedBuffers
     label: "Shared Buffers"
     description: |
