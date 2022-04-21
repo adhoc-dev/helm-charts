@@ -153,4 +153,4 @@ storage:
   aws_access_key_id: "keyId"
   aws_secret_access_key: "secret"
 
-nodeTag: "prod"
+nodeTag: ""
