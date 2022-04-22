@@ -46,7 +46,7 @@ spec:
                       operator: In
                       values:
                       - "true"
-
+          {{- end }}
           {{- with .Values.tolerations }}
           tolerations:
             {{- toYaml . | nindent 12 }}
