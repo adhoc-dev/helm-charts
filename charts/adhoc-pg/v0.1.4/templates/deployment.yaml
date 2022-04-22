@@ -115,8 +115,8 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 5432
-            initialDelaySeconds: 60
-            periodSeconds: 60
+            initialDelaySeconds: 6
+            periodSeconds: 6
           # TODO: exec psql -c "\l" ??
           livenessProbe:
             tcpSocket:
