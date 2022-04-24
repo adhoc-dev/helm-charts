@@ -4,6 +4,8 @@
 
 replicaCount: 1
 
+isProd: false
+
 image:
   repository: adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
@@ -85,8 +87,15 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 90
 
-nodeSelector: {}
-tolerations: {}
+# Prod
+nodeSelector:
+  cloud.google.com/gke-spot: 'true'
+
+tolerations:
+  - key: cloud.google.com/gke-spot
+    operator: Equal
+    value: "true"
+    effect: PreferNoSchedule
 
 multiEnvVariables:
   # example: "yes"
