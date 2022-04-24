@@ -55,7 +55,12 @@ spec:
         - name: nginx-index
           configMap:
             name: {{ include "adhoc-defaultbackend.fullname" . }}-index
-      {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
