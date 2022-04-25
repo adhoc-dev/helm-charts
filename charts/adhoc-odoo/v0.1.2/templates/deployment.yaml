@@ -251,7 +251,16 @@ spec:
             preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
               podAffinityTerm:
-                labelSelector: ~
+                labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                    - {{ include "adhoc-odoo.name" . }}
+                  - key: app.kubernetes.io/instance
+                    operator: In
+                    values:
+                    - {{ .Release.Name }}
                 topologyKey: "node"
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
