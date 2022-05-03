@@ -3,5 +3,12 @@ kind: ConfigMap
 metadata:
   name: {{ include "adhoc-defaultbackend.fullname" . }}-index
 data:
-  index.html: "<html>ADHOC</html>"
+  index.html:
+   "<html>Ooops!
+   No podemos encontrar este dominio.
+   Causas posibles:
+    - El dominio no existe.
+    - El dominio no está activo.
+    - El dominio no tiene ningún recurso disponible.
+  </html>"
 
