@@ -39,28 +39,44 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-applicationPort:
-  libreoffice: 8100
-  aeroo: 8989
+libreOffice:
+  port: 8100
+  livenessProbe:
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    tcpSocket:
+      port: 8100
+    timeoutSeconds: 5
 
-livenessProbe:
-  failureThreshold: 3
-  periodSeconds: 10
-  successThreshold: 1
-  timeoutSeconds: 5
+  readinessProbe:
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 2
+    tcpSocket:
+      port: 8100
+    timeoutSeconds: 5
 
-readinessProbe:
-  failureThreshold: 3
-  periodSeconds: 10
-  successThreshold: 2
-  timeoutSeconds: 5
+aeroo:
+  port: 8989
+  livenessProbe:
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    tcpSocket:
+      port: 8989
+    timeoutSeconds: 5
+
+  readinessProbe:
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 2
+    tcpSocket:
+      port: 8989
+    timeoutSeconds: 5
 
 service:
   type: ClusterIP
-  libreoffice:
-    port: 8100
-  aeroo:
-    port: 8989
 
 ingress:
   enabled: false

@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,20 +35,15 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.applicationPort.aeroo }}
+              containerPort: {{ .Values.aeroo.port }}
               protocol: TCP
-          {{- $port := .Values.applicationPort.aeroo }}
-          {{- with .Values.livenessProbe }}
+          {{- with .Values.aeroo.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
-              tcpSocket:
-                port: {{ $port }}
           {{- end }}
-          {{- with .Values.readinessProbe }}
+          {{- with .Values.aeroo.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
-              tcpSocket:
-                port: {{ $port }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -103,20 +97,15 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.applicationPort.aeroo }}
+              containerPort: {{ .Values.libreOffice.port }}
               protocol: TCP
-          {{- $port := .Values.applicationPort.libreoffice }}
-          {{- with .Values.livenessProbe }}
+          {{- with .Values.libreOffice.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
-              tcpSocket:
-                port: {{ $port }}
           {{- end }}
-          {{- with .Values.readinessProbe }}
+          {{- with .Values.libreOffice.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
-              tcpSocket:
-                port: {{ $port }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -132,4 +121,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
----
