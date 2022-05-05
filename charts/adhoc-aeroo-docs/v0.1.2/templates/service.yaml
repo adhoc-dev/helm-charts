@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adhoc-aeroo.fullname" . }}
+  labels:
+    {{- include "adhoc-aeroo.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.aeroo.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "adhoc-aeroo.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adhoc-aeroo.fullname" . }}-libreoffice
+  labels:
+    {{- include "adhoc-libreoffice.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.libreOffice.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "adhoc-libreoffice.selectorLabels" . | nindent 4 }}
