@@ -43,10 +43,10 @@ resources:
 #  limits:
 #    cpu: 6000m
 #    memory: 168960Mi
-# Request de acuerdo a estimaciones amplias (y tener visibilidad si intenta schedulear y no encuentra nodo)
+# Request para tener visibilidad si intenta schedulear y no encuentra nodo (definimos 50GB / 25GB y 40GB / 20GB en pgtune)
   requests:
-    cpu: 2000m
-    memory: 20Gi
+    cpu: 3000m
+    memory: 50Gi
 
 autoscaling:
   enabled: false
@@ -57,7 +57,7 @@ autoscaling:
 tolerations: []
 
 #affinity: {}
-nodeTag: "Prod"
+nodeTag: "pg"
 
 nodeSelector: {}
 
@@ -69,17 +69,17 @@ pg:
   port: 5432
   args:
     maxConn: 2000
-    workMem: 24MB
-    ecs: 15GB
+    workMem: 18MB
+    ecs: 30GB
     # Optionals
-    sharedBuffers: 5GB
-    maxParallelWorkersPerGather: 1
-    minWalSize: 2GB
-    maxWalSize: 8GB
+    sharedBuffers: 10GB
+    maxParallelWorkersPerGather: 2
+    minWalSize: 1GB
+    maxWalSize: 4GB
     effectiveIOConcurrency: 200
     maintenanceWorkMem: 1920MB
-    maxWorkerProcesses: 2
-    maxParallelWorkers: 2
+    maxWorkerProcesses: 4
+    maxParallelWorkers: 4
     maxParallelMaintenanceWorkers: 1
     randomPageCost: 1.1
     checkpointCompletionTarget: 0.9

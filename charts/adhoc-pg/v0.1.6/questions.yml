@@ -3,17 +3,17 @@ questions:
   - variable: resources.requests.cpu
     group: "Resources"
     label: "Pods CPU Request (requests.cpu)"
-    description: "Mismo valor que en PGTune para estimar el resto de los parámetros"
+    description: "Mismo valor que en PGTune para estimar el resto de los parámetros (los valores por defecto de todo el chart aplican a PG 'principales' vs 'PG 50%' como adhoc-pg-v13-3-0, ver app-readme.md)"
     type: "string"
     required: true
-    default: "2000m"
+    default: "3000m"
   - variable: resources.requests.memory
     group: "Resources"
     label: "Pods Memory Request (requests.memory)"
-    description: "Mismo valor que en PGTune para estimar el resto de los parámetros"
+    description: "Sumamos un 25% al valor usado en PGTune (pgtune 20 / 40GB, request 25 / 50GB)"
     type: "string"
     required: true
-    default: "20Gi"
+    default: "50Gi"
   - variable: pg.diskSize
     group: "Resources"
     label: "Disk size in GB (diskSize)"
@@ -29,7 +29,7 @@ questions:
     description: "Tag to schedule pods in nodes"
     type: "string"
     required: true
-    default: "Prod"
+    default: "pg"
 
 # PG values
   - variable: pg.port
@@ -65,7 +65,7 @@ questions:
     group: "PG values"
     label: "Max Connections (maxConn)"
     required: true
-    default: "1100"
+    default: "2000"
     type: "int"
 
 # PGTune performance parameters
@@ -73,21 +73,21 @@ questions:
     group: "PGtune performance"
     label: "Shared Buffers (sharedBuffers)"
     required: false
-    default: "5GB"
+    default: "10GB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.ecs
     group: "PGtune performance"
     label: "Effective Cache Size (ecs)"
     required: true
-    default: "15GB"
+    default: "30GB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.workMem
     group: "PGtune performance"
     label: "Work Mem (workMem)"
     required: true
-    default: "64MB"
+    default: "18MB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.extraArgs
@@ -100,22 +100,22 @@ questions:
     group: "optionals"
     label: "Maximum number of workers per Gather (maxParallelWorkersPerGather)"
     description: |
-      Para demo o PG "segmentados" = 1
+      Para demo o PG "al 50%" = 1
     required: false
-    default: 1
+    default: 2
     type: "int"
   - variable: pg.args.maxWalSize
     group: "optionals"
     label: "Sets the WAL size that triggers a checkpoint (maxWalSize)"
     required: false
-    default: "8GB"
+    default: "4GB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.minWalSize
     group: "optionals"
     label: "Sets the minimum size to shrink the WAL to (minWalSize)"
     required: false
-    default: "2GB"
+    default: "1GB"
     type: "string"
     valid_chars: "[0-9]{1,10}(GB|MB)"
   - variable: pg.args.effectiveIOConcurrency
@@ -135,13 +135,13 @@ questions:
     group: "optionals"
     label: "Maximum number of concurrent worker processes (maxWorkerProcesses)"
     required: false
-    default: 2
+    default: 4
     type: "int"
   - variable: pg.args.maxParallelWorkers
     group: "optionals"
     label: "Sets the maximum number of parallel workers that can be active at one time (maxParallelWorkers)"
     required: false
-    default: 2
+    default: 4
     type: "int"
   - variable: pg.args.maxParallelMaintenanceWorkers
     group: "optionals"
