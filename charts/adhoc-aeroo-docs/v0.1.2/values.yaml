@@ -6,9 +6,9 @@ replicaCount: 1
 
 image:
   libreoffice:
-    repository: adhoc/libreoffice
+    repository: adhoc/openoffice-service
   aeroo:
-    repository: adhoc/aeroo-docs
+    repository: adhoc/aeroodocs-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
