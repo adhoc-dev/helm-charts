@@ -51,9 +51,10 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  initContainers:
-    - name: {{ .Chart.Name }}-init
-      command: ["/bin/sh", "-c", "until nslookup {{ include "adhoc-aeroo.fullname" . }}-libreoffice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for {{ include "adhoc-aeroo.fullname" . }}-libreoffice; sleep 2; done"]
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: busybox:1.28
+          command: ["/bin/sh", "-c", "until nslookup {{ include "adhoc-aeroo.fullname" . }}-libreoffice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for {{ include "adhoc-aeroo.fullname" . }}-libreoffice; sleep 2; done"]
 
       affinity:
           nodeAffinity:
