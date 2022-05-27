@@ -99,11 +99,11 @@ resources:
   #   cpu: 100m
   #   memory: 128Mi
   requests:
-    cpu: 200m
-    memory: 400Mi
+    cpu: 300m
+    memory: 500Mi
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
