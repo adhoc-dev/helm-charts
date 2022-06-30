@@ -242,6 +242,8 @@ spec:
               value: "true"
             - name: "ODOO_SESSION_REDIS_HOST"
               value: {{ .Values.redis.host | quote }}
+            - name: "ODOO_SESSION_REDIS_PASSWORD"
+              value: {{ .Values.redis.pass | quote  }}
             {{- end }}
             # Other environment variables (no funciona asi)
             # {{- range $key, $value := .Values.multiEnvVariables }}
