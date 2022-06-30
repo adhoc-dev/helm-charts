@@ -226,6 +226,7 @@ spec:
               value: {{ .Values.storage.aws_secret_access_key | quote }}
             # Redis Config
             {{- if .Values.redis.enabled }}
+            # values for v13- (remove when no longer customers on v13-)
             - name: "ENABLE_REDIS"
               value: "true"
             - name: "REDIS_HOST"
@@ -236,6 +237,11 @@ spec:
               value: {{ .Values.redis.pass | quote  }}
             - name: "REDIS_DBINDEX"
               value: "1"
+            # values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis)
+            - name: "ODOO_SESSION_REDIS"
+              value: "true"
+            - name: "ODOO_SESSION_REDIS_HOST"
+              value: {{ .Values.redis.host | quote }}
             {{- end }}
             # Other environment variables (no funciona asi)
             # {{- range $key, $value := .Values.multiEnvVariables }}
