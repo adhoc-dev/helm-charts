@@ -5,38 +5,35 @@
 replicaCount: 1
 
 jobs:
-  - name: adhoc-pods-cleanup
-    image:
-      repository: rancherlabs/swiss-army-knife
-      tag: latest
-      imagePullPolicy: IfNotPresent
-    schedule: "*/30 * * * *"
-    failedJobsHistoryLimit: 1
-    successfulJobsHistoryLimit: 3
-    concurrencyPolicy: Allow
-    restartPolicy: OnFailure
-    command: ["/bin/bash"]
-    args:
-      - "-c"
-      - "kubectl get pods --all-namespaces | grep Terminated | while read namespace pod rest; do kubectl delete pod $pod -n $namespace; done"
-
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-nodeTag: "Prod"
-
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: "Prod"
-          operator: In
-          values:
-          - "true"
+  name: adhoc-pods-cleanup
+  image:
+    repository: rancherlabs/swiss-army-knife
+    tag: latest
+    imagePullPolicy: IfNotPresent
+  schedule: "*/30 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Allow
+  restartPolicy: OnFailure
+  command: ["/bin/bash"]
+  args:
+    - "-c"
+    - "kubectl get pods --all-namespaces | grep Terminated | while read namespace pod rest; do kubectl delete pod $pod -n $namespace; done"
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+  nodeTag: "Prod"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "Prod"
+            operator: In
+            values:
+            - "true"

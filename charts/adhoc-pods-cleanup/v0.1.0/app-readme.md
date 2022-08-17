@@ -1,0 +1,3 @@
+# Adhoc pods cleanup
+
+App autogestionada para limpiar pods terminados (de odoos que se regeneraron en otros nodos spot) y no se limpian antes que el nodo se elimine. Kubernetes tiene su [Garbage Collection](https://kubernetes.io/docs/concepts/architecture/garbage-collection/) con un --terminated-pod-gc-threshold  seteado por Default en 12500 (demasiados pods), pero para no intervenir el kube-controller-manager creamos este chart que hace "limpieza".
