@@ -1,0 +1,13 @@
+apiVersion: v1
+entries: 
+  adhoc-aeroo-docs:
+    - created: 2022-01-01T00:00:00.0-03:00
+      description: Deploy aeroo + libreoffice for report generation (PDFs)
+      home: https://helm.sh/helm
+      name: adhoc-aeroo-docs
+      sources:
+      - https://github.com/adhoc-dev/
+      urls:
+      - https://github.com/adhoc-dev/helm-charts/charts/adhoc-aeroo-docs/
+      version: 0.1.1
+generated: "2022-08-17T17:12:31.8057319-03:00"

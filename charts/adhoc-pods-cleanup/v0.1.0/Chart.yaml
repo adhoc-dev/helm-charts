@@ -1,3 +1,5 @@
+annotations:
+  category: DevOps
 apiVersion: v2
 name: adhoc-pods-cleanup
 description: Dummy app for cleanup of "Terminated" pods (specially for preemptible nodes)
