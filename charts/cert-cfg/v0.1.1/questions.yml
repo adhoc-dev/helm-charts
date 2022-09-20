@@ -1,0 +1,25 @@
+questions:
+  - variable: issuerEmail
+    label: "Email"
+    description: "email used for let's encrypt notifications"
+    type: "string"
+    required: true
+    default: "bot@adhoc.com.ar"
+  - variable: issuerCloudDNS.hostedZoneName
+    label: "CloudDomain"
+    description: ""
+    type: "string"
+    required: true
+    default: "dev-adhoc.com"
+  - variable: issuerCloudDNS.dnsZoneName
+    label: "CloudDomain"
+    description: "DNS Zone in Google Compute Engine"
+    type: "string"
+    required: true
+    default: "dev-adhoc"
+  - variable: issuerCloudDNS.project
+    label: "Project"
+    description: "Google Compute Engine Project"
+    type: "string"
+    required: true
+    default: "proyecto-laboratorios"

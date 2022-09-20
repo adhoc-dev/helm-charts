@@ -1,0 +1,13 @@
+# Default values for cert-cfg.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+issuerEmail: "bot@adhoc.com.ar"
+
+issuerCloudDNS:
+  hostedZoneName: "dev-adhoc.com"
+  dnsZoneName: "dev-adhoc"
+  project: "proyecto-laboratorios"
