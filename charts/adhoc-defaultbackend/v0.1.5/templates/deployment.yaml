@@ -49,6 +49,18 @@ spec:
             - mountPath: /usr/share/nginx/html/index.html
               name: nginx-index
               subPath: index.html
+            - mountPath: /usr/share/nginx/html/style.css
+              name: nginx-index
+              subPath: style.css
+            - mountPath: /usr/share/nginx/html/back_vector01.png
+              name: nginx-index
+              subPath: back_vector01.png
+            - mountPath: /usr/share/nginx/html/favicon.ico
+              name: nginx-index
+              subPath: favicon.ico
+            - mountPath: /usr/share/nginx/html/logo_adhoc.png
+              name: nginx-index
+              subPath: logo_adhoc.png
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

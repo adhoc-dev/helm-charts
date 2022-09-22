@@ -6,3 +6,15 @@ data:
   index.html: {{ print "|-" }}
   {{ range .Files.Lines "index.html" }}
     {{ . }}{{ end }}
+  style.css: {{ print "|-" }}
+  {{ range .Files.Lines "style.css" }}
+    {{ . }}{{ end }}
+  favicon.ico: {{ print "|-" }}
+  {{ range .Files.Lines "favicon.ico" }}
+    {{ . }}{{ end }}
+  logo_adhoc.png: {{ print "|-" }}
+  {{ range .Files.Lines "logo_adhoc.png" }}
+    {{ . }}{{ end }}
+  back_vector01.png: {{ print "|-" }}
+  {{ range .Files.Lines "back_vector01.png" }}
+    {{ . }}{{ end }}
