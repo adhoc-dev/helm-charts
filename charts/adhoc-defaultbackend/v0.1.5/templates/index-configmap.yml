@@ -9,12 +9,10 @@ data:
   style.css: {{ print "|-" }}
   {{ range .Files.Lines "style.css" }}
     {{ . }}{{ end }}
-  favicon.ico: {{ print "|-" }}
-  {{ range .Files.Glob "favicon.ico" }}
-    {{ . }}{{ end }}
-  logo_adhoc.png: {{ print "|-" }}
-  {{ range .Files.Glob "logo_adhoc.png" }}
-    {{ . }}{{ end }}
-  back_vector01.png: {{ print "|-" }}
-  {{ range .Files.Glob "back_vector01.png" }}
-    {{ . }}{{ end }}
+  favicon.ico: {{ "|-" }}
+    {{  .Files.Get "favicon.ico" | b64enc }}
+  logo_adhoc.png: {{  "|-" }}
+    {{  .Files.Get "logo_adhoc.png"  | b64enc }}
+  back_vector01.png: {{  "|-" }}
+    {{  .Files.Get "back_vector01.png"  | b64enc }}
+
