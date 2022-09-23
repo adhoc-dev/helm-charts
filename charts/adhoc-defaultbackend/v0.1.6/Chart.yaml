@@ -6,7 +6,7 @@ description: El "backend predeterminado" es un servicio que maneja todas las rut
 
 type: application
 
-version: 0.1.5
+version: 0.1.6
 
 appVersion: "stable-alpine"
 
