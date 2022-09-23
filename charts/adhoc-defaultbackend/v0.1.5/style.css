@@ -144,8 +144,9 @@ footer {
   width: 100vw;
   display: flex;
   flex-flow: row wrap;
-  padding: 30px 30px 50px 30px;
+  padding: 30px 30px 27px 30px;
   background-color: rgb(43, 40, 63);
+  margin-bottom: 0;
 
 }
 
@@ -155,7 +156,7 @@ footer > * {
 
 .footer__addr {
   margin-right: 1.25em;
-  margin-bottom: 2em;
+  margin-bottom: 1em;
 }
 
 .nav__title {
@@ -177,7 +178,7 @@ footer > * {
   line-height: 0;
   margin: 0.6em 0;
   font-size: 1rem;
-  padding: 0 1.3em;
+  padding: 0 0em;
 }
 
 footer ul {
