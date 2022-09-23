@@ -1,0 +1,22 @@
+annotations:
+  category: DevOps
+apiVersion: v2
+name: adhoc-defaultbackend
+description: El "backend predeterminado" es un servicio que maneja todas las rutas URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las solicitudes que no están asignadas con un Ingress).
+
+type: application
+
+version: 0.1.5
+
+appVersion: "stable-alpine"
+
+home: "https://github.com/adhoc-dev/helm-charts"
+sources:
+  - "https://github.com/adhoc-dev/"
+maintainers:
+  - name: dbollini
+    email: dib@adhoc.com.ar
+  - name: jjscarafia
+    email: jjs@adhoc.com.ar
+
+icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png"
