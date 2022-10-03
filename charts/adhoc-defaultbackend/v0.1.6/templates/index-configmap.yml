@@ -9,7 +9,3 @@ data:
   style.css: {{ print "|-" }}
   {{ range .Files.Lines "style.css" }}
     {{ . }}{{ end }}
-  binaryData:
-    {{ .Files.Get "favicon.ico" | b64enc | nindent 4 }}
-    {{ .Files.Get "logo_adhoc.png" | b64enc | nindent 4 }}
-    {{ .Files.Get "back_vector01.png" | b64enc | nindent 4 }}
