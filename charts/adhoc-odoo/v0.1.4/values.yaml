@@ -111,6 +111,9 @@ odoo:
   # Performance Config
   saas:
     mode: false
+    autoinstallEnabled: "server_mode"
+    autoinstallDisabled: "snailmail,account_edi_facturx"
+    installDisabled: "l10n_es"
   performance:
     workers: 0
     maxCronTh: 1
