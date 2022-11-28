@@ -158,6 +158,18 @@ spec:
             - name: "SERVER_MODE"
               value: {{ .Values.odoo.saas.mode | quote }}
             {{- end }}
+            {{- if .Values.odoo.saas.autoinstallEnabled }}
+            - name: "MODULES_AUTOINSTALL_ENABLED"
+              value: {{ .Values.odoo.saas.autoinstallEnabled | quote }}
+            {{- end }}
+            {{- if .Values.odoo.saas.autoinstallDisabled }}
+            - name: "MODULES_AUTOINSTALL_DISABLED"
+              value: {{ .Values.odoo.saas.autoinstallDisabled | quote }}
+            {{- end }}
+            {{- if .Values.odoo.saas.installDisabled }}
+            - name: "MODULES_INSTALL_DISABLED"
+              value: {{ .Values.odoo.saas.installDisabled | quote }}
+            {{- end }}
             - name: "DISABLE_SESSION_GC"
               value: "true"
             # Entrypoint
