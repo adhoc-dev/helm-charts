@@ -166,19 +166,19 @@ questions:
     required: false
     default: ""
   - variable: odoo.saas.autoinstallEnabled
-    group: "Basic"
+    group: "Saas"
     label: "Modules auto install enabled, more info in https://github.com/OCA/server-tools/tree/14.0/module_change_auto_install"
     type: "string"
     required: false
     default: ""
   - variable: odoo.saas.autoinstallDisabled
-    group: "Basic"
+    group: "Saas"
     label: "Modules auto install disabled"
     type: "string"
     required: false
     default: ""
   - variable: odoo.saas.installDisabled
-    group: "Basic"
+    group: "Saas"
     label: "Modules install disabled"
     type: "string"
     required: false
