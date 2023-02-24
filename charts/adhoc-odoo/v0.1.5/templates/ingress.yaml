@@ -62,7 +62,7 @@ spec:
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
           {{- if $useLongpolling }}
-          - path: /websocket/
+          - path: /websocket
             pathType: Prefix
             backend:
               service:
