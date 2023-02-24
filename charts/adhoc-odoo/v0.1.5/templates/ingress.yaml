@@ -27,6 +27,13 @@ metadata:
     # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-longpolling
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      map $http_upgrade $connection_upgrade {
+          default upgrade;
+          '' close;
+      }
+    nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
     {{- end }}
 spec:
   {{- if and .Values.ingress.enableHttps }}
