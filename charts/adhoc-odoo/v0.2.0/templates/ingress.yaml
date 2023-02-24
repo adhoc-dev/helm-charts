@@ -27,6 +27,10 @@ metadata:
     # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/affinity: cookie
+    # en realidad vimos que no es necesario ya por defecto los pareciera levantar
+    # TODO rename longpolling to websocket everywhere
+    nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-longpolling
+    nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
     {{- end }}
 spec:
   {{- if and .Values.ingress.enableHttps }}
@@ -59,7 +63,7 @@ spec:
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
           {{- if $useLongpolling }}
-          - path: /longpolling/
+          - path: /websocket
             pathType: Prefix
             backend:
               service:
@@ -84,7 +88,7 @@ spec:
                 port:
                   number: 80
           {{- if $useLongpolling }}
-          - path: /longpolling/
+          - path: /websocket
             pathType: Prefix
             backend:
               service:
