@@ -62,6 +62,13 @@ spec:
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
           {{- if $useLongpolling }}
+          - path: /longpolling/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-longpolling
+                port:
+                  number: 80
           - path: /websocket
             pathType: Prefix
             backend:
