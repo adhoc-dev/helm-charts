@@ -41,7 +41,7 @@ spec:
             - name: http
               containerPort: 8069
               protocol: TCP
-            - name: longpolling
+            - name: websocket
               containerPort: 8072
               protocol: TCP
           {{- with .Values.livenessProbe }}
