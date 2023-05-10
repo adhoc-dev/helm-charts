@@ -65,7 +65,3 @@ redis:
     appendonly: "yes"
     requirepass: "asd"
   port: 6379
-
-podPriority:
-  enabled: true
-  priorityClassName: "system-cluster-critical"
