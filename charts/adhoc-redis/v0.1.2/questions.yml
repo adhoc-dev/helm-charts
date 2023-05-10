@@ -1,5 +1,5 @@
 questions:
-# NodeTag - Affinity
+  # NodeTag - Affinity
   - variable: nodeTag
     group: "Resources"
     label: "Node tag for node affinity (nodeTag)"
@@ -7,6 +7,24 @@ questions:
     type: "string"
     required: true
     default: "Prod"
+
+  # Pods limits and requests
+  - variable: resources.requests.cpu
+    group: "Resources"
+    label: "Pods CPU Request"
+    description: "Pods CPU Request"
+    type: "string"
+    required: true
+    default: "300m"
+  - variable: resources.requests.memory
+    group: "Resources"
+    label: "Pods Memory Request"
+    description: "Pods Memory Request"
+    type: "string"
+    required: true
+    default: "3Gi"
+
+  # Redis - Arguments
   - variable: redis.arguments.maxclients
     group: "Arguments"
     label: "Maximum number of clients"

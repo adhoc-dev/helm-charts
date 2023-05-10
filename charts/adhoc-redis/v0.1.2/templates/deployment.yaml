@@ -25,6 +25,7 @@ spec:
       serviceAccountName: {{ include "adhoc-redis.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      priorityClassName: {{ .Values.podPriority.priorityClassName }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
