@@ -1,15 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "adhoc-redis.fullname" . }}
-  labels:
-    {{- include "adhoc-redis.labels" . | nindent 4 }}
+  name: { { include "adhoc-redis.fullname" . } }
+  labels: { { - include "adhoc-redis.labels" . | nindent 4 } }
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.service.port }}
+    - port: { { .Values.service.port } }
       targetPort: redis
       protocol: TCP
       name: redis
-  selector:
-    {{- include "adhoc-redis.selectorLabels" . | nindent 4 }}
+  selector: { { - include "adhoc-redis.selectorLabels" . | nindent 4 } }
