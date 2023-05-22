@@ -5,4 +5,4 @@ metadata:
 value: 1000000
 preemptionPolicy: Never
 globalDefault: false
-description: "This priority class should be used for XYZ service pods only."
+description: "Esta clase de Prioridad Alta sólo aplica para recursos críticos (redis)"
