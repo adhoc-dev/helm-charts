@@ -18,40 +18,19 @@ image:
 ##
 # fullnameOverride:
 
-# Config Jetty web server
-listen:
-  host: "0.0.0.0"
-  port: 3000
-
-monitoring:
-  enabled: false
-  port: 9191
-ssl:
-  # If you have an ssl certificate and would prefer to have Metabase run over HTTPS
-  enabled: false
-  # port: 8443
-  # keyStore: |-
-  #   << JKS KEY STORE >>
-  # keyStorePassword: storepass
-jetty:
-#  maxThreads: 254
-#  minThreads: 8
-#  maxQueued: -1
-#  maxIdleTime: 60000
-
 # Backend database
 database:
   # Database type (h2 / mysql / postgres), default: h2
-  type: h2
+  type: postgres
   ## Specify file to store H2 database.  You will also have to back this with a volume (cf. extraVolume and extraVolumeMounts)!
   # file:
   # encryptionKey: << YOUR ENCRYPTION KEY OR LEAVE BLANK AND USE EXISTING SECRET >>
   ## Only need when you use mysql / postgres
-  # host:
-  # port:
-  # dbname:
-  # username:
-  # password:
+  host:
+  port:
+  dbname:
+  username:
+  password:
   ## Alternatively, use a connection URI for full configurability. Example for SSL enabled Postgres.
   # connectionURI: postgres://<host>:<port>/<database>?user=<username>&password=<password>&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
   ## If a secret with the database credentials already exists, use the following values:
@@ -147,12 +126,13 @@ service:
     # Used to add custom annotations to the Service.
     # service.beta.kubernetes.io/aws-load-balancer-internal: "0.0.0.0/0"
 ingress:
-  enabled: false
+  enabled: true
   # The ingress class name, if you use multiple ingress controllers:
   # className: ...
   # Used to create Ingress record (should used with service.type: ClusterIP).
-  hosts:
-    - "*"
+  hosts: ""
+  cloudMainDomain:
+    tuukan.com
     # - metabase.domain.com
   # The ingress path. Useful to host metabase on a subpath, such as `/metabase`.
   path: /

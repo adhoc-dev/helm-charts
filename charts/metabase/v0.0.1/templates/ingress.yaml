@@ -77,3 +77,49 @@ spec:
   {{- end -}}
 {{- end }}
 {{- end -}}
+---
+apiVersion: cloud.google.com/v1
+kind: backendconfig
+metadata:
+  name: {{ include "metabase.fullname" . }}-backend-config
+# https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_backendconfig_parameters
+spec:
+  # kubectl explain backendconfig.spec
+  connectionDraining:
+    drainingTimeoutSec: 600
+  # healthCheck:
+  #   checkIntervalSec: interval
+  #   timeoutSec: timeout
+  #   healthyThreshold: health-threshold
+  #   unhealthyThreshold: unhealthy-threshold
+  #   type: protocol
+  #   requestPath: path
+  #   port: port
+  cdn:
+    enabled: true
+    cachePolicy:
+      # Cloud CDN is enabled for this Ingress backend.
+      # requests to different hosts are cached separately.
+      includeHost: true
+      # HTTP and HTTPS requests are cached separately.
+      includeProtocol: false
+      # If set to true, query string parameters are included in the cache key according to queryStringBlacklist or queryStringWhitelist. If neither is set, the entire query string is included. If set to false, the entire query string is excluded from the cache key.
+      includeQueryString: includeQueryString
+      # Specify a string array with the names of query string parameters to exclude from cache keys.
+      # All other parameters are included. You can specify queryStringBlacklist or queryStringWhitelist, but not both.
+      # queryStringBlacklist:
+      # Specify a string array with the names of query string parameters to include in cache keys. All other parameters are excluded. You can queryStringBlacklist or queryStringWhitelist, but not both.
+      queryStringWhitelist: queryStringWhitelist
+  # logging:
+  #   enable: true
+  #   sampleRate: 0.5
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 600
+  # customRequestHeaders:
+  #   headers:
+  #   - "X-Client-Region:{client_region}"
+  #   - "X-Client-City:{client_city}"
+  #   - "X-Client-CityLatLong:{client_city_lat_long}"
+
+{{- end }}
