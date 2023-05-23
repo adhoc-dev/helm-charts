@@ -57,36 +57,6 @@ spec:
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-          - name: MB_JETTY_HOST
-            value: {{ .Values.listen.host | quote }}
-          - name: MB_JETTY_PORT
-            value: {{ .Values.listen.port | quote }}
-          {{- if .Values.monitoring.enabled }}
-          - name: MB_PROMETHEUS_SERVER_PORT
-            value: {{ .Values.monitoring.port  | quote }}
-          {{- end }}
-          {{- if .Values.ssl.enabled }}
-          - name: MB_JETTY_SSL
-            value: true
-          - name: MB_JETTY_SSL_Port
-            value: {{ .Values.ssl.port | quote }}
-          - name: MB_JETTY_SSL_Keystore
-            valueFrom:
-              secretKeyRef:
-                name: {{ template "metabase.fullname" . }}-ssl
-                key: keystore
-          - name: MB_JETTY_SSL_Keystore_Password
-            valueFrom:
-              secretKeyRef:
-                name: {{ template "metabase.fullname" . }}-ssl
-                key: password
-          {{- end }}
-          {{- if .Values.jetty }}
-            {{- range $key, $value := .Values.jetty }}
-          - name: MB_JETTY_{{ $key | upper }}
-            value: {{ $value | quote }}
-            {{- end }}
-          {{- end }}
           - name: MB_DB_TYPE
             value: {{ .Values.database.type | lower }}
           {{- if .Values.database.file }}
@@ -178,10 +148,7 @@ spec:
           {{- end }}
           ports:
             - containerPort: {{ .Values.service.internalPort }}
-            {{- if .Values.monitoring.enabled }}
-            - containerPort: {{ .Values.monitoring.port }}
-              name: metrics
-            {{- end }}
+
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}

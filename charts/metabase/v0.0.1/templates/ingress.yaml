@@ -26,17 +26,18 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   rules:
-    {{- range $host := .Values.ingress.hosts }}
-    - host: {{ $host | quote }}
+    {{- if .Values.metabase }}
+    - host: "{{.Values.metabase}}.{{.Values.ingress.cloudMainDomain}}"
       http:
         paths:
-          - path: {{ $ingressPath }}
-            pathType: {{ $ingressPathType }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: {{ $serviceName }}
+                name: metabase-http
                 port:
-                  number: {{ $servicePort }}
+                  number: 80
+
     {{- end -}}
   {{- if .Values.ingress.tls }}
   tls:
@@ -121,5 +122,3 @@ spec:
   #   - "X-Client-Region:{client_region}"
   #   - "X-Client-City:{client_city}"
   #   - "X-Client-CityLatLong:{client_city_lat_long}"
-
-{{- end }}
