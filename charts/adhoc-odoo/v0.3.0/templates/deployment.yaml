@@ -1,8 +1,8 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: helloworld-go
-  namespace: default
+  name: {{ include "adhoc-odoo.fullname" . }}
+  namespace: {{ include "adhoc-odoo.fullname" . }}
 spec:
   template:
     spec:
@@ -10,4 +10,4 @@ spec:
         - image: ghcr.io/knative/helloworld-go:latest
           env:
             - name: TARGET
-              value: "Go Sample v1"
+              value: {{ .Values.odoo.saas.mode | quote }}
