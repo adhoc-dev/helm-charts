@@ -1,58 +1,31 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: serving.knative.dev/v1
+kind: Service
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-  annotations:
-    # https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager
-    {{- if .Values.ingress.enableHttps }}
-    certmanager.k8s.io/disable-auto-restart: "true"
-    {{- end }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
-  selector:
-    matchLabels:
-      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
-  strategy:
-    type: RollingUpdate
-  revisionHistoryLimit: 2
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
+        autoscaling.knative.dev/class: kpa.autoscaling.knative.dev
     spec:
-      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           ports:
-            - name: http
-              containerPort: 8069
+            - containerPort: 8069
               protocol: TCP
-            - name: longpolling
-              containerPort: 8072
+            - containerPort: 8072
               protocol: TCP
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+          # {{- with .Values.livenessProbe }}
+          # livenessProbe:
+          #   {{- toYaml . | nindent 12 }}
+          # {{- end }}
+          # {{- with .Values.readinessProbe }}
+          # readinessProbe:
+          #   {{- toYaml . | nindent 12 }}
+          # {{- end }}
           env:
+            # - name: "PGUSER"
+            #   value: {{ .Values.odoo.pg.user | quote }}
             # Database parameters
             {{- if .Values.odoo.pg.user }}
             - name: "PGUSER"
@@ -264,29 +237,62 @@ spec:
             # {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      affinity:
-          # Don't co-locate pods of this service with any other pods including pods of this service
-          # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector: ~
-                topologyKey: "node"
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: {{ .Values.nodeTag }}
-                  operator: In
-                  values:
-                  - "true"
 
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+
+  # labels:
+  #   {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  # selector:
+  #   matchLabels:
+  #     {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+  # strategy:
+  #   type: RollingUpdate
+  # revisionHistoryLimit: 2
+  # template:
+  #   metadata:
+  #     {{- with .Values.podAnnotations }}
+  #     annotations:
+  #       {{- toYaml . | nindent 8 }}
+  #     {{- end }}
+  #     labels:
+  #       {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
+  #   spec:
+  #     serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+  #     securityContext:
+  #       {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # containers:
+      #   - name: {{ .Chart.Name }}
+      #     securityContext:
+      #       {{- toYaml .Values.securityContext | nindent 12 }}
+          # image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+      # TODO VER DE IMPLEMENTAR
+      # affinity:
+      #     # Don't co-locate pods of this service with any other pods including pods of this service
+      #     # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
+      #     podAntiAffinity:
+      #       preferredDuringSchedulingIgnoredDuringExecution:
+      #       - weight: 100
+      #         podAffinityTerm:
+      #           labelSelector: ~
+      #           topologyKey: "node"
+      #     nodeAffinity:
+      #       requiredDuringSchedulingIgnoredDuringExecution:
+      #         nodeSelectorTerms:
+      #         - matchExpressions:
+      #           - key: {{ .Values.nodeTag }}
+      #             operator: In
+      #             values:
+      #             - "true"
+
+      # TODO borrar?
+      # {{- with .Values.tolerations }}
+      # tolerations:
+      #   {{- toYaml . | nindent 8 }}
+      # {{- end }}
+      # TODO implementar?
+      # {{- with .Values.nodeSelector }}
+      # nodeSelector:
+      #   {{- toYaml . | nindent 8 }}
+      # {{- end }}
+
