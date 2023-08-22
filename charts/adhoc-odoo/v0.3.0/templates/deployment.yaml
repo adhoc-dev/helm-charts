@@ -2,7 +2,7 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
-  namespace: {{ .Values.fullnameOverride }}
+  namespace: {{ .Values.nameOverride }}
 spec:
   template:
     spec:
