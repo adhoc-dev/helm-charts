@@ -41,9 +41,9 @@ spec:
             - name: http1
               containerPort: 8069
               protocol: TCP
-            - name: longpolling
-              containerPort: 8072
-              protocol: TCP
+            # - name: longpolling
+            #   containerPort: 8072
+            #   protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
