@@ -80,12 +80,12 @@ resources:
     cpu: {}
     memory: {}
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 90
+# autoscaling:
+#   enabled: false
+#   minReplicas: 1
+#   maxReplicas: 10
+#   targetCPUUtilizationPercentage: 80
+#   targetMemoryUtilizationPercentage: 90
 
 nodeSelector: {}
 tolerations: {}
@@ -157,5 +157,4 @@ storage:
   aws_bucketname: "acp-us-east1-test"
   aws_access_key_id: "keyId"
   aws_secret_access_key: "secret"
-
-nodeTag: "Prod"
+# nodeTag: "Prod"
