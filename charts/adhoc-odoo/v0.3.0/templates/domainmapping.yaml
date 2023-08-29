@@ -1,0 +1,18 @@
+
+{{- $autoinstallDisabled  := .Values.odoo.saas.autoinstallDisabled | quote }}
+{{- $fullName := include "adhoc-odoo.fullname" . -}}
+{{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts}}
+apiVersion: serving.knative.dev/v1alpha1
+kind: DomainMapping
+metadata:
+  name: {{ . | quote }}
+  namespace: {{ $fullName }}
+spec:
+  ref:
+    name: {{ $fullName }}
+    kind: Service
+    apiVersion: serving.knative.dev/v1
+  {{- end }}
+{{- end }}
