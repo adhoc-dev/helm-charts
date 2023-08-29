@@ -9,8 +9,8 @@ image:
   tag: "16.0"
   pullSecret: "regcred"
 
-nameOverride: "odoo-test"
-fullnameOverride: "odoo-test"
+nameOverride: ""
+fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
