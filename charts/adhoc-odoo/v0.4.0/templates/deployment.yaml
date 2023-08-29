@@ -14,10 +14,10 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # ports:
-          #   - name: http1
-          #     containerPort: 8069
-          #     protocol: TCP
+          ports:
+            - name: http1
+              containerPort: 8069
+              protocol: TCP
             # - name: longpolling
             #   containerPort: 8072
             #   protocol: TCP
@@ -241,23 +241,6 @@ spec:
             # {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      # affinity:
-      #     # Don't co-locate pods of this service with any other pods including pods of this service
-      #     # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
-      #     podAntiAffinity:
-      #       preferredDuringSchedulingIgnoredDuringExecution:
-      #       - weight: 100
-      #         podAffinityTerm:
-      #           labelSelector: ~
-      #           topologyKey: "node"
-      #     nodeAffinity:
-      #       requiredDuringSchedulingIgnoredDuringExecution:
-      #         nodeSelectorTerms:
-      #         - matchExpressions:
-      #           - key: {{ .Values.nodeTag }}
-      #             operator: In
-      #             values:
-      #             - "true"
 
       # {{- with .Values.tolerations }}
       # tolerations:
