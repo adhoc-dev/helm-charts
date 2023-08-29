@@ -92,7 +92,7 @@ spec:
             {{- end }}
             # Performance Config
             - name: "WORKERS"
-              value: 0
+              value: "0"
               # value: {{ .Values.odoo.performance.workers | quote }}
             - name: "MAX_CRON_THREADS"
               value: {{ .Values.odoo.performance.maxCronTh | quote }}
