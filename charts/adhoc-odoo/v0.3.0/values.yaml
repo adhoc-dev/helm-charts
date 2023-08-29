@@ -9,8 +9,8 @@ image:
   tag: "16.0"
   pullSecret: "regcred"
 
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: "odoo-test"
+fullnameOverride: "odoo-test"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -68,13 +68,13 @@ ingress:
   # True for Google Ingress or false for internal NGINX Ingress
   useGoogleCloudExternalLB: false
 
-# resources:
-#   limits:
-#     cpu: {}
-#     memory: {}
-#   requests:
-#     cpu: {}
-#     memory: {}
+resources:
+  limits:
+    cpu: 1000m
+    memory: 4096Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
 nodeSelector: {}
 tolerations: {}

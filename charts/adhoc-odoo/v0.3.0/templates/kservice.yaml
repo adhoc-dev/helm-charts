@@ -236,3 +236,5 @@ spec:
             - name: "ODOO_SESSION_REDIS_PASSWORD"
               value: {{ .Values.redis.pass | quote  }}
             {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
