@@ -69,12 +69,12 @@ ingress:
   useGoogleCloudExternalLB: false
 
 resources:
-  Limits:
-    cpu: 1
-    memory: 10
-  Requests:
-    cpu: 50m
-    memory: 300Mi
+  limits:
+    cpu: {}
+    memory: {}
+  requests:
+    cpu: {}
+    memory: {}
 
 nodeSelector: {}
 tolerations: {}
