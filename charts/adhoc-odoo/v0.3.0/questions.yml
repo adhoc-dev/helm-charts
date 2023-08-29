@@ -7,13 +7,6 @@ questions:
     type: "string"
     required: true
     default: "Prod"
-  - variable: replicaCount
-    group: "NodeTag"
-    label: "Replica Count"
-    description: "Scale (number of replicas)"
-    type: "int"
-    required: true
-    default: "1"
 
   # Docker image config
   - variable: image.repository
