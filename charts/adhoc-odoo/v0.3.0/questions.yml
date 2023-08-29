@@ -184,13 +184,13 @@ questions:
     required: false
     default: ""
 # Performance Configuration
-  - variable: odoo.performance.workers
-    group: "Performance"
-    label: "Odoo WORKERS"
-    description: "Odoo WORKERS environment var"
-    type: "int"
-    required: true
-    default: 0
+  # - variable: odoo.performance.workers
+  #   group: "Performance"
+  #   label: "Odoo WORKERS"
+  #   description: "Odoo WORKERS environment var"
+  #   type: "int"
+  #   required: true
+  #   default: 0
   - variable: odoo.performance.maxCronTh
     group: "Performance"
     label: "Maximum Cron Threads"

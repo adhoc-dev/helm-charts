@@ -23,8 +23,6 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations: {}
-
 podSecurityContext:
   {}
   # fsGroup: 2000
@@ -66,7 +64,7 @@ ingress:
   issuer: adhoc-letsencrypt-prod-issuer
   enableHttps: true
   # AltHost
-  hosts: ""
+  hosts: "midominio1.com,midominio2.com"
   cloudMainDomain: dev-adhoc.com
 
   # True for Google Ingress or false for internal NGINX Ingress

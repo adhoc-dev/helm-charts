@@ -11,7 +11,7 @@ image:
   tag: "13.0-enterprise"
   pullSecret: "regcred"
 
-nameOverride: ""
+nameOverride: "clienteprueba"
 fullnameOverride: ""
 
 serviceAccount:

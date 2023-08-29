@@ -4,20 +4,8 @@ metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
-  annotations:
-    # https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager
-    {{- if .Values.ingress.enableHttps }}
-    certmanager.k8s.io/disable-auto-restart: "true"
-    {{- end }}
 spec:
   template:
-    metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
     spec:
       imagePullSecrets:
       - name: dockerhub-credential-secret
@@ -29,6 +17,7 @@ spec:
             - name: http1
               containerPort: 8069
               protocol: TCP
+            # por ahora no implementado porque nos daba error y ademas lo queremos usar con workers = 0
             # - name: longpolling
             #   containerPort: 8072
             #   protocol: TCP
@@ -102,7 +91,8 @@ spec:
             {{- end }}
             # Performance Config
             - name: "WORKERS"
-              value: {{ .Values.odoo.performance.workers | quote }}
+              value: 0
+              # value: {{ .Values.odoo.performance.workers | quote }}
             - name: "MAX_CRON_THREADS"
               value: {{ .Values.odoo.performance.maxCronTh | quote }}
             {{- if .Values.odoo.performance.maxDbConn }}
