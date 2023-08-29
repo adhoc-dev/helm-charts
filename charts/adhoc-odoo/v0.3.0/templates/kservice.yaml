@@ -2,6 +2,7 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
+  namespace: {{ .Values.nameOverride }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
