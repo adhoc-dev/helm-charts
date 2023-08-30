@@ -3,6 +3,7 @@
 {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
     {{- range $hosts}}
+---
 apiVersion: serving.knative.dev/v1alpha1
 kind: DomainMapping
 metadata:
