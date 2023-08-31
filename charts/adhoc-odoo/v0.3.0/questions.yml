@@ -1,5 +1,5 @@
 questions:
-# NodeTag - Affinity
+  # NodeTag - Affinity
   - variable: nodeTag
     group: "NodeTag"
     label: "Node tag for node affinity"
@@ -27,9 +27,9 @@ questions:
     label: "pullSecret"
     type: "string"
     required: false
-    default: "adhocsa"
+    default: "dockerhub-credential-secret"
 
-# Database Configuration
+  # Database Configuration
   - variable: odoo.pg.db
     group: "Database"
     label: "Odoo DB Name"
@@ -65,7 +65,7 @@ questions:
     required: true
     default: "5432"
 
-# Pods limits and requests
+  # Pods limits and requests
   - variable: resources.requests.cpu
     group: "Resources"
     label: "Pods CPU Request"
@@ -95,7 +95,7 @@ questions:
     required: true
     default: "4096Mi"
 
-# Odoo Basic Configuration
+  # Odoo Basic Configuration
   - variable: odoo.basic.adminPass
     group: "Basic"
     label: "Odoo ADMIN_PASSWORD"
@@ -150,7 +150,7 @@ questions:
     type: "string"
     required: false
     default: "notifications@adhoc.nubeadhoc.com"
-# SaaS
+  # SaaS
   - variable: odoo.saas.mode
     group: "Saas"
     label: "Odoo SERVER_MODE"
@@ -176,7 +176,7 @@ questions:
     type: "string"
     required: false
     default: ""
-# Performance Configuration
+  # Performance Configuration
   # - variable: odoo.performance.workers
   #   group: "Performance"
   #   label: "Odoo WORKERS"
@@ -251,7 +251,7 @@ questions:
     type: "string"
     required: true
     default: "/home/odoo/src/repositories/ingadhoc-odoo-saas"
-# Entrypoint Odoo-SaaS
+  # Entrypoint Odoo-SaaS
   - variable: odoo.entrypoint.fixdbs
     group: "Entrypoint"
     label: "FIX DBS (click-odoo-update)"
@@ -280,7 +280,7 @@ questions:
     type: multiline
     default: ""
     required: false
-# SMTP config
+  # SMTP config
   - variable: odoo.smtp.host
     group: "SMTP"
     label: "SMTP Server Host"
@@ -323,7 +323,7 @@ questions:
     required: false
     default: "example.com"
 
-# Storage (por ahora solo permitimos s3)
+  # Storage (por ahora solo permitimos s3)
   - variable: storage.aws_region
     group: "Storage"
     label: "Storage Region"
@@ -350,7 +350,7 @@ questions:
     type: "password"
     required: true
 
-# Sessions
+  # Sessions
   - variable: redis.enabled
     group: "Redis"
     label: "Store sessions on redis?"
@@ -371,7 +371,7 @@ questions:
     default: "False"
     show_if: "redis.enabled=true"
 
-# Ingress Configuration
+  # Ingress Configuration
   - variable: ingress.enableHttps
     group: "Ingress"
     label: "Enable TLS (HTTPs)"
