@@ -8,9 +8,12 @@ metadata:
 spec:
   template:
     spec:
-      {{- with .Values.imagePullSecrets }}
+      # el secret se genera solo para este namespace porque tenemos hecho el login para los distintos proyectos de rancher
+      # ahora bien, si creamos namepsace en otro proyecto entonces el secret no se va a crear solo, en tal caso podriamos modificar los yaml y crearlo
+      # a partir de una pregunta (pero no es tan lindo que la clave quede en una pregunta)
+      {{- with .Values.image.pullSecret }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        - name: {{ . }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
