@@ -1,5 +1,5 @@
-{{- $fullName := include "adhoc-odoo.fullname" . -}}
 {{- $nameOverride := .Values.nameOverride | quote }}
+# {{- $fullName := include "adhoc-odoo.fullname" . -}}
 {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
     {{- range $hosts}}
@@ -11,7 +11,7 @@ metadata:
   namespace: {{ $nameOverride }}
 spec:
   ref:
-    name: {{ $fullName }}
+    name: {{ $nameOverride }}
     kind: Service
     apiVersion: serving.knative.dev/v1
   {{- end }}

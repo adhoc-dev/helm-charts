@@ -1,8 +1,11 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}
+  # name: {{ include "adhoc-odoo.fullname" . }}
+  name: {{ .Values.nameOverride | quote }}
   namespace: {{ .Values.nameOverride | quote }}
+  annotations:
+    networking.knative.dev/disableAutoTLS: "true"
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
