@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# replicaCount: {}
+
 image:
   repository: adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
@@ -35,21 +37,29 @@ securityContext:
   # runAsUser: 1000
 
 # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
+# livenessProbe:
+#   tcpSocket:
+#     port: 8069
+#   initialDelaySeconds: 10
+#   periodSeconds: 10
+#   failureThreshold: 20
+#   # Must be 1 for liveness and startup
+#   #successThreshold: 1
+# readinessProbe:
+#   tcpSocket:
+#     port: 8069
+#   initialDelaySeconds: 10
+#   periodSeconds: 10
+#   successThreshold: 1
+#   failureThreshold: 2
+
+startupProbe:
   tcpSocket:
     port: 8069
   initialDelaySeconds: 10
-  periodSeconds: 10
-  failureThreshold: 20
-  # Must be 1 for liveness and startup
-  #successThreshold: 1
-readinessProbe:
-  tcpSocket:
-    port: 8069
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  successThreshold: 1
-  failureThreshold: 2
+  timeoutSeconds: 240
+  periodSeconds: 240
+  failureThreshold: 1
 
 service:
   type: ClusterIP
@@ -70,11 +80,15 @@ ingress:
 
 resources:
   limits:
-    cpu: 1000m
-    memory: 4096Mi
+    cpu: {}
+    memory: {}
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: {}
+    memory: {}
+
+knative:
+  minScale: 1
+  maxScale: 5
 
 nodeSelector: {}
 tolerations: {}
@@ -146,4 +160,5 @@ storage:
   aws_bucketname: "acp-us-east1-test"
   aws_access_key_id: "keyId"
   aws_secret_access_key: "secret"
-# nodeTag: "Prod"
+
+nodeTag: "Prod"

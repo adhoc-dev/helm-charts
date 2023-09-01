@@ -1,5 +1,21 @@
 questions:
-# NodeTag - Affinity
+  # Knative configurations
+  - variable: knative.minScale
+    group: "knative"
+    label: "Pods Minimum Scale"
+    description: "Minimum number of replicas "
+    type: "int"
+    required: true
+    default: "1"
+  - variable: knative.maxScale
+    group: "knative"
+    label: "Pods Max Scale"
+    description: "Maximum number of replicas "
+    type: "int"
+    required: true
+    default: "5"
+
+  # NodeTag - Affinity
   - variable: nodeTag
     group: "NodeTag"
     label: "Node tag for node affinity"
@@ -7,6 +23,13 @@ questions:
     type: "string"
     required: true
     default: "Prod"
+  # - variable: replicaCount
+  #   group: "NodeTag"
+  #   label: "Replica Count"
+  #   description: "Scale (number of replicas)"
+  #   type: "int"
+  #   required: true
+  #   default: "1"
 
   # Docker image config
   - variable: image.repository
@@ -27,6 +50,7 @@ questions:
     label: "pullSecret"
     type: "string"
     required: false
+    default: "adhocsa"
     default: "adhocsa"
 
 # Database Configuration
