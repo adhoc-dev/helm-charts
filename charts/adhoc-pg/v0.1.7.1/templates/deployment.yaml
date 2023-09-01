@@ -1,0 +1,173 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "adhoc-pg.fullname" . }}
+  labels:
+    {{- include "adhoc-pg.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "adhoc-pg.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "adhoc-pg.fullname" . }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "adhoc-pg.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-pg.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 10
+      affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: {{ .Values.nodeTag }}
+                  operator: In
+                  values:
+                  - "true"
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "docker-entrypoint.sh" ]
+          args:
+          - postgres
+          - -p 5432
+          - --max_connections={{- .Values.pg.args.maxConn }}
+          {{- if .Values.pg.args.sharedBuffers }}
+          - --shared_buffers={{- .Values.pg.args.sharedBuffers }}
+          {{- end }}
+          - "--work_mem={{ .Values.pg.args.workMem }}"
+          - "--effective_cache_size={{ .Values.pg.args.ecs }}"
+          {{- if .Values.pg.args.maxParallelWorkersPerGather }}
+          - "--max_parallel_workers_per_gather={{ .Values.pg.args.maxParallelWorkersPerGather }}"
+          {{- end }}
+          {{- if .Values.pg.args.minWalSize }}
+          - "--min_wal_size={{ .Values.pg.args.minWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWalSize }}
+          - "--max_wal_size={{ .Values.pg.args.maxWalSize }}"
+          {{- end }}
+          {{- if .Values.pg.args.effectiveIOConcurrency }}
+          - "--effective_io_concurrency={{ .Values.pg.args.effectiveIOConcurrency }}"
+          {{- end }}
+          {{- if .Values.pg.args.maintenanceWorkMem }}
+          - "--maintenance_work_mem={{ .Values.pg.args.maintenanceWorkMem }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxWorkerProcesses }}
+          - "--max_worker_processes={{ .Values.pg.args.maxWorkerProcesses }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxParallelWorkers }}
+          - "--max_parallel_workers={{ .Values.pg.args.maxParallelWorkers }}"
+          {{- end }}
+          {{- if .Values.pg.args.maxParallelMaintenanceWorkers }}
+          - "--max_parallel_maintenance_workers={{ .Values.pg.args.maxParallelMaintenanceWorkers }}"
+          {{- end }}
+          {{- if .Values.pg.args.randomPageCost }}
+          - "--random_page_cost={{ .Values.pg.args.randomPageCost }}"
+          {{- end }}
+          {{- if .Values.pg.args.checkpointCompletionTarget }}
+          - "--checkpoint_completion_target={{ .Values.pg.args.checkpointCompletionTarget }}"
+          {{- end }}
+          {{- if .Values.pg.args.walBuffers }}
+          - "--wal_buffers={{ .Values.pg.args.walBuffers }}"
+          {{- end }}
+          {{- if .Values.pg.libs }}
+          - "--shared_preload_libraries={{ .Values.pg.libs }}"
+          {{- end }}
+          {{- if contains "pg_stat_statements" .Values.pg.libs }}
+          {{- if .Values.pg.stats.target }}
+          - "--default_statistics_target={{ .Values.pg.stats.target }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsMax }}
+          - "--pg_stat_statements.max={{ .Values.pg.stats.statementsMax }}"
+          {{- end }}
+          {{- if .Values.pg.stats.statementsTrack }}
+          - "--pg_stat_statements.track={{ .Values.pg.stats.statementsTrack }}"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pg.extraArgs }}
+          - {{ .Values.pg.extraArgs | quote }}
+          {{- end }}
+          ports:
+            - name: pg
+              containerPort: 5432
+              protocol: TCP
+          # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: {{ include "adhoc-pg.fullname" . }}-pvc
+          - mountPath: /dev/shm
+            name: dshm
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 6
+            periodSeconds: 6
+          # TODO: exec psql -c "\l" ??
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 60
+            periodSeconds: 30
+
+          env:
+          - name: "PGDATA"
+            value: "/var/lib/postgresql/data/{{ include "adhoc-pg.fullname" . }}"
+          # SqlSrv
+          - name: "POSTGRES_DB"
+            value: {{ .Values.pg.db | quote }}
+          - name: "POSTGRES_USER"
+            value: {{ .Values.pg.user | quote }}
+          - name: "POSTGRES_PASSWORD"
+            value: {{ .Values.pg.pass | quote }}
+          # SqlCli
+          - name: "PGDATABASE"
+            value: {{ .Values.pg.db | quote }}
+          - name: "PGUSER"
+            value: {{ .Values.pg.user | quote }}
+          - name: "PGPASSWORD"
+            value: {{ .Values.pg.pass | quote  }}
+          - name: "PGPORT"
+            value: {{ .Values.service.port | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      # This is a shm workarrund
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ include "adhoc-pg.fullname" . }}-pvc
+    spec:
+      storageClassName: {{ include "adhoc-pg.fullname" . }}-sc
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.pg.diskSize }}Gi
