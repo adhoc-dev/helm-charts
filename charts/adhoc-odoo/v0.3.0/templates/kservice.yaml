@@ -11,6 +11,9 @@ metadata:
 spec:
   template:
     spec:
+      annotations:
+        autoscaling.knative.dev/container-concurrency-target-percentage: "0.8"
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "5m"
       # el secret se genera solo para este namespace porque tenemos hecho el login para los distintos proyectos de rancher
       # ahora bien, si creamos namepsace en otro proyecto entonces el secret no se va a crear solo, en tal caso podriamos modificar los yaml y crearlo
       # a partir de una pregunta (pero no es tan lindo que la clave quede en una pregunta)
