@@ -8,7 +8,7 @@ type: application
 
 version: 0.17.0
 
-appVersion: "14"
+appVersion: "15"
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
