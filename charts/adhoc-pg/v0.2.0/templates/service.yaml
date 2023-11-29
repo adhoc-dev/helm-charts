@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adhoc-pg.fullname" . }}
+  labels:
+    {{- include "adhoc-pg.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: pg
+      protocol: TCP
+      name: pg
+  selector:
+    {{- include "adhoc-pg.selectorLabels" . | nindent 4 }}
