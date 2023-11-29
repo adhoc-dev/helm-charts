@@ -2,13 +2,13 @@ annotations:
   category: DevOps
 apiVersion: v2
 name: adhoc-pg
-description: "App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)"
+description: "App de PG para Odoo by Adhoc. IMPORTANTE: refactorizamos el chart para poder seleccionar imagen / versión de Postgresql. Recordar activar políticas de snapshot en GCP para discos persistentes."
 
 type: application
 
-version: 0.1.9
+version: 0.2.0
 
-appVersion: "14"
+appVersion: "2"
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:

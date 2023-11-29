@@ -6,7 +6,7 @@ image:
   repository: postgres
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  #tag: "13"
+  tag: "15"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -23,10 +23,12 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -39,11 +41,11 @@ service:
   port: 5432
 
 resources:
-# Según leímos, es una buena práctica no setear límites para los PG
-#  limits:
-#    cpu: 6000m
-#    memory: 168960Mi
-# Request para tener visibilidad si intenta schedulear y no encuentra nodo (definimos 50GB / 25GB y 40GB / 20GB en pgtune)
+  # Según leímos, es una buena práctica no setear límites para los PG
+  #  limits:
+  #    cpu: 6000m
+  #    memory: 168960Mi
+  # Request para tener visibilidad si intenta schedulear y no encuentra nodo (definimos 50GB / 25GB y 40GB / 20GB en pgtune)
   requests:
     cpu: 3000m
     memory: 50Gi
