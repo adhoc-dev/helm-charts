@@ -1,5 +1,20 @@
 questions:
-# Pods limits and requests
+  # Docker image config
+  - variable: image.repository
+    group: "Docker"
+    label: "Postgres repository"
+    description: "For eg. postgres"
+    type: "string"
+    required: true
+    default: "postgres"
+  - variable: image.tag
+    group: "Docker"
+    label: "Postgres Image Tag"
+    type: "string"
+    required: true
+    default: "15"
+
+  # Pods limits and requests
   - variable: resources.requests.cpu
     group: "Resources"
     label: "Pods CPU Request (requests.cpu)"
@@ -22,7 +37,7 @@ questions:
     required: true
     default: "500"
     type: "int"
-# NodeTag - Affinity
+  # NodeTag - Affinity
   - variable: nodeTag
     group: "Resources"
     label: "Node tag for node affinity (nodeTag)"
@@ -31,7 +46,7 @@ questions:
     required: true
     default: "pg"
 
-# PG values
+  # PG values
   - variable: pg.port
     group: "PG values"
     description: |
@@ -68,7 +83,7 @@ questions:
     default: "2000"
     type: "int"
 
-# PGTune performance parameters
+  # PGTune performance parameters
   - variable: pg.args.sharedBuffers
     group: "PGtune performance"
     label: "Shared Buffers (sharedBuffers)"
@@ -205,7 +220,7 @@ questions:
       - top
     show_if: "pg.libs=pg_stat_statements"
 
-# PG Killer
+  # PG Killer
   - variable: killer.cron
     group: "killer"
     label: "Cron schedule for pgkiller"
