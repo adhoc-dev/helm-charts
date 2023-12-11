@@ -31,7 +31,24 @@ spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      - name: nginx-conf-volume
+        configMap:
+          name: nginx-conf
       containers:
+        - name: nginx
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: nginx:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+          - name: nginx-conf-volume
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
