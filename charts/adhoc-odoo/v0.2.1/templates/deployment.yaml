@@ -35,6 +35,9 @@ spec:
       - name: nginx-conf-volume
         configMap:
           name: nginx-conf
+      - name: odoo-src-volume
+        persistentVolumeClaim:
+          claimName: odoo-src-volume-claim
       containers:
         - name: nginx
           securityContext:
@@ -49,11 +52,16 @@ spec:
           - name: nginx-conf-volume
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
+          - name: odoo-src-volume
+            mountPath: "/home/odoo/src"
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - name: odoo-src-volume
+            mountPath: "/home/odoo/src"
           ports:
             - name: http
               containerPort: 8069
