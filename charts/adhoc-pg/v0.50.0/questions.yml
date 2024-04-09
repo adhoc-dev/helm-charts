@@ -84,6 +84,14 @@ questions:
     type: "int"
 
   # PGTune performance parameters
+  - variable: pg.args.logLinePrefix
+    group: "PG logs"
+    description: |
+      DALE
+    label: "Log Line"
+    required: true
+    default: ""
+    type: "string"
   - variable: pg.args.sharedBuffers
     group: "PGtune performance"
     label: "Shared Buffers (sharedBuffers)"

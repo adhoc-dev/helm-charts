@@ -63,8 +63,8 @@ nodeTag: "pg"
 
 nodeSelector: {}
 
-audit:
-  logLinePrefix: "%t %d  [%p]"
+# audit:
+#   logLinePrefix: "%t %d  [%p]"
 
 pg:
   data: ""
@@ -73,6 +73,7 @@ pg:
   pass: ""
   port: 5432
   args:
+    logLinePrefix: "%t %d  [%p]"
     maxConn: 2000
     workMem: 18MB
     ecs: 30GB
