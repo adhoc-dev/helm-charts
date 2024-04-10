@@ -63,8 +63,9 @@ nodeTag: "pg"
 
 nodeSelector: {}
 
-# audit:
-#   logLinePrefix: "%t %d  [%p]"
+audit:
+  logLinePrefix: "[%u %d] [%p]"
+  logMinDurationStatement: 600000
 
 pg:
   data: ""
@@ -73,8 +74,8 @@ pg:
   pass: ""
   port: 5432
   args:
-    logLinePrefix: "[%u %d] [%p]"
-    logMinDurationStatement: 600000
+    # logLinePrefix: "[%u %d] [%p]"
+    # logMinDurationStatement: 600000
     maxConn: 2000
     workMem: 18MB
     ecs: 30GB
