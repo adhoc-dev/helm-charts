@@ -47,6 +47,12 @@ spec:
           - postgres
           - -p 5432
           - --max_connections={{- .Values.pg.args.maxConn }}
+          {{- if .Values.pg.args.logLinePrefix }}
+          - --log_line_prefix={{- .Values.pg.args.logLinePrefix }}
+          {{- end }}
+          {{- if .Values.pg.args.logMinDurationStatement }}
+          - --log_min_duration_statement={{- .Values.pg.args.logMinDurationStatement }}
+          {{- end }}
           {{- if .Values.pg.args.sharedBuffers }}
           - --shared_buffers={{- .Values.pg.args.sharedBuffers }}
           {{- end }}
