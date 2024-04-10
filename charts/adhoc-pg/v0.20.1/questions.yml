@@ -84,6 +84,22 @@ questions:
     type: "int"
 
   # PGTune performance parameters
+  - variable: pg.args.logLinePrefix
+    group: "PG Logs"
+    description: |
+      Defines the prefix for log lines in PostgreSQL. This prefix can include metadata about each log message, such as the date, time, user, database, and session ID, formatting the logs to improve visibility and diagnostics. Use %t for time, %u for user, %d for database, etc., as per PostgreSQL documentation.
+    label: "Log line prefix format"
+    required: false
+    default: '[%u %d] [%p]'
+    type: "string"
+  - variable: pg.args.logMinDurationStatement
+    group: "PG Logs"
+    description: |
+      Specifies the minimum duration in milliseconds that a statement must last for PostgreSQL to log its total execution time. Using this parameter helps identify slow queries that may need optimization. Set to 0 to log all queries or use a specific value to capture only queries that exceed this time threshold.
+    label: "Threshold for tracing slow queries"
+    required: false
+    default: "600000" # 10 minutes
+    type: "int"
   - variable: pg.args.sharedBuffers
     group: "PGtune performance"
     label: "Shared Buffers (sharedBuffers)"

@@ -70,6 +70,8 @@ pg:
   pass: ""
   port: 5432
   args:
+    logLinePrefix: '[%u %d] [%p]'
+    logMinDurationStatement: 600000
     maxConn: 2000
     workMem: 18MB
     ecs: 30GB
