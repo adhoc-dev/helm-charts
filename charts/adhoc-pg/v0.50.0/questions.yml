@@ -89,8 +89,8 @@ questions:
     description: |
       Defines the prefix for log lines in PostgreSQL. This prefix can include metadata about each log message, such as the date, time, user, database, and session ID, formatting the logs to improve visibility and diagnostics. Use %t for time, %u for user, %d for database, etc., as per PostgreSQL documentation.
     label: "Log line prefix format"
-    required: true
-    default: "[%t]: [%u@%d] [%p]:"
+    required: false
+    default: "[%u %d] [%p]"
     type: "string"
   - variable: pg.args.logMinDurationStatement
     group: "PG Logs"
