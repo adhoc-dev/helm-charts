@@ -6,7 +6,7 @@ description: A document conversion service (.odt to .pdf for reports)
 
 type: application
 
-version: 0.1.1
+version: 0.1.2
 
 appVersion: "1.16.0"
 
