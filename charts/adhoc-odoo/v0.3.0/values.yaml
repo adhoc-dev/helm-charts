@@ -157,3 +157,13 @@ storage:
   aws_secret_access_key: "secret"
 
 nodeTag: "Prod"
+
+keda:
+  enabled: true
+  minReplicas: 0
+  maxReplicas: 5
+  httpScaledObject:
+    hosts:
+      - ""
+    serviceName: odoo-service
+    port: 80

@@ -407,3 +407,5 @@ questions:
     type: "string"
     required: false
     default: ""
+
+# KEDA configuration

@@ -1,0 +1,16 @@
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-http-scaledobject
+spec:
+  hosts:
+    - {{ .Values.keda.httpScaledObject.hosts | join "," }}
+  scaleTargetRef:
+    name: {{ include "adhoc-odoo.fullname" . }}
+    kind: Deployment
+    apiVersion: apps/v1
+    service: {{ .Values.keda.httpScaledObject.serviceName }}
+    port: {{ .Values.keda.httpScaledObject.port }}
+  replicas:
+    min: {{ .Values.keda.minReplicas }}
+    max: {{ .Values.keda.maxReplicas }}
