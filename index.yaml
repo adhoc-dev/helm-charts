@@ -1,0 +1,49 @@
+apiVersion: v1
+entries:
+  adhoc-defaultbackend:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: stable-alpine
+    created: "2024-07-18T09:15:27.876630434-03:00"
+    description: El "backend predeterminado" es un servicio que maneja todas las rutas
+      URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
+      solicitudes que no están asignadas con un Ingress).
+    digest: ebf14438d2ca1dc91b1fc1b2ed99b8adc6cfe39b2b2f5479e23c6ec4699b5ee2
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: adhoc-defaultbackend
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/adhoc-defaultbackend-0.1.6.tgz
+    version: 0.1.6
+  cert-cfg:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 1.0.0
+    created: "2024-07-18T09:15:27.8774064-03:00"
+    description: Default configurations for cert-manager
+    digest: 4dd25a581cc61fbd3c3529a6948fddab8ed788defa829b843fcb696157b4fc20
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: cert-cfg
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/cert-cfg-0.1.1.tgz
+    version: 0.1.1
+generated: "2024-07-18T09:15:27.874106618-03:00"
