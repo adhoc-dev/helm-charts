@@ -5,7 +5,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-07-18T09:15:27.876630434-03:00"
+    created: "2024-07-18T09:17:27.250789286-03:00"
     description: El "backend predeterminado" es un servicio que maneja todas las rutas
       URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
       solicitudes que no están asignadas con un Ingress).
@@ -22,14 +22,14 @@ entries:
     - https://github.com/adhoc-dev/
     type: application
     urls:
-    - https://adhoc-dev.github.io/adhoc-defaultbackend-0.1.6.tgz
+    - https://adhoc-dev.github.io/helm-charts/adhoc-defaultbackend-0.1.6.tgz
     version: 0.1.6
   cert-cfg:
   - annotations:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-07-18T09:15:27.8774064-03:00"
+    created: "2024-07-18T09:17:27.251004899-03:00"
     description: Default configurations for cert-manager
     digest: 4dd25a581cc61fbd3c3529a6948fddab8ed788defa829b843fcb696157b4fc20
     home: https://github.com/adhoc-dev/helm-charts
@@ -44,6 +44,6 @@ entries:
     - https://github.com/adhoc-dev/
     type: application
     urls:
-    - https://adhoc-dev.github.io/cert-cfg-0.1.1.tgz
+    - https://adhoc-dev.github.io/helm-charts/cert-cfg-0.1.1.tgz
     version: 0.1.1
-generated: "2024-07-18T09:15:27.874106618-03:00"
+generated: "2024-07-18T09:17:27.248234522-03:00"
