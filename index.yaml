@@ -1,15 +1,37 @@
 apiVersion: v1
 entries:
+  adhoc-aeroo-docs:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-07-18T12:57:38.324142505Z"
+    description: A document conversion service (.odt to .pdf for reports)
+    digest: 249fdc89b416b88612687811fa98f2e834c93aca50642779b7996c8862fa5801
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/aerooIcon.png
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: adhoc-aeroo-docs
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-aeroo-docs-0.1.2.tgz
+    version: 0.1.2
   adhoc-defaultbackend:
   - annotations:
       category: DevOps
     apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-07-18T09:17:27.250789286-03:00"
+    created: "2024-07-18T12:57:38.329299739Z"
     description: El "backend predeterminado" es un servicio que maneja todas las rutas
       URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
       solicitudes que no están asignadas con un Ingress).
-    digest: ebf14438d2ca1dc91b1fc1b2ed99b8adc6cfe39b2b2f5479e23c6ec4699b5ee2
+    digest: c8e57c844659d1e3e23a292209dc96d07a087aa9d63862ef9608101aec92e217
     home: https://github.com/adhoc-dev/helm-charts
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
     maintainers:
@@ -24,14 +46,102 @@ entries:
     urls:
     - https://adhoc-dev.github.io/helm-charts/adhoc-defaultbackend-0.1.6.tgz
     version: 0.1.6
+  adhoc-odoo:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-07-18T12:57:38.330065285Z"
+    description: Odoo Chart for v16+
+    digest: 19395ce80de35f7407b3862cdd622853835643adbec4144eb8d556766d021a62
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: adhoc-odoo
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-odoo-0.2.0.tgz
+    version: 0.2.0
+  adhoc-pg:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: "2"
+    created: "2024-07-18T12:57:38.330653872Z"
+    description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
+      > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
+    digest: 4388acd73fbca14518abc543f14cc9253b8dd9a27adda48b59abf6e85eedae16
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: adhoc-pg
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-pg-0.20.1.tgz
+    version: 0.20.1
+  adhoc-pods-cleanup:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 1.0.0
+    created: "2024-07-18T12:57:38.330964561Z"
+    description: Dummy app for cleanup of "Terminated" pods (specially for preemptible
+      nodes)
+    digest: 558d1a49ff7ca657c779a7c0d8caa1804f6f9f97610cb839b4e6504f980f756d
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/vacuum-cleaner.png
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    name: adhoc-pods-cleanup
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-pods-cleanup-0.1.0.tgz
+    version: 0.1.0
+  adhoc-redis:
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 6-alpine
+    created: "2024-07-18T12:57:38.331348106Z"
+    description: Redis for odoo sessions
+    digest: 9f9c2af76b099e30b71dc7c4031339619281ed25d8ab5733040878fff2826822
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Redis_Logo.svg
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    name: adhoc-redis
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-redis-0.1.2.tgz
+    version: 0.1.2
   cert-cfg:
   - annotations:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-07-18T09:17:27.251004899-03:00"
+    created: "2024-07-18T12:57:38.331608341Z"
     description: Default configurations for cert-manager
-    digest: 4dd25a581cc61fbd3c3529a6948fddab8ed788defa829b843fcb696157b4fc20
+    digest: fc3fa63d67b28db2be53564d06374eaca2eb02e6dda926136430d1ccfd1935d0
     home: https://github.com/adhoc-dev/helm-charts
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png
     maintainers:
@@ -46,4 +156,4 @@ entries:
     urls:
     - https://adhoc-dev.github.io/helm-charts/cert-cfg-0.1.1.tgz
     version: 0.1.1
-generated: "2024-07-18T09:17:27.248234522-03:00"
+generated: "2024-07-18T12:57:38.323550382Z"
