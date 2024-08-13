@@ -6,9 +6,9 @@ description: A document conversion service (.odt to .pdf for reports)
 
 type: application
 
-version: 0.1.2
+version: 0.1.3
 
-appVersion: "1.16.0"
+appVersion: "9.1"
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
@@ -18,5 +18,7 @@ maintainers:
     email: dib@adhoc.com.ar
   - name: jjscarafia
     email: jjs@adhoc.com.ar
+  - name: azacchino
+    email: az@adhoc.com.ar
 
 icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/aerooIcon.png"

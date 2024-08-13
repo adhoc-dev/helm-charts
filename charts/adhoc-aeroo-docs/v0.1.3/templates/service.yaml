@@ -8,8 +8,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: aero
       protocol: TCP
-      name: http
+      name: aero
   selector:
     {{- include "adhoc-aeroo.selectorLabels" . | nindent 4 }}
