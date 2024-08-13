@@ -1,0 +1,98 @@
+questions:
+
+  - variable: image.tag
+    label: "Image Tag"
+    type: "string"
+    required: true
+    default: "latest"
+    group: "Common"
+
+  - variable: replicaCount
+    group: "Deploy"
+    label: "Replica Count"
+    description: "Scale (number of replicas)"
+    type: "int"
+    required: true
+    default: "1"
+  - variable: autoscaling.enabled
+    group: "Deploy"
+    label: "Enable Autoscaling"
+    description: "Scale (number of replicas)"
+    type: "boolean"
+    default: false
+    required: false
+  - variable: autoscaling.minReplicas
+    group: "Deploy"
+    label: "autoscaling min"
+    description: "Scale (minimum number of replicas)"
+    type: "int"
+    required: false
+    default: "1"
+  - variable: autoscaling.maxReplicas
+    group: "Deploy"
+    label: "autoscaling max"
+    description: "Scale (maximum number of replicas)"
+    type: "int"
+    required: false
+    default: "3"
+  - variable: autoscaling.targetMemoryUtilizationPercentage
+    group: "Deploy"
+    label: "Memory Utilization Percentage"
+    description: "target % of requested memory"
+    type: "int"
+    required: false
+    default: "85"
+
+  # Pods limits and requests
+  - variable: resources.requestsEnabled
+    group: "Resources"
+    label: "Enable requests"
+    description: "Enable requests"
+    type: "boolean"
+    default: false
+    required: false
+  - variable: resources.requests.cpu
+    group: "Resources"
+    label: "Pods CPU Request"
+    description: "Pods CPU Request"
+    type: "string"
+    required: true
+    default: "50m"
+  - variable: resources.requests.memory
+    group: "Resources"
+    label: "Pods Memory Request"
+    description: "Pods Memory Request"
+    type: "string"
+    required: true
+    default: "512Mi"
+
+  - variable: resources.limitsEnabled
+    group: "Resources"
+    label: "Enable limits"
+    description: "Enable limits"
+    type: "boolean"
+    default: false
+    required: false
+  - variable: resources.limits.cpu
+    group: "Resources"
+    label: "Pods CPU Limit"
+    description: "Pods CPU Limit"
+    type: "string"
+    required: true
+    default: "1000m"
+  - variable: resources.limits.memory
+    group: "Resources"
+    label: "Pods Memory Limit"
+    description: "Pods Memory Limit"
+    type: "string"
+    required: true
+    default: "2Gi"
+
+  # NodeTag - Affinity
+  - variable: nodeTag
+    label: "Node tag for node affinity"
+    description: "Tag to schedule pods in nodes"
+    type: "string"
+    required: true
+    default: "Prod"
+    group: "Deploy"

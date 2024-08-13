@@ -1,0 +1,78 @@
+# Default values for adhoc-aeroo.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: adhoc/aeroo-docs
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "9.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  # readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+livenessProbe:
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: aero
+  timeoutSeconds: 5
+
+readinessProbe:
+  initialDelaySeconds: 30
+  failureThreshold: 3
+  periodSeconds: 60
+  successThreshold: 2
+  timeoutSeconds: 15
+  httpGet:
+    path: /?jsonrpc=2.0&method=test&id=1
+    port: aero
+
+service:
+  type: ClusterIP
+  port: 8989
+
+resources:
+  limitsEnabled: true
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requestsEnabled: true
+  requests:
+    cpu: 50m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  # targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+
+nodeTag: "Prod"
