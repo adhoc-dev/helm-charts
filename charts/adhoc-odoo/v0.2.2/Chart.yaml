@@ -6,7 +6,7 @@ description: Odoo Chart for v16+
 
 type: application
 
-version: 0.2.0
+version: 0.2.2
 
 appVersion: "1.16.0"
 
@@ -18,5 +18,7 @@ maintainers:
     email: dib@adhoc.com.ar
   - name: jjscarafia
     email: jjs@adhoc.com.ar
+  - name: azacchino
+    email: az@adhoc.com.ar
 
 icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg"
