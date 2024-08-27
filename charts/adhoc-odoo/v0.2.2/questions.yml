@@ -377,6 +377,14 @@ questions:
     required: false
     default: "False"
     show_if: "redis.enabled=true"
+  - variable: redis.port
+    group: "Redis"
+    label: "Redis Port"
+    description: "Required if Store Session on Redis"
+    type: "int"
+    required: false
+    default: 6379
+    show_if: "redis.enabled=true"
 
 # Ingress Configuration
   - variable: ingress.enableHttps

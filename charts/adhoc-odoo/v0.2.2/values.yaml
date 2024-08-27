@@ -146,6 +146,7 @@ redis:
   enabled: false
   host: ""
   pass: ""
+  port: 6379
 
 # Storage
 storage:

@@ -244,7 +244,7 @@ spec:
             - name: "REDIS_HOST"
               value: {{ .Values.redis.host | quote }}
             - name: "REDIS_PORT"
-              value: "6379"
+              value: {{ .Values.redis.port | quote }}
             - name: "REDIS_PASS"
               value: {{ .Values.redis.pass | quote  }}
             - name: "REDIS_DBINDEX"
@@ -252,6 +252,8 @@ spec:
             # values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis)
             - name: "ODOO_SESSION_REDIS"
               value: "true"
+            - name: "ODOO_SESSION_REDIS_PORT"
+              value: {{ .Values.redis.port | quote }}
             - name: "ODOO_SESSION_REDIS_HOST"
               value: {{ .Values.redis.host | quote }}
             - name: "ODOO_SESSION_REDIS_PASSWORD"
