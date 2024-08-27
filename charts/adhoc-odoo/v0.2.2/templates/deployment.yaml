@@ -268,13 +268,17 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
       affinity:
           # Don't co-locate pods of this service with any other pods including pods of this service
-          # https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/podaffinity.md
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector: ~
-                topologyKey: "node"
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - {{ .Release.Name }}
+                  topologyKey: "kubernetes.io/hostname"
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
               nodeSelectorTerms:
