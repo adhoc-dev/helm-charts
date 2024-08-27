@@ -106,7 +106,7 @@ odoo:
     dbFilter: "false"
     wideModules: "base,web,server_mode,saas_client"
     logLevel: "info"
-#    aerooHost: ""
+    aerooHost: ""
     emailFrom: "notifications@adhoc.nubeadhoc.com"
   # Performance Config
   saas:

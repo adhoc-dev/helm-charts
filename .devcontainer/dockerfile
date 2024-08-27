@@ -1,0 +1,67 @@
+FROM debian:bookworm-slim
+
+ARG USERNAME=appuser
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL="C.UTF-8"
+RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
+
+RUN apt-get update \
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y -q install --no-install-recommends \
+        curl \
+        gnupg \
+        lsb-release \
+        software-properties-common \
+        git \
+        ssh \
+        ssh-client \
+        sudo \
+        apt-transport-https \
+        ca-certificates \
+        bash-completion \
+        unzip \
+        nano \
+        less \
+        wget \
+        gpg \
+        gnupg2 \
+        jq \
+    # Helm
+    && curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null \
+    && apt-get install --no-install-recommends apt-transport-https --yes \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends helm \
+    && helm completion bash > /etc/bash_completion.d/helm \
+    && chmod a+r /etc/bash_completion.d/helm \
+    # KubeCtl
+    && apt-get install --no-install-recommends apt-transport-https ca-certificates curl gnupg --yes \
+    && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+    && chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+    && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list \
+    && chmod 644 /etc/apt/sources.list.d/kubernetes.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends kubectl \
+    && kubectl completion bash > /etc/bash_completion.d/kubectl \
+    && chmod a+r /etc/bash_completion.d/kubectl \
+    # Clean
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN adduser -u $USER_UID --disabled-password --gecos "" $USERNAME  \
+    && echo "$USERNAME ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+COPY .prompt_git /home/$USERNAME
+COPY .bash_aliases /home/$USERNAME
+
+RUN echo "[[ -f ~/.prompt_git ]] && source ~/.prompt_git" >> /home/$USERNAME/.bashrc
+
+WORKDIR /workdir
+VOLUME [ "/workdir" ]
+
+CMD ["sleep", "infinity"]
