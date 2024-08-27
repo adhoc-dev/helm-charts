@@ -1,0 +1,33 @@
+{
+  "name": "Helm",
+  "build": {
+    "dockerfile": "dockerfile"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind,consistency=delegated",
+  "workspaceFolder": "/workdir",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "cSpell.language": "en,es",
+        "files.exclude": {
+          ".devcontainer": true
+        },
+        "search.exclude": {
+          ".devcontainer": true
+        }
+      },
+      "extensions": [
+        "eamodio.gitlens",
+        "shardulm94.trailing-spaces",
+        "Tim-Koehler.helm-intellisense",
+        "technosophos.vscode-helm"
+      ]
+    }
+  },
+  "remoteUser": "appuser",
+  "runArgs": [
+    "--env-file",
+    ".devcontainer/.env"
+  ],
+  "initializeCommand": "touch -a .devcontainer/.env"
+}
