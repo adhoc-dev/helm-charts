@@ -5,7 +5,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "9.1"
-    created: "2024-08-19T15:26:58.218217034Z"
+    created: "2024-08-27T16:01:28.578439476Z"
     description: A document conversion service (.odt to .pdf for reports)
     digest: a43bc991cfff6f81a9cab8403f723e178ad44fd3fcf467644ca86aa21fc5ce6f
     home: https://github.com/adhoc-dev/helm-charts
@@ -28,7 +28,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-08-19T15:26:58.216656805Z"
+    created: "2024-08-27T16:01:28.577796972Z"
     description: A document conversion service (.odt to .pdf for reports)
     digest: 249fdc89b416b88612687811fa98f2e834c93aca50642779b7996c8862fa5801
     home: https://github.com/adhoc-dev/helm-charts
@@ -50,7 +50,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-08-19T15:26:58.222155075Z"
+    created: "2024-08-27T16:01:28.582201149Z"
     description: El "backend predeterminado" es un servicio que maneja todas las rutas
       URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
       solicitudes que no están asignadas con un Ingress).
@@ -74,7 +74,30 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-08-19T15:26:58.222910247Z"
+    created: "2024-08-27T16:01:28.583726027Z"
+    description: Odoo Chart for v16+
+    digest: edc97063949011d4cd376492e8493f018176bba0b81ef86fc494d0d250205aa7
+    home: https://github.com/adhoc-dev/helm-charts
+    icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
+    maintainers:
+    - email: dib@adhoc.com.ar
+      name: dbollini
+    - email: jjs@adhoc.com.ar
+      name: jjscarafia
+    - email: az@adhoc.com.ar
+      name: azacchino
+    name: adhoc-odoo
+    sources:
+    - https://github.com/adhoc-dev/
+    type: application
+    urls:
+    - https://adhoc-dev.github.io/helm-charts/adhoc-odoo-0.2.2.tgz
+    version: 0.2.2
+  - annotations:
+      category: DevOps
+    apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-08-27T16:01:28.582968708Z"
     description: Odoo Chart for v16+
     digest: 19395ce80de35f7407b3862cdd622853835643adbec4144eb8d556766d021a62
     home: https://github.com/adhoc-dev/helm-charts
@@ -96,7 +119,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "2"
-    created: "2024-08-19T15:26:58.223509678Z"
+    created: "2024-08-27T16:01:28.584275678Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 4388acd73fbca14518abc543f14cc9253b8dd9a27adda48b59abf6e85eedae16
@@ -119,7 +142,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-08-19T15:26:58.223858199Z"
+    created: "2024-08-27T16:01:28.584581902Z"
     description: Dummy app for cleanup of "Terminated" pods (specially for preemptible
       nodes)
     digest: 558d1a49ff7ca657c779a7c0d8caa1804f6f9f97610cb839b4e6504f980f756d
@@ -140,7 +163,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 6-alpine
-    created: "2024-08-19T15:26:58.224318399Z"
+    created: "2024-08-27T16:01:28.584950834Z"
     description: Redis for odoo sessions
     digest: 9f9c2af76b099e30b71dc7c4031339619281ed25d8ab5733040878fff2826822
     home: https://github.com/adhoc-dev/helm-charts
@@ -162,7 +185,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-08-19T15:26:58.22462376Z"
+    created: "2024-08-27T16:01:28.585234696Z"
     description: Default configurations for cert-manager
     digest: fc3fa63d67b28db2be53564d06374eaca2eb02e6dda926136430d1ccfd1935d0
     home: https://github.com/adhoc-dev/helm-charts
@@ -179,4 +202,4 @@ entries:
     urls:
     - https://adhoc-dev.github.io/helm-charts/cert-cfg-0.1.1.tgz
     version: 0.1.1
-generated: "2024-08-19T15:26:58.215964751Z"
+generated: "2024-08-27T16:01:28.576884997Z"
