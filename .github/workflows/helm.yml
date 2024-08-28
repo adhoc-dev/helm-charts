@@ -39,7 +39,7 @@ jobs:
                 helm package $highest_version -d ../dest/
               fi
           done
-          helm repo index ../dest/ --url https://adhoc-dev.github.io/helm-charts/
+          helm repo index ../dest/ --url https://adhoc-dev.github.io/helm-charts/ --merge ../dest/index.yaml
 
       - name: Push New Files
         shell: bash
