@@ -1,0 +1,103 @@
+# Default values for adhoc-pg.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "15"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 5432
+
+resources:
+  # Según leímos, es una buena práctica no setear límites para los PG
+  #  limits:
+  #    cpu: 6000m
+  #    memory: 168960Mi
+  # Request para tener visibilidad si intenta schedulear y no encuentra nodo (definimos 50GB / 25GB y 40GB / 20GB en pgtune)
+  requests:
+    cpu: 3000m
+    memory: 50Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  # targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+tolerations: []
+
+#affinity: {}
+nodeTag: "pg"
+
+nodeSelector: {}
+
+pg:
+  data: ""
+  db: "postgres"
+  user: "odoo"
+  pass: ""
+  port: 5432
+  args:
+    logLinePrefix: '[%u %d] [%p]'
+    logMinDurationStatement: 600000
+    maxConn: 2000
+    workMem: 18MB
+    ecs: 30GB
+    # Optionals
+    sharedBuffers: 10GB
+    maxParallelWorkersPerGather: 2
+    minWalSize: 1GB
+    maxWalSize: 4GB
+    effectiveIOConcurrency: 200
+    maintenanceWorkMem: 1920MB
+    maxWorkerProcesses: 4
+    maxParallelWorkers: 4
+    maxParallelMaintenanceWorkers: 1
+    randomPageCost: 1.1
+    checkpointCompletionTarget: 0.9
+    walBuffers: 256MB
+  libs: "pg_stat_statements"
+  stats:
+    target: 100
+    statementsMax: 10000
+    statementsTrack: all
+  extraArgs:
+  # prod = 500, demo = 100, boggio = 400
+  diskSize: 500
+
+killer:
+  # UTC
+  cron: "*/30 12-22 * * *"
+  max: 30
