@@ -1,0 +1,51 @@
+questions:
+  # NodeTag - Affinity
+  - variable: nodeTag
+    group: "Resources"
+    label: "Node tag for node affinity (nodeTag)"
+    description: "Tag to schedule pods in nodes"
+    type: "string"
+    required: true
+    default: "Prod"
+
+  # Pods limits and requests
+  - variable: resources.requests.cpu
+    group: "Resources"
+    label: "Pods CPU Request"
+    description: "Pods CPU Request"
+    type: "string"
+    required: true
+    default: "300m"
+  - variable: resources.requests.memory
+    group: "Resources"
+    label: "Pods Memory Request"
+    description: "Pods Memory Request"
+    type: "string"
+    required: true
+    default: "3Gi"
+
+  # Redis - Arguments
+  - variable: redis.arguments.maxclients
+    group: "Arguments"
+    label: "Maximum number of clients"
+    type: "int"
+    required: true
+    default: 100000
+  - variable: redis.arguments.appendonly
+    group: "Arguments"
+    label: "Append Only"
+    description: "yes or no"
+    type: "string"
+    required: true
+    default: "yes"
+  - variable: redis.arguments.requirepass
+    group: "Arguments"
+    label: "Password"
+    type: "password"
+    required: true
+  - variable: redis.port
+    group: "Arguments"
+    label: "port"
+    type: "int"
+    default: 6379
+    required: true
