@@ -159,3 +159,9 @@ storage:
   aws_secret_access_key: "secret"
 
 nodeTag: "Prod"
+
+createPullSecret:
+  enabled: false
+  user: ""
+  pass: ""
+  registry: "https://index.docker.io/v2/"
