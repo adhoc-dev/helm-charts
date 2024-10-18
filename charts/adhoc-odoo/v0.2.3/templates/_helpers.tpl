@@ -35,6 +35,7 @@ Common labels
 */}}
 {{- define "adhoc-odoo.labels" -}}
 helm.sh/chart: {{ include "adhoc-odoo.chart" . }}
+adhoc.ar/tier : {{ .Values.nodeTag }}
 {{ include "adhoc-odoo.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
