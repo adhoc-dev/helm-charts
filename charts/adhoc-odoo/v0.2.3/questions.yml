@@ -158,7 +158,9 @@ questions:
     required: false
     default: "notifications@adhoc.nubeadhoc.com"
   - variable: odoo.basic.withoutDemo
+    group: "Basic"
     label: "NOT install demo data"
+    description: "NOT install demo data"
     type: "boolean"
     required: false
     default: true
@@ -420,3 +422,12 @@ questions:
     type: "string"
     required: false
     default: ""
+
+  # Adhoc
+  - variable: adhoc.serviceLevel
+    group: "Adhoc"
+    label: "Service Level"
+    description: "Options: standard, advance, premium"
+    type: "string"
+    required: false
+    default: "standard"
