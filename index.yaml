@@ -5,7 +5,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "9.1"
-    created: "2024-10-18T14:38:23.212638057Z"
+    created: "2024-10-18T15:07:38.648048448Z"
     description: A document conversion service (.odt to .pdf for reports)
     digest: a43bc991cfff6f81a9cab8403f723e178ad44fd3fcf467644ca86aa21fc5ce6f
     home: https://github.com/adhoc-dev/helm-charts
@@ -28,7 +28,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.211682821Z"
+    created: "2024-10-18T15:07:38.647590866Z"
     description: A document conversion service (.odt to .pdf for reports)
     digest: 249fdc89b416b88612687811fa98f2e834c93aca50642779b7996c8862fa5801
     home: https://github.com/adhoc-dev/helm-charts
@@ -49,7 +49,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.211283815Z"
+    created: "2024-10-18T15:07:38.647133615Z"
     description: A document conversion service (.odt to .pdf for reports)
     digest: c7c050af1ee7baffff9ab17eb4d582b05dd092bee77543326de40aff4bd8a9e0
     home: https://github.com/adhoc-dev/helm-charts
@@ -68,7 +68,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.210808927Z"
+    created: "2024-10-18T15:07:38.645884629Z"
     description: A Helm chart for Kubernetes
     digest: 26553d546a594b37068d33a2b9ec5a790dd302bb3e34b29bea48cf9734b37b46
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/aerooIcon.png
@@ -82,7 +82,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.220564497Z"
+    created: "2024-10-18T15:07:38.655344883Z"
     description: El "backend predeterminado" es un servicio que maneja todas las rutas
       URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
       solicitudes que no están asignadas con un Ingress).
@@ -105,7 +105,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.217071025Z"
+    created: "2024-10-18T15:07:38.65176607Z"
     description: El "backend predeterminado" es un servicio que maneja todas las rutas
       URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
       solicitudes que no están asignadas con un Ingress).
@@ -126,7 +126,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.215112534Z"
+    created: "2024-10-18T15:07:38.649861103Z"
     description: A Helm chart for Kubernetes
     digest: 681f828f24883495ce38b8941fea9b113b2389d8d8ffcd79414c2d026f668769
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
@@ -137,7 +137,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.214725951Z"
+    created: "2024-10-18T15:07:38.64950527Z"
     description: A Helm chart for Kubernetes
     digest: c897b5759518b51ef8315ffe6e93314bc759112072e33f75a2df44153f5b7801
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
@@ -148,7 +148,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.214345149Z"
+    created: "2024-10-18T15:07:38.649138938Z"
     description: A Helm chart for Kubernetes
     digest: f24798b7519fd50f63cd8b90d8ebb31dbef7c5de01ae5bae7e509a7725807500
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
@@ -159,7 +159,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.213925755Z"
+    created: "2024-10-18T15:07:38.648756737Z"
     description: A Helm chart for Kubernetes
     digest: 98b937c466cefa70839ee20b94e0bd5373d182f43386756dcaa9e2e3255fb76e
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
@@ -170,7 +170,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: stable-alpine
-    created: "2024-10-18T14:38:23.213375439Z"
+    created: "2024-10-18T15:07:38.648406514Z"
     description: A Helm chart for Kubernetes
     digest: 25fe2572af460257d1e1810783d7ac6e3c076e6c4f23d256f72bc73e229e9c28
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png
@@ -184,9 +184,9 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.228017324Z"
+    created: "2024-10-18T15:07:38.662708865Z"
     description: Odoo Chart for v16+
-    digest: 46bed5c8b4b8ea0db59bb7e255616c781c0acc7e1e31edd49af67929eee8be6b
+    digest: e85306a37323178bbc1168234b31077d562b6161537a8c5446a137060174165d
     home: https://github.com/adhoc-dev/helm-charts
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
     maintainers:
@@ -207,7 +207,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.227264617Z"
+    created: "2024-10-18T15:07:38.661951545Z"
     description: Odoo Chart for v16+
     digest: edc97063949011d4cd376492e8493f018176bba0b81ef86fc494d0d250205aa7
     home: https://github.com/adhoc-dev/helm-charts
@@ -230,7 +230,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.226554048Z"
+    created: "2024-10-18T15:07:38.66125078Z"
     description: Odoo Chart for v16+
     digest: 7cce38ec5acf5c4ab01811dc4eac54b6819602a8fdea8bf11e246aaf41e627ea
     home: https://github.com/adhoc-dev/helm-charts
@@ -251,7 +251,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.225839883Z"
+    created: "2024-10-18T15:07:38.660524818Z"
     description: Odoo Chart for v16+
     digest: 19395ce80de35f7407b3862cdd622853835643adbec4144eb8d556766d021a62
     home: https://github.com/adhoc-dev/helm-charts
@@ -272,7 +272,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.225131589Z"
+    created: "2024-10-18T15:07:38.659845724Z"
     description: Odoo Chart
     digest: 667a6e29a55f6bd11dd270d74a5e10899deac7474314ce3f1c176b194d37d7be
     home: https://github.com/adhoc-dev/helm-charts
@@ -291,7 +291,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.224369905Z"
+    created: "2024-10-18T15:07:38.659127517Z"
     description: A Helm chart for Kubernetes
     digest: b2f3662fa824f3a102fb28ed63f1f4ad2c7d5192bab90fa740c1daa13f59d6a4
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
@@ -302,7 +302,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.223507128Z"
+    created: "2024-10-18T15:07:38.658485832Z"
     description: A Helm chart for Kubernetes
     digest: 403fc2680cfd447d7732974b71e53030478b14b1d2ff16d7730022eeb50466c8
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
@@ -313,7 +313,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.221969714Z"
+    created: "2024-10-18T15:07:38.657803902Z"
     description: A Helm chart for Kubernetes
     digest: 7384a508cd6e9712ceac2d3681d77ae83f6ea6192fed2fae254f8d52876aec28
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
@@ -324,7 +324,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-10-18T14:38:23.221270868Z"
+    created: "2024-10-18T15:07:38.657034259Z"
     description: A Helm chart for Kubernetes
     digest: 9d0d604100776a661a3aae53c5000e1b4f0dce9ddb2b8ce5f7640d349c1b053b
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
@@ -338,7 +338,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "2"
-    created: "2024-10-18T14:38:23.23674422Z"
+    created: "2024-10-18T15:07:38.671500666Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 8829fecc8469ca55c3eb9b6d8f2bd64b4a81d615a7782b698c69e4013d523b39
@@ -362,7 +362,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "2"
-    created: "2024-10-18T14:38:23.236176349Z"
+    created: "2024-10-18T15:07:38.670962473Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 4388acd73fbca14518abc543f14cc9253b8dd9a27adda48b59abf6e85eedae16
@@ -384,7 +384,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "2"
-    created: "2024-10-18T14:38:23.235578491Z"
+    created: "2024-10-18T15:07:38.670435612Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 2e5e7b510f2306a95c9d26cb4820c4fa92d1415bc67dd1037c3f7fe46d07c270
@@ -406,7 +406,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "15"
-    created: "2024-10-18T14:38:23.235023463Z"
+    created: "2024-10-18T15:07:38.669903873Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 1a6bf38ac9c69e4f84df49ce55ca194462f261d42fa68f9a104c4c62ba58a044
@@ -428,7 +428,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "14"
-    created: "2024-10-18T14:38:23.234468225Z"
+    created: "2024-10-18T15:07:38.669368516Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: bdbf6623a8dd2dda2ad3542c341cfe9b93f6af5d70109f4371df80ea3f538a89
@@ -450,7 +450,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: "14"
-    created: "2024-10-18T14:38:23.233902057Z"
+    created: "2024-10-18T15:07:38.668778898Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: e374f5acf2ca057f2d39d6e909fa1b146662de2d088a2180e8c9fe2ea87acba1
@@ -470,7 +470,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.233354583Z"
+    created: "2024-10-18T15:07:38.668253189Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 77246b1fc4fc5a317584bd265c2071a3cc0ea1486e2b30ab0ed62ebdc0e8c15c
@@ -488,7 +488,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.232811077Z"
+    created: "2024-10-18T15:07:38.667741556Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 9211fe5a1d399a013b1981434a3aefc0345b2e7ec425af8c8d9fdf05cf3df083
@@ -500,7 +500,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.231993679Z"
+    created: "2024-10-18T15:07:38.667252336Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (ver activa, actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 8849c0a85eb6e8af8d4aea89d8fbedf868d59f00e3a4d97a019bc13abd38038a
@@ -512,7 +512,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.230858025Z"
+    created: "2024-10-18T15:07:38.666754579Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (ver activa, actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: 777922554f7abd1301f533d78b00b3c1d6ec4f365a971bccd12e73282d6dbeab
@@ -524,7 +524,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.230288921Z"
+    created: "2024-10-18T15:07:38.665916048Z"
     description: 'App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Discos
       > Programación de instantáneas (ver activa, actualmente es snap-us-east-1-nubeadhoc-v2)'
     digest: e66b715c3bb9c2f175d08df96880d2f4f088d3cefbac79566f4580d31ad46a92
@@ -536,7 +536,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: "12.7"
-    created: "2024-10-18T14:38:23.229725327Z"
+    created: "2024-10-18T15:07:38.664424644Z"
     description: Postgres
     digest: 449017d7ae3b4bac6afee1a673de1f31765fdc0bce312a759dd4c546e80a59b0
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg
@@ -547,7 +547,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.229190798Z"
+    created: "2024-10-18T15:07:38.663805116Z"
     description: Postgres
     digest: a80b1c098944938655d5c7e6370fdcb02c1c94087d15ac1dd8dd8191b51e372d
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg
@@ -558,7 +558,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: "13"
-    created: "2024-10-18T14:38:23.228621454Z"
+    created: "2024-10-18T15:07:38.663251886Z"
     description: Postgres
     digest: e4600544ab78adffb81ce94663e9b93c0f94ede8fc9d02dff4d6c85aeae5c494
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg
@@ -572,7 +572,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-10-18T14:38:23.23708111Z"
+    created: "2024-10-18T15:07:38.671806605Z"
     description: Dummy app for cleanup of "Terminated" pods (specially for preemptible
       nodes)
     digest: 558d1a49ff7ca657c779a7c0d8caa1804f6f9f97610cb839b4e6504f980f756d
@@ -593,7 +593,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 6-alpine
-    created: "2024-10-18T14:38:23.238057486Z"
+    created: "2024-10-18T15:07:38.672715167Z"
     description: Redis for odoo sessions
     digest: 9f9c2af76b099e30b71dc7c4031339619281ed25d8ab5733040878fff2826822
     home: https://github.com/adhoc-dev/helm-charts
@@ -612,7 +612,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 6-alpine
-    created: "2024-10-18T14:38:23.237704255Z"
+    created: "2024-10-18T15:07:38.672374783Z"
     description: Redis for odoo sessions
     digest: d6123e93fe579404cd8a994f7191771e0deef7773d196061b183ac5689533a53
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Redis_Logo.svg
@@ -623,7 +623,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 6-alpine
-    created: "2024-10-18T14:38:23.23740733Z"
+    created: "2024-10-18T15:07:38.672091355Z"
     description: Redis for odoo sessions
     digest: 67f99115915eef89c42258116d0a06665aa2db9419048a7dff253df4441d3efe
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Redis_Logo.svg
@@ -637,7 +637,7 @@ entries:
       category: DevOps
     apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-10-18T14:38:23.238570786Z"
+    created: "2024-10-18T15:07:38.673827979Z"
     description: Default configurations for cert-manager
     digest: fc3fa63d67b28db2be53564d06374eaca2eb02e6dda926136430d1ccfd1935d0
     home: https://github.com/adhoc-dev/helm-charts
@@ -656,7 +656,7 @@ entries:
     version: 0.1.1
   - apiVersion: v1
     appVersion: 1.0.0
-    created: "2024-10-18T14:38:23.238300751Z"
+    created: "2024-10-18T15:07:38.673294365Z"
     description: A Helm chart for Kubernetes
     digest: 6a42a87a8700fd84ddd4a79031db8b0f522c8d43340c0b1b6f5d44a4f03e524d
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png
@@ -665,4 +665,4 @@ entries:
     urls:
     - https://adhoc-dev.github.io/helm-charts/cert-cfg-0.1.0.tgz
     version: 0.1.0
-generated: "2024-10-18T14:38:23.210235245Z"
+generated: "2024-10-18T15:07:38.645347018Z"
