@@ -1,3 +1,0 @@
-# Redis
-
-Redis es un sistema de almacenamiento de datos en memoria de alto rendimiento que se utiliza para la gestión y recuperación eficiente de datos. Actúa como una base de datos en memoria que permite almacenar y acceder a diversos tipos de datos estructurados, como cadenas, listas, conjuntos, mapas hash y conjuntos ordenados. Su arquitectura optimizada y su uso de estructuras de datos en memoria hacen que Redis sea extremadamente rápido y eficiente en la lectura y escritura de datos. En el contexto de Odoo, se utiliza como una caché para almacenar en memoria información clave y acelerar el acceso a los datos requeridos por la aplicación, mejorando así el rendimiento general del sistema.
