@@ -165,3 +165,7 @@ createPullSecret:
   user: ""
   pass: ""
   registry: "https://index.docker.io/v2/"
+
+adhoc:
+  # standard, advance, premium 
+  serviceLevel: standard
