@@ -1,14 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ingress-nginx-controller
+  name: nginx-ingress-nginx-ingress-controller
   namespace: nginx-ingress
 data:
-  enable-real-ip: "true"
+  # enable-real-ip: "true" # da un error en el log con is not allowed here
   use-forwarded-headers: "true"
-  use-proxy-protocol: "true"
+  # use-proxy-protocol: "true" # rompe nginx
   proxy-read-timeout: "720s"
   proxy-send-timeout: "720s"
   proxy-connect-timeout: "720s"
   ssl-redirect: "true"
   # client-max-body-size: "2m"
+  use-gzip: "true" # ENABLE GZIP COMPRESSION
+  gzip-types: "application/atom+xml application/javascript application/x-javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/svg+xml image/x-icon text/css text/javascript text/plain text/x-component text/less text/xml"
