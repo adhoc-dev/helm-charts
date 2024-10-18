@@ -1,3 +1,4 @@
+{{- if .Values.killer.enabled -}}
 apiVersion: batch/v1
 # apiVersion: batch/v1 # for k8s > 1.21
 kind: CronJob
@@ -51,3 +52,4 @@ spec:
           tolerations:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+{{- end }}

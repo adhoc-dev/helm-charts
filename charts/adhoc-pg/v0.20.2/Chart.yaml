@@ -6,7 +6,7 @@ description: "App de PG para Odoo by Adhoc. IMPORTANTE: configurar en GCP > Disc
 
 type: application
 
-version: 0.20.1
+version: 0.20.2
 
 appVersion: "2"
 
@@ -18,5 +18,7 @@ maintainers:
     email: dib@adhoc.com.ar
   - name: jjscarafia
     email: jjs@adhoc.com.ar
+  - name: azacchino
+    email: az@adhoc.com.ar
 
 icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg"

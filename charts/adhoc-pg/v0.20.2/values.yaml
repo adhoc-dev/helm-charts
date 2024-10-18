@@ -98,6 +98,7 @@ pg:
   diskSize: 500
 
 killer:
+  enabled: true
   # UTC
   cron: "*/30 12-22 * * *"
   max: 30
