@@ -99,7 +99,7 @@ spec:
             - name: "PROXY_MODE"
               value: "true"
             - name: "WITHOUT_DEMO"
-              value: "true"
+              value: {{ .Values.odoo.basic.withoutDemo | quote }}
             {{- if .Values.odoo.basic.wideModules }}
             - name: "SERVER_WIDE_MODULES"
               value: {{ .Values.odoo.basic.wideModules | quote }}
@@ -278,6 +278,15 @@ spec:
                         operator: In
                         values:
                           - {{ .Release.Name }}
+                  topologyKey: "kubernetes.io/hostname"
+              - weight: 50
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: "adhoc.ar/tier"
+                        operator: In
+                        values:
+                          - {{ .Values.nodeTag }}
                   topologyKey: "kubernetes.io/hostname"
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:

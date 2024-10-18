@@ -157,6 +157,11 @@ questions:
     type: "string"
     required: false
     default: "notifications@adhoc.nubeadhoc.com"
+  - variable: odoo.basic.withoutDemo
+    label: "NOT install demo data"
+    type: "boolean"
+    required: false
+    default: true
 # SaaS
   - variable: odoo.saas.mode
     group: "Saas"

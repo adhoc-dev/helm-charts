@@ -108,6 +108,7 @@ odoo:
     logLevel: "info"
     aerooHost: ""
     emailFrom: "notifications@adhoc.nubeadhoc.com"
+    withoutDemo: true
   # Performance Config
   saas:
     mode: false
