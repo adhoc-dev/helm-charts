@@ -2,13 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: {}
+replicaCount: 1
 
 image:
   repository: adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "13.0-enterprise"
+  tag: "17.0"
   pullSecret: "regcred"
 
 nameOverride: ""
@@ -72,11 +72,11 @@ ingress:
 
 resources:
   limits:
-    cpu: {}
-    memory: {}
+    cpu: 30m
+    memory: 250Mi
   requests:
-    cpu: {}
-    memory: {}
+    cpu: 3000m
+    memory: 4096Mi
 
 autoscaling:
   enabled: false

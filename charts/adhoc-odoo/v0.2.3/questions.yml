@@ -1,36 +1,36 @@
 questions:
 # NodeTag - Affinity
   - variable: nodeTag
-    group: "NodeTag"
+    group: "Deployment"
     label: "Node tag for node affinity"
     description: "Tag to schedule pods in nodes"
     type: "string"
     required: true
     default: "Prod"
   - variable: replicaCount
-    group: "NodeTag"
+    group: "Deployment"
     label: "Replica Count"
     description: "Scale (number of replicas)"
     type: "int"
     required: true
-    default: "1"
+    default: 1
 
   # Docker image config
   - variable: image.repository
-    group: "Docker"
+    group: "Container image"
     label: "Odoo Image Name"
     description: "For eg. adhoc/odoo-saas"
     type: "string"
     required: true
     default: "adhoc/odoo-adhoc"
   - variable: image.tag
-    group: "Docker"
+    group: "Container image"
     label: "Odoo Image Tag"
     type: "string"
     required: true
     default: "13.0-enterprise"
   - variable: image.pullSecret
-    group: "Docker"
+    group: "Container image"
     label: "pullSecret"
     type: "string"
     required: false
@@ -401,7 +401,7 @@ questions:
   - variable: ingress.cloudMainDomain
     group: "Ingress"
     label: "Adhoc Cloud Host"
-    description: ""
+    description: "(without db name, just the cloud domain ex: nubeadhoc.com)"
     type: "string"
     required: false
     default: "dev-adhoc.com"
