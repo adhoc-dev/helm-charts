@@ -21,8 +21,8 @@ metadata:
     networking.gke.io/v1.FrontendConfig: {{ include "adhoc-odoo.fullname" . }}-frontend-config
     # networking.gke.io/managed-certificates: "{{ $fullName }}-cert"
     {{- else }}
-    # nginx
-    kubernetes.io/ingress.class: nginx
+    # # nginx
+    # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -33,6 +33,9 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
     {{- end }}
 spec:
+  {{- if not .Values.ingress.useGoogleCloudExternalLB }}
+  ingressClassName: nginx
+  {{- end }}
   {{- if and .Values.ingress.enableHttps }}
   tls:
     {{- if .Values.ingress.hosts }}
