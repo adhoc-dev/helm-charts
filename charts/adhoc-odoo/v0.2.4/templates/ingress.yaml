@@ -42,10 +42,12 @@ spec:
       hosts:
         - {{ . | quote }}
     {{- end }}
-    {{- if .Values.odoo.pg.db }}
-    - hosts:
-        - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
-    {{- end  }}
+    # This block does not need to be specified as it is covered by the default certificate.
+    # {{- if .Values.odoo.pg.db }}
+    # - hosts:
+    #     - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+    #   # Warning   BadConfig   ingress/XXXXX-adhoc-odoo                Skipped a TLS block: spec.tls[5].secretName: Required value
+    # {{- end  }}
     {{- end  }}
   {{- end }}
   rules:
