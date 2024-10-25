@@ -40,6 +40,8 @@ adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel }}
 {{ include "adhoc-odoo.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- else }}
+app.kubernetes.io/version: {{ .Values.image.tag | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}

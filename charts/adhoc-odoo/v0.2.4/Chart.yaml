@@ -8,8 +8,6 @@ type: application
 
 version: 0.2.4
 
-appVersion: "1.16.0"
-
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
   - "https://github.com/adhoc-dev/"

@@ -21,9 +21,6 @@ metadata:
     networking.gke.io/v1.FrontendConfig: {{ include "adhoc-odoo.fullname" . }}-frontend-config
     # networking.gke.io/managed-certificates: "{{ $fullName }}-cert"
     {{- else }}
-    # # nginx
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
     # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/affinity: cookie
@@ -63,8 +60,6 @@ spec:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
-#              serviceName: {{ $fullName }}-http
-#              servicePort: 80
           {{- if $useLongpolling }}
           - path: /websocket
             pathType: Prefix
@@ -73,8 +68,6 @@ spec:
                 name: {{ $fullName }}-longpolling
                 port:
                   number: 80
-#              serviceName: {{ $fullName }}-longpolling
-#              servicePort: 80
           {{- end  }}
     {{- end  }}
     {{- if .Values.ingress.hosts }}
