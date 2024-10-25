@@ -35,8 +35,7 @@ Common labels
 */}}
 {{- define "adhoc-odoo.labels" -}}
 helm.sh/chart: {{ include "adhoc-odoo.chart" . }}
-adhoc.ar/tier : {{ .Values.nodeTag }}
-adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel }}
+{{ include "adhoc-odoo.adhocLabels" . }}
 {{ include "adhoc-odoo.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -52,6 +51,16 @@ Selector labels
 {{- define "adhoc-odoo.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "adhoc-odoo.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+AdHoc labels
+*/}}
+{{- define "adhoc-odoo.adhocLabels" -}}
+{{- $odooVersion := regexReplaceAll "^([0-9]+\\.[0-9]+)\\..*" .Values.image.tag "$1" -}}
+adhoc.ar/tier : {{ .Values.nodeTag }}
+adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel }}
+adhoc.ar/odoo-version : {{ $odooVersion }}
 {{- end }}
 
 {{/*
