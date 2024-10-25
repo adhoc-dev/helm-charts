@@ -28,7 +28,7 @@ questions:
     label: "Odoo Image Tag"
     type: "string"
     required: true
-    default: "13.0-enterprise"
+    default: "17.0"
   - variable: image.pullSecret
     group: "Container image"
     label: "pullSecret"
@@ -428,6 +428,10 @@ questions:
     group: "Adhoc"
     label: "Service Level"
     description: "Options: standard, advance, premium"
-    type: "string"
+    type: enum
     required: false
     default: "standard"
+    options:
+      - standard
+      - advance
+      - premium
