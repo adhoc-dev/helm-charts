@@ -60,7 +60,7 @@ AdHoc labels
 {{- $odooVersion := regexReplaceAll "^([0-9]+\\.[0-9]+)\\..*" .Values.image.tag "$1" -}}
 adhoc.ar/tier : {{ .Values.nodeTag }}
 adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel }}
-adhoc.ar/odoo-version : {{ $odooVersion }}
+adhoc.ar/odoo-version : {{ $odooVersion | quote }}
 {{- end }}
 
 {{/*
