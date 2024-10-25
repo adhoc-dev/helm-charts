@@ -1,0 +1,165 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "adhoc-odoo.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $useLongpolling  := .Values.odoo.performance.workers -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: extensions/v1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.ingress.enableHttps }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    {{- end }}
+    {{- if .Values.ingress.useGoogleCloudExternalLB }}
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/v1.FrontendConfig: {{ include "adhoc-odoo.fullname" . }}-frontend-config
+    # networking.gke.io/managed-certificates: "{{ $fullName }}-cert"
+    {{- else }}
+    # # nginx
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/affinity: cookie
+    # en realidad vimos que no es necesario ya por defecto los pareciera levantar
+    # TODO rename longpolling to websocket everywhere
+    nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-longpolling
+    nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
+    {{- end }}
+spec:
+  {{- if not .Values.ingress.useGoogleCloudExternalLB }}
+  ingressClassName: nginx
+  {{- end }}
+  {{- if and .Values.ingress.enableHttps }}
+  tls:
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts}}
+    - secretName: {{ . | quote }}
+      hosts:
+        - {{ . | quote }}
+    {{- end }}
+    {{- if .Values.odoo.pg.db }}
+    - hosts:
+        - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+    {{- end  }}
+    {{- end  }}
+  {{- end }}
+  rules:
+    {{- if .Values.odoo.pg.db }}
+    - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-http
+                port:
+                  number: 80
+#              serviceName: {{ $fullName }}-http
+#              servicePort: 80
+          {{- if $useLongpolling }}
+          - path: /websocket
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-longpolling
+                port:
+                  number: 80
+#              serviceName: {{ $fullName }}-longpolling
+#              servicePort: 80
+          {{- end  }}
+    {{- end  }}
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-http
+                port:
+                  number: 80
+          {{- if $useLongpolling }}
+          - path: /websocket
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}-longpolling
+                port:
+                  number: 80
+          {{- end  }}
+    {{- end }}
+    {{- end }}
+{{- end }}
+
+{{- if .Values.ingress.useGoogleCloudExternalLB }}
+---
+
+apiVersion: networking.gke.io/v1
+kind: FrontendConfig
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-frontend-config
+spec:
+  # kubectl explain FrontendConfig.spec
+  redirectToHttps:
+    enabled: true
+    # TODO: Production: MOVED_PERMANENTLY_DEFAULT
+    responseCodeName: TEMPORARY_REDIRECT
+  # sslPolicy:
+---
+apiVersion: cloud.google.com/v1
+kind: backendconfig
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-backend-config
+# https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_backendconfig_parameters
+spec:
+  # kubectl explain backendconfig.spec
+  connectionDraining:
+    drainingTimeoutSec: 600
+  # healthCheck:
+  #   checkIntervalSec: interval
+  #   timeoutSec: timeout
+  #   healthyThreshold: health-threshold
+  #   unhealthyThreshold: unhealthy-threshold
+  #   type: protocol
+  #   requestPath: path
+  #   port: port
+  cdn:
+    enabled: true
+    cachePolicy:
+      # Cloud CDN is enabled for this Ingress backend.
+      # requests to different hosts are cached separately.
+      includeHost: true
+      # HTTP and HTTPS requests are cached separately.
+      includeProtocol: false
+      # If set to true, query string parameters are included in the cache key according to queryStringBlacklist or queryStringWhitelist. If neither is set, the entire query string is included. If set to false, the entire query string is excluded from the cache key.
+      includeQueryString: includeQueryString
+      # Specify a string array with the names of query string parameters to exclude from cache keys.
+      # All other parameters are included. You can specify queryStringBlacklist or queryStringWhitelist, but not both.
+      # queryStringBlacklist:
+      # Specify a string array with the names of query string parameters to include in cache keys. All other parameters are excluded. You can queryStringBlacklist or queryStringWhitelist, but not both.
+      queryStringWhitelist: queryStringWhitelist
+  # logging:
+  #   enable: true
+  #   sampleRate: 0.5
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 600
+  # customRequestHeaders:
+  #   headers:
+  #   - "X-Client-Region:{client_region}"
+  #   - "X-Client-City:{client_city}"
+  #   - "X-Client-CityLatLong:{client_city_lat_long}"
+
+{{- end }}
