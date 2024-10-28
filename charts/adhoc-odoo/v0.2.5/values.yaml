@@ -69,6 +69,7 @@ ingress:
 
   # True for Google Ingress or false for internal NGINX Ingress
   useGoogleCloudExternalLB: false
+  enableConfigurationSnippet: true
 
 resources:
   limits:

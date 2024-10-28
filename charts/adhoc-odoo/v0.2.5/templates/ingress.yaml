@@ -28,6 +28,7 @@ metadata:
     # TODO rename longpolling to websocket everywhere
     nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-longpolling
     nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
+    {{- if .Values.ingress.enableConfigurationSnippet }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header X-Frame-Options "SAMEORIGIN";
       add_header X-Robots-Tag "none";
@@ -36,6 +37,7 @@ metadata:
       add_header Content-Security-Policy-Report-Only "frame-src 'self'; frame-ancestors 'self'; object-src 'none';";
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
       add_header X-Content-Type-Options "nosniff";
+    {{- end }}
     {{- end }}
 spec:
   {{- if not .Values.ingress.useGoogleCloudExternalLB }}
@@ -50,13 +52,7 @@ spec:
       hosts:
         - {{ . | quote }}
     {{- end }}
-    # This block does not need to be specified as it is covered by the default certificate.
-    # {{- if .Values.odoo.pg.db }}
-    # - hosts:
-    #     - "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"
-    #   # Warning   BadConfig   ingress/XXXXX-adhoc-odoo                Skipped a TLS block: spec.tls[5].secretName: Required value
-    # {{- end  }}
-    {{- end  }}
+    {{- end }}
   {{- end }}
   rules:
     {{- if .Values.odoo.pg.db }}
