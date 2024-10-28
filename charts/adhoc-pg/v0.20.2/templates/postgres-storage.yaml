@@ -1,4 +1,4 @@
-{{- if ne .Values.pg.diskSize 0 -}}
+{{- if ne (int .Values.pg.diskSize) 0 -}}
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
