@@ -88,10 +88,6 @@ autoscaling:
 nodeSelector: {}
 tolerations: {}
 
-multiEnvVariables:
-  # example: "yes"
-  # example2: "no"
-
 odoo:
   # Database parameters
   pg:
@@ -142,6 +138,11 @@ odoo:
     pass: ""
     catchall: ""
     whiteList: "adhoc.nubeadhoc.com"
+  extraEnvVars:
+    # example: "yes"
+    # example2: "no"
+
+
 # Redis Config
 redis:
   enabled: false

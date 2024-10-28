@@ -260,11 +260,10 @@ spec:
             - name: "ODOO_SESSION_REDIS_PASSWORD"
               value: {{ .Values.redis.pass | quote  }}
             {{- end }}
-            # Other environment variables (no funciona asi)
-            # {{- range $key, $value := .Values.multiEnvVariables }}
-            # - name: "{{ $key }}"
-            #   value: "{{ $value }}"
-            # {{- end }}
+            {{- range $key, $value := .Values.odoo.extraEnvVars }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       affinity:
