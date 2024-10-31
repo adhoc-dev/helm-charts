@@ -171,3 +171,4 @@ createPullSecret:
 adhoc:
   # standard, advance, premium 
   serviceLevel: standard
+  devMode: false
