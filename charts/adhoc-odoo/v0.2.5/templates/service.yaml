@@ -21,15 +21,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-longpolling
+  name: {{ include "adhoc-odoo.fullname" . }}-websocket
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: longpolling
+      targetPort: websocket
       protocol: TCP
-      name: longpolling
+      name: websocket
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
