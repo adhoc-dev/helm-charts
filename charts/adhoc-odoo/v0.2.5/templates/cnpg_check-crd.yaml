@@ -1,0 +1,15 @@
+{{- if .Values.cloudNativePG.enabled }}
+
+{{- if .Values.cloudNativePG.checkCRD }}
+{{- $crd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "cluster.postgresql.cnpg.io" "" -}}
+{{- if not $crd }}
+{{- fail (print "\nThe required CRD cluster.postgresql.cnpg.io is not installed in the cluster. Please install it first. \n\n helm repo add cnpg https://cloudnative-pg.github.io/charts \n helm upgrade --install cnpg \\ \n   --namespace cnpg-system \\ \n   --create-namespace \\ \n   cnpg/cloudnative-pg \n ") }}
+{{- end }}
+{{- end }}
+
+
+{{- if not .Values.cloudNativePG.bucketName }}
+{{- fail (print "\nbucketName must be set\n") }}
+{{- end }}
+
+{{- end }}
