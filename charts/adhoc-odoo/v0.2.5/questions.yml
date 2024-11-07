@@ -435,3 +435,19 @@ questions:
       - standard
       - advance
       - premium
+
+  - variable: adhoc.appType
+    group: "Adhoc"
+    label: "Application type"
+    description: "Options: train, prod, etc"
+    type: enum
+    required: false
+    default: "prod"
+    options:
+      - prod
+      - train
+      - test
+      - new
+      - old
+      - trainp
+      - backup

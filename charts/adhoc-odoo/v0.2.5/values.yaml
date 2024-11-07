@@ -181,3 +181,51 @@ adhoc:
   # standard, advance, premium 
   serviceLevel: standard
   devMode: false
+  # Type: test, train, backup, new, old
+  appType: prod
+
+cloudNativePG:
+  checkCRD: false
+  enabled: false
+  version: "15.0"
+  resources:
+    requests:
+      cpu: 20m
+      memory: 200Mi
+    limits:
+      cpu: 1000m
+      memory: 5000Mi
+  instances: 1
+  persistence:
+    size: 10Gi
+    # options are:
+    # - gcp-ssd (to create )
+    # - null (to let undefined)
+    storageClass: gcp-ssd
+  parameters:
+    # shared_buffers: "1GB"
+    # archive_mode = 'on'
+    # dynamic_shared_memory_type = 'posix'
+    # full_page_writes = 'on'
+    # logging_collector = 'on'
+    # log_destination = 'csvlog'
+    # log_directory = '/controller/log'
+    # log_filename = 'postgres'
+    # log_rotation_age = '0'
+    # log_rotation_size = '0'
+    # log_truncate_on_rotation = 'false'
+    # max_parallel_workers = '32'
+    # max_replication_slots = '32'
+    # max_worker_processes = '32'
+    # shared_memory_type = 'mmap' # for PostgreSQL >= 12 only
+    # wal_keep_size = '512MB' # for PostgreSQL >= 13 only
+    # wal_keep_segments = '32' # for PostgreSQL <= 12 only
+    # wal_level = 'logical'
+    # wal_log_hints = 'on'
+    # wal_sender_timeout = '5s'
+    # wal_receiver_timeout = '5s'
+  bucketName: regional-backup-cnpgtest-f1108esv
+  bucketCredential: null
+  backupServerName: null
+  # The target time as a timestamp in the RFC3339 standard
+  restoreBackUp: null

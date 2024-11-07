@@ -58,8 +58,8 @@ AdHoc labels
 */}}
 {{- define "adhoc-odoo.adhocLabels" -}}
 {{- $odooVersion := regexReplaceAll "^([0-9]+\\.[0-9]+)\\..*" .Values.image.tag "$1" -}}
-adhoc.ar/tier : {{ .Values.nodeTag }}
-adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel }}
+adhoc.ar/tier : {{ .Values.adhoc.appType | lower }}
+adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel | lower }}
 adhoc.ar/odoo-version : {{ $odooVersion | quote }}
 {{- end }}
 
