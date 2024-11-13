@@ -20,7 +20,10 @@
         "eamodio.gitlens",
         "shardulm94.trailing-spaces",
         "Tim-Koehler.helm-intellisense",
-        "technosophos.vscode-helm"
+        "technosophos.vscode-helm",
+        "wayou.vscode-todo-highlight",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-spanish"
       ]
     }
   },
