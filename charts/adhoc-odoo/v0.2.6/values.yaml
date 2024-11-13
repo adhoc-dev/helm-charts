@@ -70,23 +70,16 @@ ingress:
   # True for Google Ingress or false for internal NGINX Ingress
   useGoogleCloudExternalLB: false
   configurationSnippet:
-    enabled: true
+    enabled: false
     snippet: |
-      add_header X-Frame-Options "SAMEORIGIN";
-      add_header X-Robots-Tag "none";
-      add_header X-XSS-Protection "1; mode=block";
       add_header Referrer-Policy "no-referrer";
-      add_header Content-Security-Policy-Report-Only "frame-src 'self'; frame-ancestors 'self'; object-src 'none';";
-      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-      add_header X-Content-Type-Options "nosniff";
-
 resources:
   limits:
-    cpu: 30m
-    memory: 250Mi
-  requests:
     cpu: 3000m
     memory: 4096Mi
+  requests:
+    cpu: 30m
+    memory: 250Mi
 
 autoscaling:
   enabled: false
@@ -178,7 +171,7 @@ createPullSecret:
   registry: "https://index.docker.io/v2/"
 
 adhoc:
-  # standard, advance, premium 
+  # standard, advance, premium
   serviceLevel: standard
   devMode: false
   # Type: test, train, backup, new, old
@@ -198,6 +191,7 @@ cloudNativePG:
   instances: 1
   persistence:
     size: 10Gi
+    separeteWAL: false
     # options are:
     # - gcp-ssd (to create )
     # - null (to let undefined)
@@ -224,8 +218,20 @@ cloudNativePG:
     # wal_log_hints = 'on'
     # wal_sender_timeout = '5s'
     # wal_receiver_timeout = '5s'
-  bucketName: regional-backup-cnpgtest-f1108esv
-  bucketCredential: null
-  backupServerName: null
-  # The target time as a timestamp in the RFC3339 standard
-  restoreBackUp: null
+
+  backup:
+    schedule: "0 0 0 * * *" # Cada dia a medianoche utc
+    volumeSnapshot:
+      enabled: true
+      volumeSnapshotClass: gcp-ssd # GCP
+    bucket:
+      enabled: false
+      bucketName: '' # regional-backup-cnpgtest-f1108esv
+      bucketCredential: null
+      backupServerName: null
+  restore:
+    fromBucket: null # regional-backup-cnpgtest-f1108esv
+    fromSnapshot: ""
+    fromDump: ""
+    inTimeRecovery: null # null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)
+

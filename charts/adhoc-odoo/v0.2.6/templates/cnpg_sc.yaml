@@ -10,15 +10,8 @@ provisioner: pd.csi.storage.gke.io
 parameters:
   # pd-ssd, pd-standard or pd-balanced
   type: pd-ssd
-#  replication-type: regional-pd
-reclaimPolicy: Retain
+reclaimPolicy: Retain # TODO: Revisar
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
-# allowedTopologies:
-# - matchLabelExpressions:
-#   - key: topology.gke.io/zone
-#     values:
-#     - southamerica-east1-a
-#     - southamerica-east1-b
 {{- end }}
 {{- end }}

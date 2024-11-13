@@ -4,6 +4,9 @@
 
 Features:
 
+- CloudNative Volume Snapshots [+info](https://cloudnative-pg.io/documentation/1.22/backup/#object-stores-or-volume-snapshots-which-one-to-use) [+info](https://cloudnative-pg.io/documentation/1.22/backup_volumesnapshot/)
+- Add new questions for pullSecret and CloudNativePG
+
 ## *0.2.5*
 
 Features:

@@ -1,6 +1,6 @@
 {{- if .Values.cloudNativePG.enabled }}
 
-{{- if not .Values.cloudNativePG.restoreBackUp }}
+{{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -11,14 +11,14 @@ data:
   password: {{ .Values.odoo.pg.pass | b64enc | quote }}
 {{- end }}
 ---
-{{- if eq (lower .Values.adhoc.appType) "prod" }}
+{{- if and .Values.cloudNativePG.backup.bucket.enabled ( eq (lower .Values.adhoc.appType) "prod" ) }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-backup-secret
 type: Opaque
 data:
-  backup-key.json: {{ .Values.cloudNativePG.bucketCredential | b64enc }}
+  backup-key.json: {{ .Values.cloudNativePG.backup.bucket.bucketCredential | b64enc }}
 {{- end }}
 ---
 apiVersion: postgresql.cnpg.io/v1
@@ -30,9 +30,9 @@ metadata:
   annotations:
     # For manual intervention
     # cnpg.io/reconciliationLoop: "disabled"
-    # 
+    #
     cnpg.io/hibernation: "off"
-    # 
+    #
     # cnpg.io/skipEmptyWalArchiveCheck: "enabled"
     # cnpg.io/force-backup-recovery: "true"
 
@@ -47,9 +47,21 @@ spec:
     podAntiAffinityType: preferred # Default value
   storage:
     size: {{ .Values.cloudNativePG.persistence.size }}
-    {{- if .Values.cloudNativePG.persistence.storageClass }}
+    {{- if eq .Values.cloudNativePG.persistence.storageClass "gcp-ssd" }}
     storageClass: {{ include "adhoc-odoo.fullname" . }}-pg-sc
+    {{- else if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
     {{- end }}
+  # Used to Separate WAL into a diferent volume
+  {{ if .Values.cloudNativePG.persistence.separeteWAL }}
+  walStorage:
+    size: {{ .Values.cloudNativePG.persistence.size }} # TODO: This need to be calculated considerating retention and backups frecuency
+    {{- if eq .Values.cloudNativePG.persistence.storageClass "gcp-ssd" }}
+    storageClass: {{ include "adhoc-odoo.fullname" . }}-pg-sc
+    {{- else if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+    {{- end }}
+  {{- end }}
   resources:
     requests:
       memory: {{ .Values.cloudNativePG.resources.requests.memory | quote }}
@@ -95,24 +107,59 @@ spec:
   #   reusePVC: false
   {{- if eq (lower .Values.adhoc.appType) "prod" }}
   backup:
+    {{- if .Values.cloudNativePG.backup.bucket.enabled }}
     barmanObjectStore:
-      {{- if .Values.cloudNativePG.backupServerName }}
-      serverName: {{ .Values.cloudNativePG.backupServerName | quote }}
-      {{- end }}    
-      {{- include "barmanObjectStore.gcp" . | nindent 6 }}      
+      {{- if .Values.cloudNativePG.backup.bucket.backupServerName }}
+      serverName: {{ .Values.cloudNativePG.backup.bucket.backupServerName | quote }}
+      {{- end }}
+      {{- include "barmanObjectStore.gcp" . | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+    volumeSnapshot:
+      {{- if eq .Values.cloudNativePG.persistence.storageClass "gcp-ssd" }}
+      className: {{ include "adhoc-odoo.fullname" . }}-pg-sc
+      {{- else if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      className: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      # Used to Separate WAL into a diferent volume
+      {{ if .Values.cloudNativePG.persistence.separeteWAL }}
+      {{- if eq .Values.cloudNativePG.persistence.storageClass "gcp-ssd" }}
+      walClassName: {{ include "adhoc-odoo.fullname" . }}-pg-sc
+      {{- else if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      walClassName: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
     target: prefer-standby
     # TODO: service level?
     retentionPolicy: "360d"
   {{- end }}
-  
+
   bootstrap:
-    {{- if .Values.cloudNativePG.restoreBackUp }}
+    {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
     # Restore backup
     recovery:
+      {{- if .Values.cloudNativePG.restore.fromSnapshot }}
+      volumeSnapshots:
+        storage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot }}
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      # Used to Separate WAL into a diferent volume
+      {{ if .Values.cloudNativePG.persistence.separeteWAL }}
+        walStorage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot }}-wal
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      {{- end }}
+      {{- end }}
+      {{- if .Values.cloudNativePG.backup.bucket.enabled }}
       source: {{ include "adhoc-odoo.fullname" . }}-pg
-      {{- if ne .Values.cloudNativePG.restoreBackUp "latest" }}
+      {{- end }}
+      {{- if ne .Values.cloudNativePG.restore.inTimeRecovery "latest" }}
       recoveryTarget:
-        targetTime: {{ .Values.cloudNativePG.restoreBackUp | quote }}
+        targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
     {{- else }}
     # New database
@@ -124,26 +171,34 @@ spec:
       # encoding: UTF8           # Codificación de la base de datos
     {{- end }}
 
+  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
   externalClusters:
   - name: {{ include "adhoc-odoo.fullname" . }}-pg
     barmanObjectStore:
       {{- include "barmanObjectStore.gcp" . | nindent 6 }}
+  {{- end }}
 
 {{- if eq (lower .Values.adhoc.appType) "prod" }}
+{{- if or .Values.cloudNativePG.backup.bucket.enabled .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-pg-backup
 spec:
+  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
   method: barmanObjectStore
+  {{- end }}
+  {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+  method: volumeSnapshot
+  {{- end }}
   suspend: false
-  # immediate: false
-  # S M H Dm Mo Dw # 
-  schedule: "0 0 0 * * *" # Cada dia a medianoche utc
-  # schedule: "0 */5 * * * *" # Cada 5 min
+  immediate: true
+  # S M H Dm Mo Dw #
+  schedule: {{ .Values.cloudNativePG.backup.schedule | default "0 0 0 * * *" }}
   backupOwnerReference: none
   cluster:
     name: {{ include "adhoc-odoo.fullname" . }}-pg
+{{- end }}
 {{- end }}
 {{- end }}

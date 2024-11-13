@@ -7,8 +7,11 @@
 {{- end }}
 {{- end }}
 
+{{- if not (or (eq .Values.cloudNativePG.restore.inTimeRecovery "latest") (eq .Values.cloudNativePG.restore.inTimeRecovery nil) (regexMatch "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$" .Values.cloudNativePG.restore.inTimeRecovery)) }}
+{{- fail "El valor de timestamp debe ser null, 'latest' o un timestamp UTC en el formato RFC3339 (YYYY-MM-DDTHH:MM:SSZ)." }}
+{{- end }}
 
-{{- if not .Values.cloudNativePG.bucketName }}
+{{- if and .Values.cloudNativePG.backup.bucket.enabled (not .Values.cloudNativePG.backup.bucket.bucketName) }}
 {{- fail (print "\nbucketName must be set\n") }}
 {{- end }}
 

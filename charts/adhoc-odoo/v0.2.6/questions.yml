@@ -1,5 +1,5 @@
 questions:
-# NodeTag - Affinity
+  # NodeTag - Affinity
   - variable: nodeTag
     group: "Deployment"
     label: "Node tag for node affinity"
@@ -35,6 +35,34 @@ questions:
     type: "string"
     required: false
     default: "adhocsa"
+  - variable: createPullSecret.enabled
+    group: "Container image"
+    label: "Create pull secret?"
+    type: "boolean"
+    required: false
+    default: false
+  - variable: createPullSecret.user
+    group: "Container image"
+    label: "pull secret user"
+    type: "string"
+    required: true
+    default: ""
+    show_if: "createPullSecret.enabled=true"
+  - variable: createPullSecret.pass
+    group: "Container image"
+    label: "pull secret pass"
+    type: "string"
+    required: true
+    default: ""
+    show_if: "createPullSecret.enabled=true"
+  - variable: createPullSecret.registry
+    group: "Container image"
+    label: "pull secret registry"
+    type: "string"
+    required: true
+    default: "https://index.docker.io/v2/"
+    show_if: "createPullSecret.enabled=true"
+
 
 # Database Configuration
   - variable: odoo.pg.db
@@ -64,6 +92,7 @@ questions:
     type: "string"
     required: true
     default: "adhoc-pg.adhoc-pg.svc.cluster.local"
+    show_if: "cloudNativePG.enabled=false"
   - variable: odoo.pg.port
     group: "Database"
     label: "Postgres Port"
@@ -71,6 +100,7 @@ questions:
     type: "int"
     required: true
     default: "5432"
+    show_if: "cloudNativePG.enabled=false"
 
 # Pods limits and requests
   - variable: resources.requests.cpu
@@ -451,3 +481,35 @@ questions:
       - old
       - trainp
       - backup
+
+  # Cluod Native Postgress
+  - variable: cloudNativePG.enabled
+    group: "CloudNativePG"
+    label: "Enable Cloud Native PF"
+    type: "boolean"
+    required: true
+    default: false
+  - variable: cloudNativePG.backup.schedule
+    group: "CloudNativePG"
+    label: "Backup cron schedule"
+    description: " S M H Dm Mo Dw (Golang CRON Expression Format https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format) only enabled on adhoc.appType == 'prod'"
+    type: "string"
+    required: false
+    default: "0 0 0 * * *"
+    show_if: "cloudNativePG.enabled=true && adhoc.appType=prod"
+  - variable: cloudNativePG.restore.fromSnapshot
+    group: "CloudNativePG"
+    label: "Snapshot Name"
+    description: "Snapshot name to recover"
+    type: "string"
+    required: false
+    default: null
+    show_if: "cloudNativePG.enabled=true"
+  - variable: cloudNativePG.restore.inTimeRecovery
+    group: "CloudNativePG"
+    label: "recovery time"
+    description: "null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)"
+    type: "string"
+    required: false
+    default: null
+    show_if: "cloudNativePG.enabled=true"

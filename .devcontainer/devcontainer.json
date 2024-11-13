@@ -20,7 +20,8 @@
         "eamodio.gitlens",
         "shardulm94.trailing-spaces",
         "Tim-Koehler.helm-intellisense",
-        "technosophos.vscode-helm"
+        "technosophos.vscode-helm",
+        "wayou.vscode-todo-highlight"
       ]
     }
   },
