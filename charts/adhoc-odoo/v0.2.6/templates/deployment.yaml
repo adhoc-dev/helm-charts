@@ -113,10 +113,12 @@ spec:
             {{- else }}
               value: {{ .Values.odoo.basic.logLevel | quote }}
             {{- end }}
+            {{/*
             - name: "UNACCENT"
               value: "true"
             - name: "PROXY_MODE"
               value: "true"
+            */}}
             - name: "WITHOUT_DEMO"
               value: {{ .Values.odoo.basic.withoutDemo | quote }}
             {{- if .Values.odoo.basic.wideModules }}
@@ -160,6 +162,7 @@ spec:
               value: {{ .Values.odoo.performance.maxTimeReal | quote }}
             - name: "LIMIT_TIME_REAL_CRON"
               value: {{ .Values.odoo.performance.maxTimeCron | quote }}
+            {{/*
             - name: "FILESTORE_COPY_HARD_LINK"
               value: "true"
             - name: "FILESTORE_OPERATIONS_THREADS"
@@ -168,10 +171,7 @@ spec:
             - name: "ODOO_MAX_HTTP_THREADS"
               value: {{ .Values.odoo.performance.maxHttpTh | quote }}
             {{- end }}
-            {{- if .Values.odoo.performance.saasPath }}
-            - name: "ODOO_SAAS_PATH"
-              value: {{ .Values.odoo.performance.saasPath | quote }}
-            {{- end }}
+            */}}
             {{/* SaaS Config */}}
             {{- if .Values.odoo.saas.mode }}
             - name: "SERVER_MODE"
@@ -189,8 +189,10 @@ spec:
             - name: "MODULES_INSTALL_DISABLED"
               value: {{ .Values.odoo.saas.installDisabled | quote }}
             {{- end }}
+            {{/* For older version than 13.0
             - name: "DISABLE_SESSION_GC"
               value: "true"
+            */}}
             {{/* Entrypoint */}}
             - name: "WAIT_PG"
               value: "false"

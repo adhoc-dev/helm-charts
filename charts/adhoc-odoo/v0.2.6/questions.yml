@@ -157,7 +157,7 @@ questions:
     group: "Basic"
     label: "Log Level"
     type: enum
-    default: "info"
+    default: info
     options:
       - critical
       - error
@@ -289,12 +289,6 @@ questions:
     type: "string"
     required: false
     default: "template0"
-  - variable: odoo.performance.saasPath
-    group: "Performance"
-    label: "Saas Path"
-    type: "string"
-    required: true
-    default: "/home/odoo/src/repositories/ingadhoc-odoo-saas"
 # Entrypoint Odoo-SaaS
   - variable: odoo.entrypoint.fixdbs
     group: "Entrypoint"

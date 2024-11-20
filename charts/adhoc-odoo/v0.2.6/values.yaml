@@ -125,7 +125,6 @@ odoo:
     maxTimeReal: 1600
     maxTimeCron: 6000
     maxHttpTh: 8
-    saasPath: "/home/odoo/src/repositories/ingadhoc-odoo-saas"
   entrypoint:
     fixdbs: false
     fixdbsAdhoc: true
