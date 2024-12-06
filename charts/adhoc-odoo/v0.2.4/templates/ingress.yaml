@@ -30,7 +30,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header X-Frame-Options "SAMEORIGIN";
-      add_header X-Robots-Tag "none";
       add_header X-XSS-Protection "1; mode=block";
       add_header Referrer-Policy "no-referrer";
       add_header Content-Security-Policy-Report-Only "frame-src 'self'; frame-ancestors 'self'; object-src 'none';";
