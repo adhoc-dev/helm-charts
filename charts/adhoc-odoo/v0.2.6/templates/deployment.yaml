@@ -30,8 +30,10 @@ spec:
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      {{ with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{ end }}
       {{- if .Values.cloudNativePG.enabled }}
       initContainers:
         - name: wait-for-postgres
@@ -40,8 +42,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.devMode }}
