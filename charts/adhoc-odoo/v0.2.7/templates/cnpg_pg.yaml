@@ -1,0 +1,208 @@
+{{- if .Values.cloudNativePG.enabled }}
+
+{{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-secret
+  {{- include "adhoc-odoo.labels" . | nindent 2 }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ .Values.odoo.pg.user | b64enc | quote }}
+  password: {{ .Values.odoo.pg.pass | b64enc | quote }}
+{{- end }}
+---
+{{- if and .Values.cloudNativePG.backup.bucket.enabled ( eq (lower .Values.adhoc.appType) "prod" ) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-backup-secret
+  {{- include "adhoc-odoo.labels" . | nindent 2 }}
+type: Opaque
+data:
+  backup-key.json: {{ .Values.cloudNativePG.backup.bucket.bucketCredential | b64enc }}
+{{- end }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg
+  labels:
+    app.kubernetes.io/name: {{ include "adhoc-odoo.fullname" . }}-pg
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    cnpg.io/hibernation: "off"
+    {{/*
+    # For manual intervention
+    # cnpg.io/reconciliationLoop: "disabled
+    # cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+    # cnpg.io/force-backup-recovery: "true"
+    */}}
+{{/*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
+spec:
+  {{/*
+  # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
+  # priorityClassName:
+  */}}
+  {{/* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
+  logLevel: info
+  inheritedMetadata:
+    labels:
+      {{- include "adhoc-odoo.labels" . | nindent 6 }}
+  imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+  primaryUpdateStrategy: unsupervised
+  instances: {{ .Values.cloudNativePG.instances | default 1 }}
+  affinity:
+    {{/* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
+    enablePodAntiAffinity: true # Default value
+    topologyKey: kubernetes.io/hostname # Default value
+    podAntiAffinityType: preferred # Default value
+  storage:
+    size: {{ .Values.cloudNativePG.persistence.size }}
+    {{- if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+    {{- end }}
+  {{/* Used to Separate WAL into a diferent volume */}}
+  {{ if .Values.cloudNativePG.persistence.separateWAL }}
+  walStorage:
+    {{/* TODO: This need to be calculated considerating retention and backups frecuency */}}
+    size: {{ .Values.cloudNativePG.persistence.size }}
+    {{- if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+    {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      memory: {{ .Values.cloudNativePG.resources.requests.memory | quote }}
+      cpu: {{ .Values.cloudNativePG.resources.requests.cpu | quote }}
+    limits:
+      memory: {{ .Values.cloudNativePG.resources.limits.memory | quote }}
+      cpu: {{ .Values.cloudNativePG.resources.limits.cpu | quote }}
+  postgresql:
+    # https://cloudnative-pg.io/documentation/1.24/postgresql_conf/
+    parameters:
+      {{- range $key, $value := .Values.cloudNativePG.parameters }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{/*
+      # shared_buffers: "1GB"
+      # archive_mode = 'on'
+      # dynamic_shared_memory_type = 'posix'
+      # full_page_writes = 'on'
+      # logging_collector = 'on'
+      # log_destination = 'csvlog'
+      # log_directory = '/controller/log'
+      # log_filename = 'postgres'
+      # log_rotation_age = '0'
+      # log_rotation_size = '0'
+      # log_truncate_on_rotation = 'false'
+      # max_parallel_workers = '32'
+      # max_replication_slots = '32'
+      # max_worker_processes = '32'
+      # shared_memory_type = 'mmap' # for PostgreSQL >= 12 only
+      # wal_keep_size = '512MB' # for PostgreSQL >= 13 only
+      # wal_keep_segments = '32' # for PostgreSQL <= 12 only
+      # wal_level = 'logical'
+      # wal_log_hints = 'on'
+      # wal_sender_timeout = '5s'
+      # wal_receiver_timeout = '5s'
+      */}}
+  {{- if eq (lower .Values.adhoc.appType) "prod" }}
+  {{/* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
+  backup:
+    {{- if .Values.cloudNativePG.backup.bucket.enabled }}
+    barmanObjectStore:
+      tags:
+        {{- include "adhoc-odoo.labels" . | nindent 8 }}
+      {{- if .Values.cloudNativePG.backup.bucket.backupServerName }}
+      serverName: {{ .Values.cloudNativePG.backup.bucket.backupServerName | quote }}
+      {{- end }}
+      {{- include "barmanObjectStore.gcp" . | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+    volumeSnapshot:
+      annotations: {}
+      labels:
+        {{- include "adhoc-odoo.labels" . | nindent 8 }}
+      {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      className: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      {{/* Used to Separate WAL into a diferent volume */}}
+      {{- if .Values.cloudNativePG.persistence.separateWAL }}
+      {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      walClassName: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+    target: prefer-standby
+    retentionPolicy: "360d"
+  {{- end }}
+
+  bootstrap:
+    {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
+    recovery:
+      {{- if .Values.cloudNativePG.restore.fromSnapshot }}
+      volumeSnapshots:
+        storage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot }}
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      {{/* Used to Separate WAL into a diferent volume */}}
+      {{ if .Values.cloudNativePG.persistence.separateWAL }}
+        walStorage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot }}-wal
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      {{- end }}
+      {{- end }}
+      {{- if .Values.cloudNativePG.backup.bucket.enabled }}
+      source: {{ include "adhoc-odoo.fullname" . }}-pg
+      {{- end }}
+      {{- if ne .Values.cloudNativePG.restore.inTimeRecovery "latest" }}
+      recoveryTarget:
+        targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
+      {{- end }}
+    {{- else }}
+    {{/* New database */}}
+    initdb:
+      database: {{ .Values.odoo.pg.db | default "odoo" | quote }}
+      owner: {{ .Values.odoo.pg.user | default "postgres" | quote }}
+      secret:
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-secret
+    {{- end }}
+
+  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
+  externalClusters:
+  - name: {{ include "adhoc-odoo.fullname" . }}-pg
+    barmanObjectStore:
+      {{- include "barmanObjectStore.gcp" . | nindent 6 }}
+  {{- end }}
+
+{{- if eq (lower .Values.adhoc.appType) "prod" }}
+{{- if or .Values.cloudNativePG.backup.bucket.enabled .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-backup
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
+  method: barmanObjectStore
+  {{- end }}
+  {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+  method: volumeSnapshot
+  {{- end }}
+  suspend: false
+  immediate: true
+  {{/* S M H Dm Mo Dw */}}
+  schedule: {{ .Values.cloudNativePG.backup.schedule | default "0 0 0 * * *" }}
+  backupOwnerReference: none
+  target: prefer-standby
+  cluster:
+    name: {{ include "adhoc-odoo.fullname" . }}-pg
+{{- end }}
+{{- end }}
+{{- end }}
