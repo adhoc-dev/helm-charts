@@ -362,30 +362,45 @@ questions:
     default: "example.com"
 
 # Storage (we only support S3-like buckets)
+  - variable: storage.location
+    group: "Storage"
+    label: "Storage Type"
+    type: enum
+    required: true
+    default: "attachment_s3"
+    options:
+      - attachment_s3
+      - native
+      - fuse
   - variable: storage.aws_region
     group: "Storage"
     label: "Storage Region"
     type: "string"
     required: true
+    description: "Bucket Region (used only with 'attachment_s3')"
   - variable: storage.aws_host
     group: "Storage"
     label: "Storage Host"
     type: "string"
     required: true
+    description: "Bucket Host (used only with 'attachment_s3')"
   - variable: storage.aws_bucketname
     group: "Storage"
     label: "Storage Bucketname"
     type: "string"
+    description: "Bucket name (used with 'attachment_s3' and 'fuse')"
     required: true
   - variable: storage.aws_access_key_id
     group: "Storage"
     label: "Storage Access Key Id"
     type: "string"
     required: true
+    description: "Bucket Access Key Id/HMAC (used only with 'attachment_s3')"
   - variable: storage.aws_secret_access_key
     group: "Storage"
     label: "Storage Secret Access Key"
     type: "password"
+    description: "Bucket Access Key Secret/HMAC (used only with 'attachment_s3')"
     required: true
 
 # Sessions
@@ -479,7 +494,7 @@ questions:
     label: "Client Analytic Account"
     description: "Client owner of the application"
     type: "string"
-    required: false
+    required: true
     default: "Unknown"
 
   # Cloud Native Postgres

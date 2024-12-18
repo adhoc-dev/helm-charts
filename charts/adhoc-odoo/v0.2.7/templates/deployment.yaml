@@ -21,14 +21,20 @@ spec:
   revisionHistoryLimit: 2
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        {{- if eq .Values.storage.location "fuse" }}
+        gke-gcsfuse/volumes: "true"
+        {{- end }}
       labels:
         {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
     spec:
+      {{- if eq .Values.storage.location "fuse" }}
+      terminationGracePeriodSeconds: 60
+      {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       {{ with .Values.podSecurityContext }}
       securityContext:
@@ -249,8 +255,9 @@ spec:
               value: {{ .Values.odoo.smtp.catchall | quote }}
             {{- end }}
             {{/* Storage Config */}}
+            {{- if eq .Values.storage.location "attachment_s3" }}
             - name: "IR_ATTACHMENT_LOCATION"
-              value: {{ .Values.storage.ir_attachment_location | quote }}
+              value: "s3"
             - name: "AWS_REGION"
               value: {{ .Values.storage.aws_region | quote }}
             - name: "AWS_HOST"
@@ -261,9 +268,12 @@ spec:
               value: {{ .Values.storage.aws_access_key_id | quote }}
             - name: "AWS_SECRET_ACCESS_KEY"
               value: {{ .Values.storage.aws_secret_access_key | quote }}
+            {{- end }}
             {{/* Redis Config */}}
             {{- if .Values.redis.enabled }}
             {{/* TODO:  values for v13- (remove when no longer customers on v13-) */}}
+            {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+            {{- if le $odooVersion 130 -}}
             - name: "ENABLE_REDIS"
               value: "true"
             - name: "REDIS_HOST"
@@ -274,6 +284,7 @@ spec:
               value: {{ .Values.redis.pass | quote  }}
             - name: "REDIS_DBINDEX"
               value: "1"
+            {{- end }}
             {{/* values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis) */}}
             - name: "ODOO_SESSION_REDIS"
               value: "true"
@@ -290,6 +301,12 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          {{- if eq .Values.storage.location "fuse" }}
+          - name: gcs-fuse-csi-ephemeral
+            mountPath: /home/odoo/data/filestore
+            readOnly: false
+          {{- end }}
       affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -339,7 +356,22 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.nodeSelector }}
       nodeSelector:
+        {{- if eq .Values.storage.location "fuse" }}
+        iam.gke.io/gke-metadata-server-enabled: "true"
+        {{- end }}
+      {{- with .Values.nodeSelector }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.storage.location "fuse" }}
+      volumes:
+      - name: gcs-fuse-csi-ephemeral
+        csi:
+          driver: gcsfuse.csi.storage.gke.io
+          readOnly: false
+          volumeAttributes:
+            bucketName: {{ .Values.storage.aws_bucketname | quote }}
+            gcsfuseLoggingSeverity: warning
+            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3"
+            fileCacheCapacity: "-1"
       {{- end }}

@@ -4,6 +4,9 @@
 
 Features:
 
+- Add support for FUSE bucket volumes (Only for GCP) `storage.location='fuse'`
+  (This feature requires CSI Fuse driver enabled on GKE Cluster and GKE Metadata enabled on node_pools )
+
 ## *0.2.6*
 
 Features:

@@ -31,6 +31,13 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
+Get odoo mayor version.
+*/}}
+{{- define "adhoc-odoo.odoo-version" -}}
+{{- printf "%s" (regexReplaceAll "^([0-9]+\\.[0-9]+)\\..*" .Values.image.tag "$1") }}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "adhoc-odoo.labels" -}}
@@ -57,10 +64,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 AdHoc labels
 */}}
 {{- define "adhoc-odoo.adhocLabels" -}}
-{{- $odooVersion := regexReplaceAll "^([0-9]+\\.[0-9]+)\\..*" .Values.image.tag "$1" -}}
 adhoc.ar/tier : {{ .Values.adhoc.appType | lower }}
 adhoc.ar/service-level : {{ .Values.adhoc.serviceLevel | lower }}
-adhoc.ar/odoo-version : {{ $odooVersion | quote }}
+adhoc.ar/odoo-version : {{ include "adhoc-odoo.odoo-version" . }}
 adhoc.ar/client-analytic-account : {{ .Values.adhoc.clientAnalyticAccount | quote }}
 {{- end }}
 

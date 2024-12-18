@@ -154,7 +154,7 @@ redis:
 
 # Storage
 storage:
-  ir_attachment_location: "s3"
+  location: "attachment_s3"
   aws_region: "US-EAST1"
   aws_host: "https://storage.googleapis.com"
   aws_bucketname: "acp-us-east1-test"
