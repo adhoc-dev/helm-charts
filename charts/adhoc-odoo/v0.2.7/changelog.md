@@ -30,9 +30,9 @@ Features:
 Features:
 
 - Add configuration-snippet with some security improvements
-- Add new service level annotation: `adhoc.serviceLevel` (standard, advance, premium)
+- Add new service level annotation: `adhoc.serviceLevel` (standard, advanced, premium)
 - Add new labels:
-  - `adhoc.ar/service-level`: Adhoc Service level (standard, advance, premium)
+  - `adhoc.ar/service-level`: Adhoc Service level (standard, advanced, premium)
   - `adhoc.ar/tier`: Tier (prod, test, etc)
   - `adhoc.ar/odoo-version`: Odoo base version (`17.0`, `18.0`)
 - Remove warning on "Skipped a TLS block"

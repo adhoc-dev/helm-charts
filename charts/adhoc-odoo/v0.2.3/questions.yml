@@ -427,7 +427,7 @@ questions:
   - variable: adhoc.serviceLevel
     group: "Adhoc"
     label: "Service Level"
-    description: "Options: standard, advance, premium"
+    description: "Options: standard, advanced, premium"
     type: "string"
     required: false
     default: "standard"

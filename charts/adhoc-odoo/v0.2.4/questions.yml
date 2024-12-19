@@ -427,11 +427,11 @@ questions:
   - variable: adhoc.serviceLevel
     group: "Adhoc"
     label: "Service Level"
-    description: "Options: standard, advance, premium"
+    description: "Options: standard, advanced, premium"
     type: enum
     required: false
     default: "standard"
     options:
       - standard
-      - advance
+      - advanced
       - premium

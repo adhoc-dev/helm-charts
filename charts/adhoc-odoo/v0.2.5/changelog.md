@@ -12,7 +12,7 @@ Features:
 - Add initial support for Cloud-Native-pg (**CloudNativePG operator** must be installed before [+info](https://github.com/cloudnative-pg/charts))
 
 - Add new labels:
-  - `adhoc.ar/service-level`: Adhoc Service level (standard, advance, premium)
+  - `adhoc.ar/service-level`: Adhoc Service level (standard, advanced, premium)
   - `adhoc.ar/tier`: Tier (prod, test, etc)
   - `adhoc.ar/odoo-version`: Odoo base version (`17.0`, `18.0`)
 - Remove warning on "Skipped a TLS block"
