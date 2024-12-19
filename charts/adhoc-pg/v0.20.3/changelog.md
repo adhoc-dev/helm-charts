@@ -4,4 +4,4 @@
 
 Features:
 
-- 
+- Move cronjobs to the same node type as pg

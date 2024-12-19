@@ -43,7 +43,7 @@ spec:
                 requiredDuringSchedulingIgnoredDuringExecution:
                   nodeSelectorTerms:
                   - matchExpressions:
-                    - key: Prod
+                    - key: {{ .Values.nodeTag }}
                       operator: In
                       values:
                       - "true"
