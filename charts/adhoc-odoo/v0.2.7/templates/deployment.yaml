@@ -304,7 +304,7 @@ spec:
           volumeMounts:
           {{- if eq .Values.storage.location "fuse" }}
           - name: gcs-fuse-csi-ephemeral
-            mountPath: /home/odoo/data/filestore
+            mountPath: /home/odoo/data/filestore/{{ .Release.Name }}
             readOnly: false
           {{- end }}
       affinity:
