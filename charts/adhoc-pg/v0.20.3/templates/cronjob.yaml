@@ -1,0 +1,55 @@
+{{- if .Values.killer.enabled -}}
+apiVersion: batch/v1
+# apiVersion: batch/v1 # for k8s > 1.21
+kind: CronJob
+metadata:
+  name: {{ include "adhoc-pg.fullname" . }}-cj
+  labels:
+    {{- include "adhoc-pg.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.killer.cron | quote}}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}-killer
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: IfNotPresent
+            command:
+            - psql
+            - -c
+            - SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND state = 'idle' AND state_change < current_timestamp - INTERVAL '{{ .Values.killer.max }}' MINUTE;
+            env:
+            # SqlCli
+            - name: "PGDATABASE"
+              value: {{ .Values.pg.db | quote }}
+            - name: "PGUSER"
+              value: {{ .Values.pg.user | quote }}
+            - name: "PGPASSWORD"
+              value: {{ .Values.pg.pass | quote }}
+            - name: "PGPORT"
+              value: {{ .Values.service.port | quote }}
+            - name: "PGHOST"
+              value: {{ include "adhoc-pg.fullname" . }}
+          restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: {{ .Values.nodeTag }}
+                      operator: In
+                      values:
+                      - "true"
+
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}
