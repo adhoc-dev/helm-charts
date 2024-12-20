@@ -372,6 +372,18 @@ spec:
           volumeAttributes:
             bucketName: {{ .Values.storage.aws_bucketname | quote }}
             gcsfuseLoggingSeverity: warning
-            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3"
-            fileCacheCapacity: "-1"
+            mountOptions: |
+              uid=1000,
+              gid=1000,
+              file-mode=600,
+              dir-mode=700,
+              implicit-dirs=true,
+              o=rw,
+              file-cache:enable-parallel-downloads:true,
+              file-cache:parallel-downloads-per-file:4,
+              file-cache:max-parallel-downloads:-1,
+              file-cache:download-chunk-size-mb:3,
+              file-cache:max-size-mb:200,
+              metadata-cache:ttl-secs:-1
+            fileCacheCapacity: "200Mi"
       {{- end }}
