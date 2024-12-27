@@ -488,6 +488,7 @@ questions:
       - new
       - old
       - trainp
+      - demo
       - backup
   - variable: adhoc.clientAnalyticAccount
     group: "Adhoc"
