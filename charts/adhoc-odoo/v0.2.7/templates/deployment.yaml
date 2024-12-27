@@ -145,7 +145,7 @@ spec:
             {{- end }}
             {{/* Performance Config */}}
             - name: "WORKERS"
-              value: {{ .Values.odoo.performance.workers | quote }}
+              value: {{ .Values.odoo.performance.workers | toString | int | quote }}
             - name: "MAX_CRON_THREADS"
               value: {{ .Values.odoo.performance.maxCronTh | quote }}
             {{- if .Values.odoo.performance.maxDbConn }}

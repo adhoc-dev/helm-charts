@@ -18,8 +18,8 @@ spec:
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
 ---
-{{- $usewebsocket  := .Values.odoo.performance.workers -}}
-{{- if $usewebsocket }}
+{{- $usewebsocket  := .Values.odoo.performance.workers | toString | int -}}
+{{- if gt $usewebsocket 0 }}
 apiVersion: v1
 kind: Service
 metadata:

@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "adhoc-odoo.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
-{{- $usewebsocket  := .Values.odoo.performance.workers -}}
+{{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -59,7 +59,7 @@ spec:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
-          {{- if $usewebsocket }}
+          {{- if gt $usewebsocket 0 }}
           - path: /websocket
             pathType: Prefix
             backend:
@@ -82,7 +82,7 @@ spec:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
-          {{- if $usewebsocket }}
+          {{- if gt $usewebsocket 0 }}
           - path: /websocket
             pathType: Prefix
             backend:
