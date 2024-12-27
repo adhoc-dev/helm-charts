@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4.2.0
 
       - name: Update New Files and push to master branch
         shell: bash
