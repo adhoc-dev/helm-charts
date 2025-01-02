@@ -4,7 +4,7 @@
 
 Features:
 
-- Add ODOO_INITIAL_LANGUAGE var
+- Add ODOO_INITIAL_LANGUAGE envvar and its question `odoo.basic.language`
 
 ## *0.2.7*
 

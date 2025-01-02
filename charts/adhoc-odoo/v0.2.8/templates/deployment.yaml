@@ -131,6 +131,8 @@ spec:
             */}}
             - name: "WITHOUT_DEMO"
               value: {{ .Values.odoo.basic.withoutDemo | quote }}
+            - name: "ODOO_INITIAL_LANGUAGE"
+              value: {{ .Values.odoo.basic.language | quote }}
             {{- if .Values.odoo.basic.wideModules }}
             - name: "SERVER_WIDE_MODULES"
               value: {{ .Values.odoo.basic.wideModules | quote }}

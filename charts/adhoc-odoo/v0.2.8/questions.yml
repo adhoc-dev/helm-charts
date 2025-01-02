@@ -194,6 +194,13 @@ questions:
     type: "boolean"
     required: false
     default: true
+  - variable: odoo.basic.language
+    group: "Basic"
+    label: "Language"
+    description: "Initial language for the instance"
+    type: "string"
+    required: true
+    default: "es_AR"
 # SaaS
   - variable: odoo.saas.mode
     group: "Saas"
