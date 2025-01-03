@@ -108,7 +108,7 @@ odoo:
     aerooHost: ""
     emailFrom: "notifications@adhoc.nubeadhoc.com"
     withoutDemo: true
-    language: "es_AR"
+    language: "es_419"
   # Performance Config
   saas:
     mode: false

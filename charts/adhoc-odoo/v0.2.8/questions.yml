@@ -200,7 +200,7 @@ questions:
     description: "Initial language for the instance"
     type: "string"
     required: true
-    default: "es_AR"
+    default: "es_419"
 # SaaS
   - variable: odoo.saas.mode
     group: "Saas"
