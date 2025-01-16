@@ -11,8 +11,8 @@ type: kubernetes.io/basic-auth
 data:
   username: {{ .Values.odoo.pg.user | b64enc | quote }}
   password: {{ .Values.odoo.pg.pass | b64enc | quote }}
-{{- end }}
 ---
+{{- end }}
 {{- if and .Values.cloudNativePG.backup.bucket.enabled ( eq (lower .Values.adhoc.appType) "prod" ) }}
 apiVersion: v1
 kind: Secret
@@ -42,6 +42,9 @@ metadata:
     */}}
 {{/*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
 spec:
+
+  enableSuperuserAccess: true
+
   {{/*
   # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
   # priorityClassName:
@@ -165,6 +168,10 @@ spec:
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
+      database: {{ .Values.odoo.pg.db | default "odoo" | quote }}
+      owner: {{ .Values.odoo.pg.user | default "postgres" | quote }}
+      secret:
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-secret
     {{- else }}
     {{/* New database */}}
     initdb:
