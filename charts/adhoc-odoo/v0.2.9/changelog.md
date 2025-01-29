@@ -4,13 +4,20 @@
 
 Features:
 
--
+- CNPG:
+  - NetworkPolicy: pg only can be reached from the same namespace
+  - Superuser: able to set superuser password
+  - Restore: now we able to restore from GCP snapchot `cloudNativePG.restore.fromGCPSnapshot`
+- ODOO:
+  - Envvars: now we use a ConfigMap to store the envvars
 
 ## *0.2.8*
 
 Features:
 
 - Add ODOO_INITIAL_LANGUAGE envvar and its question `odoo.basic.language`
+
+Note: **NOT ready for CNPG**
 
 ## *0.2.7*
 
@@ -33,7 +40,7 @@ Features:
 - Remove the WebSocket service when no workers are present.
 - Add `devMode` to disable the entrypoint, liveness, and readiness probes.
 - Make Ingress configuration snippets optional (enable with `configurationSnippet.enabled`).
-- Add support for additional environment variables for the Odoo container (`extraEnvVars`).
+- Add support for additional environment variables for the Odoo container (`odoo.extraEnvVars`).
 - Add new app tye annotation: `adhoc.appType` (prod, test, etc)
 - Add initial support for Cloud-Native-pg (**CloudNativePG operator** must be installed before [+info](https://github.com/cloudnative-pg/charts))
 

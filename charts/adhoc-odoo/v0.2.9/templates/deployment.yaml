@@ -5,8 +5,8 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
-    {{- if .Values.ingress.enableHttps }}
-    {{/* https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager */}}
+    {{ if .Values.ingress.enableHttps }}
+    {{- /* https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager */ -}}
     certmanager.k8s.io/disable-auto-restart: "true"
     {{- end }}
 spec:
@@ -31,6 +31,7 @@ spec:
       labels:
         {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "odoo"
     spec:
       {{- if eq .Values.storage.location "fuse" }}
       terminationGracePeriodSeconds: 60
@@ -44,7 +45,7 @@ spec:
       initContainers:
         - name: wait-for-postgres
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
-          command: ['sh', '-c', 'until pg_isready -h {{ include "adhoc-odoo.fullname" . }}-pg-rw.{{ .Release.Namespace }} -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
+          command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -54,7 +55,7 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.devMode }}
+          {{- if .Values.adhoc.devMode }}
           args:
             - /bin/sh
             - -c
@@ -67,7 +68,7 @@ spec:
             - name: websocket
               containerPort: 8072
               protocol: TCP
-          {{- if not .Values.devMode }}
+          {{- if not .Values.adhoc.devMode }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -77,33 +78,43 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "adhoc-odoo.fullname" . }}-envs
+          - secretRef:
+              name: {{ include "adhoc-odoo.fullname" . }}-secrets
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             {{/* Odoo Database parameters */}}
-            {{- if .Values.odoo.pg.user }}
+            {{- if .Values.cloudNativePG.enabled }}
             - name: "PGUSER"
-              value: {{ .Values.odoo.pg.user | quote }}
-            {{- end }}
-            {{- if .Values.odoo.pg.pass }}
+              value: postgres
             - name: "PGPASSWORD"
               value: {{ .Values.odoo.pg.pass | quote }}
-            {{- end }}
-            {{- if .Values.cloudNativePG.enabled }}
             - name: "PGHOST"
-              value: {{ include "adhoc-odoo.fullname" . }}-pg-rw.{{ .Release.Namespace }}
+              value: {{ include "adhoc-odoo.fullname" . }}-pg-rw
+            - name: "PGPORT"
+              value: {{ 5432 | quote }}
+            - name: "PGDATABASE"
+              value: {{ "odoo" | quote }}
+            # TODO: Check this values
+            - name: "DATABASE"
+              value: {{ "odoo" | quote }}
             {{- else }}
-            {{- if .Values.odoo.pg.host }}
+            - name: "PGUSER"
+              value: {{ .Values.odoo.pg.user | quote }}
+            - name: "PGPASSWORD"
+              value: {{ .Values.odoo.pg.pass | quote }}
             - name: "PGHOST"
               value: {{ .Values.odoo.pg.host | quote }}
-            {{- end }}
-            {{- end }}
-            {{- if .Values.odoo.pg.port }}
             - name: "PGPORT"
               value: {{ .Values.odoo.pg.port | quote }}
-            {{- end }}
-            {{- if .Values.odoo.pg.db }}
-            - name: "DATABASE"
-              value: {{ .Values.odoo.pg.db | quote }}
             - name: "PGDATABASE"
+              value: {{ .Values.odoo.pg.db | quote }}
+            - name: "DATABASE"
               value: {{ .Values.odoo.pg.db | quote }}
             {{- end }}
             {{/* Base Config */}}
@@ -375,16 +386,16 @@ spec:
             bucketName: {{ .Values.storage.aws_bucketname | quote }}
             {{/*
             Description: Whether your workload should export metrics. This should be set to "false" if you plan on using
-            
+
             Default: true
             */}}
             disableMetrics: "true"
-            {{/* 
+            {{/*
             Directs the CSI driver to skip redundant access control checks for the Cloud Storage bucket, when set to "true".
             This reduces the overhead of redundant Kubernetes Service API, Security Token Service, and IAM calls.
             When the flag is set, the Cloud Storage FUSE process, running as part of the sidecar container in the Pod, 
             handles the bucket access control checks
-            
+
             Default: False
             */}}
             skipCSIBucketAccessCheck: "true"

@@ -173,15 +173,16 @@ createPullSecret:
 adhoc:
   # standard, advanced, premium
   serviceLevel: standard
-  devMode: false
   # Type: test, train, backup, new, old
   appType: prod
   clientAnalyticAccount: "Unknown"
+  devMode: false
 
 cloudNativePG:
   checkCRD: false
   enabled: false
   version: "15.0"
+  superUserPassword: Rgd20sGT5JKUheTbRM5VWW4sDSLHJjzh6P3JwAqtRrsnURCKzPbX4FNJ5fGWwgh8
   resources:
     requests:
       cpu: 20m
@@ -194,9 +195,11 @@ cloudNativePG:
     size: 10Gi
     separateWAL: false
     # options are:
-    # - gcp-ssd (to create )
+    # - gcp-ssd-r (to create as retain )
+    # - gcp-ssd-d (to create as Delate )
     # - null (to let undefined)
-    storageClass: gpc-ssd-r
+    # We don't want to keep records if we no longer need them.
+    storageClass: gpc-ssd-d
   parameters:
     # shared_buffers: "1GB"
     # archive_mode = 'on'
@@ -224,6 +227,7 @@ cloudNativePG:
     schedule: "0 0 0 * * *" # Daily at UTC midnight
     volumeSnapshot:
       enabled: true
+      # We want to keep the snapshots as backups.
       volumeSnapshotClass: gcp-r # gcp
     bucket:
       enabled: false
@@ -231,8 +235,14 @@ cloudNativePG:
       bucketCredential: null
       backupServerName: null
   restore:
+    # From cnpg bucket backup
     fromBucket: null
+    # From cnpg volume snapshot backup
     fromSnapshot: ""
+    # From the GCP snapshot path of the cnpg volume snapshot backup
+    fromGCPSnapshot: null
+    # We want to keep the snapshots as backups.
+    volumeSnapshotClass: gcp-r # gcp
+    # Not implemented
     fromDump: ""
     inTimeRecovery: null # null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)
-

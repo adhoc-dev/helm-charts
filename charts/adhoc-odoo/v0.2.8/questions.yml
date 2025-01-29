@@ -504,35 +504,3 @@ questions:
     type: "string"
     required: true
     default: "Unknown"
-
-  # Cloud Native Postgres
-  - variable: cloudNativePG.enabled
-    group: "CloudNativePG"
-    label: "Enable Cloud Native PF"
-    type: "boolean"
-    required: true
-    default: false
-  - variable: cloudNativePG.backup.schedule
-    group: "CloudNativePG"
-    label: "Backup cron schedule"
-    description: " S M H Dm Mo Dw (Golang CRON Expression Format https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format) \n only enabled on adhoc.appType == 'prod' \n Default: Daily at UTC midnight "
-    type: "string"
-    required: false
-    default: "0 0 0 * * *"
-    show_if: "cloudNativePG.enabled=true && adhoc.appType=prod"
-  - variable: cloudNativePG.restore.fromSnapshot
-    group: "CloudNativePG"
-    label: "Snapshot Name"
-    description: "Snapshot name to recover"
-    type: "string"
-    required: false
-    default: null
-    show_if: "cloudNativePG.enabled=true"
-  - variable: cloudNativePG.restore.inTimeRecovery
-    group: "CloudNativePG"
-    label: "Recovery time"
-    description: "null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)"
-    type: "string"
-    required: false
-    default: null
-    show_if: "cloudNativePG.enabled=true"

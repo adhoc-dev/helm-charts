@@ -520,10 +520,18 @@ questions:
     required: false
     default: "0 0 0 * * *"
     show_if: "cloudNativePG.enabled=true && adhoc.appType=prod"
-  - variable: cloudNativePG.restore.fromSnapshot
+  # - variable: cloudNativePG.restore.fromSnapshot
+  #   group: "CloudNativePG"
+  #   label: "Snapshot Name"
+  #   description: "Snapshot name to recover"
+  #   type: "string"
+  #   required: false
+  #   default: null
+  #   show_if: "cloudNativePG.enabled=true"
+  - variable: cloudNativePG.restore.fromGCPSnapshot
     group: "CloudNativePG"
-    label: "Snapshot Name"
-    description: "Snapshot name to recover"
+    label: "GCP Snapshot path"
+    description: "Snapshot path (GCP) to recover"
     type: "string"
     required: false
     default: null
@@ -532,6 +540,29 @@ questions:
     group: "CloudNativePG"
     label: "Recovery time"
     description: "null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)"
+    type: "string"
+    required: false
+    default: null
+    show_if: "cloudNativePG.enabled=true"
+  - variable: cloudNativePG.persistence.size
+    group: "CloudNativePG"
+    label: "Disk size"
+    description: "size of pg disk"
+    type: enum
+    required: false
+    default: 5Gi
+    options:
+      - 1Gi
+      - 5Gi
+      - 10Gi
+      - 20Gi
+      - 50Gi
+      - 100Gi
+    show_if: "cloudNativePG.enabled=true"
+  - variable: cloudNativePG.superUserPassword
+    group: "CloudNativePG"
+    label: "Super user password"
+    description: "Super user password"
     type: "string"
     required: false
     default: null
