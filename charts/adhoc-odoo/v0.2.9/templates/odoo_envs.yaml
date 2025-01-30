@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-envs
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+data:
+  PLACEHOLDER_ENV: "value"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-secrets
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+type: Opaque
+data:
+  PLACEHOLDER_SEC: {{ "value" | b64enc }}

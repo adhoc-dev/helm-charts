@@ -1,5 +1,16 @@
 # Version changes
 
+## *0.2.9*
+
+Features:
+
+- CNPG:
+  - NetworkPolicy: pg only can be reached from the same namespace
+  - Superuser: able to set superuser password
+  - Restore: now we able to restore from GCP snapchot `cloudNativePG.restore.fromGCPSnapshot`
+- ODOO:
+  - Envvars: now we use a ConfigMap to store the envvars
+
 ## *0.2.8*
 
 Features:

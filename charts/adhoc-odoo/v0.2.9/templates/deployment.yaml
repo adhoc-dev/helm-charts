@@ -1,0 +1,405 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    {{ if .Values.ingress.enableHttps }}
+    {{- /* https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager */ -}}
+    certmanager.k8s.io/disable-auto-restart: "true"
+    {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if eq .Values.storage.location "fuse" }}
+        gke-gcsfuse/volumes: "true"
+        {{- end }}
+      labels:
+        {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
+        {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "odoo"
+    spec:
+      {{- if eq .Values.storage.location "fuse" }}
+      terminationGracePeriodSeconds: 60
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      {{ with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{ end }}
+      {{- if .Values.cloudNativePG.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+          command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.adhoc.devMode }}
+          args:
+            - /bin/sh
+            - -c
+            - sleep infinity
+          {{ end }}
+          ports:
+            - name: http
+              containerPort: 8069
+              protocol: TCP
+            - name: websocket
+              containerPort: 8072
+              protocol: TCP
+          {{- if not .Values.adhoc.devMode }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "adhoc-odoo.fullname" . }}-envs
+          - secretRef:
+              name: {{ include "adhoc-odoo.fullname" . }}-secrets
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            {{/* Odoo Database parameters */}}
+            {{- if .Values.cloudNativePG.enabled }}
+            - name: "PGUSER"
+              value: postgres
+            - name: "PGPASSWORD"
+              value: {{ .Values.odoo.pg.pass | quote }}
+            - name: "PGHOST"
+              value: {{ include "adhoc-odoo.fullname" . }}-pg-rw
+            - name: "PGPORT"
+              value: {{ 5432 | quote }}
+            - name: "PGDATABASE"
+              value: {{ "odoo" | quote }}
+            # TODO: Check this values
+            - name: "DATABASE"
+              value: {{ "odoo" | quote }}
+            {{- else }}
+            - name: "PGUSER"
+              value: {{ .Values.odoo.pg.user | quote }}
+            - name: "PGPASSWORD"
+              value: {{ .Values.odoo.pg.pass | quote }}
+            - name: "PGHOST"
+              value: {{ .Values.odoo.pg.host | quote }}
+            - name: "PGPORT"
+              value: {{ .Values.odoo.pg.port | quote }}
+            - name: "PGDATABASE"
+              value: {{ .Values.odoo.pg.db | quote }}
+            - name: "DATABASE"
+              value: {{ .Values.odoo.pg.db | quote }}
+            {{- end }}
+            {{/* Base Config */}}
+            {{- if .Values.odoo.basic.adminPass }}
+            - name: "ADMIN_PASSWORD"
+              value: {{ .Values.odoo.basic.adminPass | quote }}
+            {{- end }}
+            {{- if .Values.odoo.basic.dbFilter }}
+            - name: "DBFILTER"
+              value: {{ .Values.odoo.basic.dbFilter | quote }}
+            {{- end }}
+            - name: "LIST_DB"
+              value: "false"
+            - name: "LOG_LEVEL"
+            {{- if eq "false" .Values.odoo.basic.logLevel }}
+              value: "false"
+            {{- else }}
+              value: {{ .Values.odoo.basic.logLevel | quote }}
+            {{- end }}
+            {{/*
+            - name: "UNACCENT"
+              value: "true"
+            - name: "PROXY_MODE"
+              value: "true"
+            */}}
+            - name: "WITHOUT_DEMO"
+              value: {{ .Values.odoo.basic.withoutDemo | quote }}
+            - name: "ODOO_INITIAL_LANGUAGE"
+              value: {{ .Values.odoo.basic.language | quote }}
+            {{- if .Values.odoo.basic.wideModules }}
+            - name: "SERVER_WIDE_MODULES"
+              value: {{ .Values.odoo.basic.wideModules | quote }}
+            {{- end }}
+            {{- if .Values.odoo.basic.aerooHost }}
+            - name: "AEROO_DOCS_HOST"
+              value: {{ .Values.odoo.basic.aerooHost | quote }}
+            {{- end }}
+            {{- if .Values.odoo.basic.emailFrom }}
+            - name: "EMAIL_FROM"
+              value: {{ .Values.odoo.basic.emailFrom | quote }}
+            {{- end }}
+            {{/* Performance Config */}}
+            - name: "WORKERS"
+              value: {{ .Values.odoo.performance.workers | toString | int | quote }}
+            - name: "MAX_CRON_THREADS"
+              value: {{ .Values.odoo.performance.maxCronTh | quote }}
+            {{- if .Values.odoo.performance.maxDbConn }}
+            - name: "DB_MAXCONN"
+              value: {{ .Values.odoo.performance.maxDbConn | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.dbTemplate }}
+            - name: "DB_TEMPLATE"
+              value: {{ .Values.odoo.performance.dbTemplate | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.maxMemHard }}
+            - name: "LIMIT_MEMORY_HARD"
+              value: {{ .Values.odoo.performance.maxMemHard | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.maxMemSoft }}
+            - name: "LIMIT_MEMORY_SOFT"
+              value: {{ .Values.odoo.performance.maxMemSoft | quote }}
+            {{- end }}
+            {{- if .Values.odoo.performance.maxTimeCpu }}
+            - name: "LIMIT_TIME_CPU"
+              value: {{ .Values.odoo.performance.maxTimeCpu | quote }}
+            {{- end }}
+            - name: "LIMIT_TIME_REAL"
+              value: {{ .Values.odoo.performance.maxTimeReal | quote }}
+            - name: "LIMIT_TIME_REAL_CRON"
+              value: {{ .Values.odoo.performance.maxTimeCron | quote }}
+            {{/*
+            - name: "FILESTORE_COPY_HARD_LINK"
+              value: "true"
+            - name: "FILESTORE_OPERATIONS_THREADS"
+              value: "3"
+            {{- if .Values.odoo.performance.maxHttpTh }}
+            - name: "ODOO_MAX_HTTP_THREADS"
+              value: {{ .Values.odoo.performance.maxHttpTh | quote }}
+            {{- end }}
+            */}}
+            {{/* SaaS Config */}}
+            {{- if .Values.odoo.saas.mode }}
+            - name: "SERVER_MODE"
+              value: {{ .Values.odoo.saas.mode | quote }}
+            {{- end }}
+            {{- if .Values.odoo.saas.autoinstallEnabled }}
+            - name: "MODULES_AUTOINSTALL_ENABLED"
+              value: {{ .Values.odoo.saas.autoinstallEnabled | quote }}
+            {{- end }}
+            {{- if .Values.odoo.saas.autoinstallDisabled }}
+            - name: "MODULES_AUTOINSTALL_DISABLED"
+              value: {{ .Values.odoo.saas.autoinstallDisabled | quote }}
+            {{- end }}
+            {{- if .Values.odoo.saas.installDisabled }}
+            - name: "MODULES_INSTALL_DISABLED"
+              value: {{ .Values.odoo.saas.installDisabled | quote }}
+            {{- end }}
+            {{/* For older version than 13.0
+            - name: "DISABLE_SESSION_GC"
+              value: "true"
+            */}}
+            {{/* Entrypoint */}}
+            - name: "WAIT_PG"
+              value: "false"
+            {{- if .Values.odoo.entrypoint.fixdbs }}
+            - name: "FIXDBS"
+              value: {{ .Values.odoo.entrypoint.fixdbs | quote }}
+            {{- end }}
+            {{- if .Values.odoo.entrypoint.fixdbsAdhoc }}
+            - name: "FIXDBS_ADHOC"
+              value: {{ .Values.odoo.entrypoint.fixdbsAdhoc | quote }}
+            {{- end }}
+            - name: "FIX_DB_WEB_DISABLED"
+              value: "true"
+            {{/* Dynamic Entrypoint */}}
+            {{- if .Values.odoo.entrypoint.repos }}
+            - name: "REPOS_YAML"
+              value: {{ .Values.odoo.entrypoint.repos | quote }}
+            {{- end }}
+            {{- if .Values.odoo.entrypoint.custom }}
+            - name: "CUSTOM_CONFIG"
+              value: {{ .Values.odoo.entrypoint.custom | quote }}
+            {{- end }}
+            {{/* SMTP Config */}}
+            {{- if .Values.odoo.smtp.host }}
+            - name: "SMTP_SERVER"
+              value: {{ .Values.odoo.smtp.host | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.port }}
+            - name: "SMTP_PORT"
+              value: {{ .Values.odoo.smtp.port | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.ssl }}
+            - name: "SMTP_SSL"
+              value: {{ .Values.odoo.smtp.ssl | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.user }}
+            - name: "SMTP_USER"
+              value: {{ .Values.odoo.smtp.user | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.pass }}
+            - name: "SMTP_PASSWORD"
+              value: {{ .Values.odoo.smtp.pass | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.whiteList }}
+            - name: "SMTP_DOMAIN_WHITELIST"
+              value: {{ .Values.odoo.smtp.whiteList | quote }}
+            {{- end }}
+            {{- if .Values.odoo.smtp.catchall }}
+            - name: "MAIL_CATCHALL_DOMAIN"
+              value: {{ .Values.odoo.smtp.catchall | quote }}
+            {{- end }}
+            {{/* Storage Config */}}
+            {{- if eq .Values.storage.location "attachment_s3" }}
+            - name: "IR_ATTACHMENT_LOCATION"
+              value: "s3"
+            - name: "AWS_REGION"
+              value: {{ .Values.storage.aws_region | quote }}
+            - name: "AWS_HOST"
+              value: {{ .Values.storage.aws_host | quote }}
+            - name: "AWS_BUCKETNAME"
+              value: {{ .Values.storage.aws_bucketname | quote }}
+            - name: "AWS_ACCESS_KEY_ID"
+              value: {{ .Values.storage.aws_access_key_id | quote }}
+            - name: "AWS_SECRET_ACCESS_KEY"
+              value: {{ .Values.storage.aws_secret_access_key | quote }}
+            {{- end }}
+            {{/* Redis Config */}}
+            {{- if .Values.redis.enabled }}
+            {{/* TODO:  values for v13- (remove when no longer customers on v13-) */}}
+            {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+            {{- if le $odooVersion 130 -}}
+            - name: "ENABLE_REDIS"
+              value: "true"
+            - name: "REDIS_HOST"
+              value: {{ .Values.redis.host | quote }}
+            - name: "REDIS_PORT"
+              value: {{ .Values.redis.port | quote }}
+            - name: "REDIS_PASS"
+              value: {{ .Values.redis.pass | quote  }}
+            - name: "REDIS_DBINDEX"
+              value: "1"
+            {{- end }}
+            {{/* values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis) */}}
+            - name: "ODOO_SESSION_REDIS"
+              value: "true"
+            - name: "ODOO_SESSION_REDIS_PORT"
+              value: {{ .Values.redis.port | quote }}
+            - name: "ODOO_SESSION_REDIS_HOST"
+              value: {{ .Values.redis.host | quote }}
+            - name: "ODOO_SESSION_REDIS_PASSWORD"
+              value: {{ .Values.redis.pass | quote  }}
+            {{- end }}
+            {{- range $key, $value := .Values.odoo.extraEnvVars }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          {{- if eq .Values.storage.location "fuse" }}
+          - name: gcs-fuse-csi-ephemeral
+            mountPath: /home/odoo/data/filestore/{{ .Release.Name }}
+            readOnly: false
+          {{- end }}
+      affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              {{/* Try not to co-locate pods for this service with other pods for this service */}}
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: "app.kubernetes.io/instance"
+                        operator: In
+                        values:
+                          - {{ .Release.Name }}
+                  topologyKey: "kubernetes.io/hostname"
+              {{/* Try to distribute services of the same type among nodes */}}
+              - weight: 50
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: "adhoc.ar/tier"
+                        operator: In
+                        values:
+                          - {{ .Values.adhoc.appType | lower }}
+                  topologyKey: "kubernetes.io/hostname"
+              {{/* Try to distribute services of the same type among nodes
+              # Try to distribute the pods with the same service level among nodes
+              # - weight: 50
+              #   podAffinityTerm:
+              #     labelSelector:
+              #       matchExpressions:
+              #         - key: "adhoc.ar/service-level"
+              #           operator: In
+              #           values:
+              #             - {{ .Values.adhoc.serviceLevel }}
+              #     topologyKey: "kubernetes.io/hostname"
+              */}}
+          {{- if .Values.nodeTag }}
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: {{ .Values.nodeTag }}
+                  operator: In
+                  values:
+                  - "true"
+          {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{- if eq .Values.storage.location "fuse" }}
+        iam.gke.io/gke-metadata-server-enabled: "true"
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.storage.location "fuse" }}
+      volumes:
+      - name: gcs-fuse-csi-ephemeral
+        csi:
+          driver: gcsfuse.csi.storage.gke.io
+          readOnly: false
+          volumeAttributes:
+            bucketName: {{ .Values.storage.aws_bucketname | quote }}
+            {{/*
+            Description: Whether your workload should export metrics. This should be set to "false" if you plan on using
+
+            Default: true
+            */}}
+            disableMetrics: "true"
+            {{/*
+            Directs the CSI driver to skip redundant access control checks for the Cloud Storage bucket, when set to "true".
+            This reduces the overhead of redundant Kubernetes Service API, Security Token Service, and IAM calls.
+            When the flag is set, the Cloud Storage FUSE process, running as part of the sidecar container in the Pod, 
+            handles the bucket access control checks
+
+            Default: False
+            */}}
+            skipCSIBucketAccessCheck: "true"
+            gcsfuseLoggingSeverity: warning
+            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
+            fileCacheCapacity: "200Mi"
+      {{- end }}
