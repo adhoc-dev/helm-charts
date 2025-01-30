@@ -205,9 +205,9 @@ entries:
   - annotations:
       category: DevOps
     apiVersion: v2
-    created: "2025-01-30T12:00:13.895799616Z"
+    created: "2025-01-30T12:25:56.928570788Z"
     description: Odoo Chart for v16+
-    digest: b67d5dd9461ef6bb71491a976ab71b0a523ce9f81a011589977c86b5442c8183
+    digest: d3bf9ad65940fdaae27039570d335a09d6e2d5c9e5befd77c737e5c9fcc47e25
     home: https://github.com/adhoc-dev/helm-charts
     icon: https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg
     maintainers:
