@@ -80,3 +80,13 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the prefix of the service to use
+We remove initial number to compile with [a-z]([-a-z0-9]*[a-z0-9])?
+*/}}
+{{- define "adhoc-odoo.serviceNameSuffix" -}}
+{{- $original := (include "adhoc-odoo.fullname" .) | lower }}
+{{- $original = regexReplaceAll "^[0-9]+" $original "" }}
+{{- regexReplaceAll "[^a-z0-9-]" $original "" }}
+{{- end }}

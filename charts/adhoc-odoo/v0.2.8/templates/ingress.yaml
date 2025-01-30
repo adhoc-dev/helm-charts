@@ -1,5 +1,5 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "adhoc-odoo.fullname" . -}}
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}

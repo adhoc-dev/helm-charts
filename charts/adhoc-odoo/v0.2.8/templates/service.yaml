@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-http
+  name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-http
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   {{- if .Values.ingress.useGoogleCloudExternalLB }}
@@ -23,7 +23,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-websocket
+  name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
