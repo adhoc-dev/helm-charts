@@ -30,12 +30,7 @@ data:
   DBFILTER: {{ .Values.odoo.basic.dbFilter | quote }}
   {{- end }}
   LIST_DB: "false"
-  LOG_LEVEL:
-  {{- if eq "false" .Values.odoo.basic.logLevel }}
-    value: "false"
-  {{- else }}
-    value: {{ .Values.odoo.basic.logLevel | quote }}
-  {{- end }}
+  LOG_LEVEL: {{ if eq "false" .Values.odoo.basic.logLevel }}"false"{{ else }}{{ .Values.odoo.basic.logLevel | quote }}{{ end }}
   {{/*
   UNACCENT: "true"
   PROXY_MODE: "true"
