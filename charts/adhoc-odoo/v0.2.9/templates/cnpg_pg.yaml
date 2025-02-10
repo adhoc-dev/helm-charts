@@ -16,11 +16,10 @@ data:
   username: {{ "postgres" | b64enc }}
 ---
 {{- end }}
-{{- if .Values.cloudNativePG.initDb }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-pg-odoo
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-app
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 type: kubernetes.io/basic-auth
@@ -28,7 +27,6 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
-{{- end }}
 {{- if and .Values.cloudNativePG.backup.bucket.enabled ( eq (lower .Values.adhoc.appType) "prod" ) }}
 apiVersion: v1
 kind: Secret
@@ -164,7 +162,6 @@ spec:
     retentionPolicy: "360d"
   {{- end }}
 
-  {{- if or .Values.cloudNativePG.restore.inTimeRecovery .Values.cloudNativePG.initDb }}
   bootstrap:
     {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
     recovery:
@@ -189,15 +186,13 @@ spec:
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
-    {{- end }}
-    {{- if .Values.cloudNativePG.initDb }}
+    {{- else }}
     initdb:
       database: "odoo"
       owner: "odoo"
       secret:
-        name: {{ include "adhoc-odoo.fullname" . }}-pg-odoo
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}
-  {{- end }}
 
   {{- if .Values.cloudNativePG.backup.bucket.enabled }}
   externalClusters:
