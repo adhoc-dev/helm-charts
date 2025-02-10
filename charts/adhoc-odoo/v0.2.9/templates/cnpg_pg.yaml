@@ -190,6 +190,12 @@ spec:
     initdb:
       database: "odoo"
       owner: "odoo"
+      # encoding: 'UTF8'
+      # localeCollate: 'C'
+      localeCType: 'en_US.utf8'
+      # postInitSQL:
+      #   - CREATE ROLE example
+      #   - CREATE ROLE anotherexample
       secret:
         name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}

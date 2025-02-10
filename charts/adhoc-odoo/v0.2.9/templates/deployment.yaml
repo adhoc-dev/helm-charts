@@ -113,34 +113,33 @@ spec:
               - weight: 100
                 podAffinityTerm:
                   labelSelector:
-                    matchExpressions:
-                      - key: "app.kubernetes.io/instance"
-                        operator: In
-                        values:
-                          - {{ .Release.Name }}
+                    matchLabels:
+                      app.kubernetes.io/instance: {{ .Release.Name }}
+                      adhoc.ar/app-name: "odoo"
                   topologyKey: "kubernetes.io/hostname"
               {{/* Try to distribute services of the same type among nodes */}}
               - weight: 50
                 podAffinityTerm:
                   labelSelector:
-                    matchExpressions:
-                      - key: "adhoc.ar/tier"
-                        operator: In
-                        values:
-                          - {{ .Values.adhoc.appType | lower }}
+                    matchLabels:
+                      adhoc.ar/tier: {{ .Values.adhoc.appType | lower }}
                   topologyKey: "kubernetes.io/hostname"
-              {{/* Try to distribute services of the same type among nodes
-              # Try to distribute the pods with the same service level among nodes
-              # - weight: 50
-              #   podAffinityTerm:
-              #     labelSelector:
-              #       matchExpressions:
-              #         - key: "adhoc.ar/service-level"
-              #           operator: In
-              #           values:
-              #             - {{ .Values.adhoc.serviceLevel }}
-              #     topologyKey: "kubernetes.io/hostname"
-              */}}
+              {{/* Try to distribute the pods with the same service level among nodes */}}
+              - weight: 50
+                podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      adhoc.ar/service-level: {{ .Values.adhoc.serviceLevel }}
+                  topologyKey: "kubernetes.io/hostname"
+          {{- if .Values.cloudNativePG.enabled }}
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    cnpg.io/cluster: {{ .Release.Name }}-pg
+                  topologyKey: "kubernetes.io/hostname"
+          {{- end }}
           {{- if .Values.nodeTag }}
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
