@@ -7,8 +7,8 @@ metadata:
 data:
   {{/* Odoo Database parameters */}}
   {{- if .Values.cloudNativePG.enabled }}
-  PGUSER: "postgres"
-  PGPASSWORD: {{ .Values.odoo.pg.pass | quote }}
+  PGUSER: "odoo"
+  PGPASSWORD: {{ .Values.cloudNativePG.superUserPassword | quote }}
   PGHOST: {{ .Release.Name }}-pg-rw
   PGPORT: {{ 5432 | quote }}
   PGDATABASE: {{ "odoo" | quote }}

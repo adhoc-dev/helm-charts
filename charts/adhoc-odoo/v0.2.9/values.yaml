@@ -245,4 +245,5 @@ cloudNativePG:
     volumeSnapshotClass: gcp-r # gcp
     # Not implemented
     fromDump: ""
-    inTimeRecovery: null # null for no recovery (initdb), latest for or timestamp (in the RFC3339 standard)
+    inTimeRecovery: null # null for no recovery, latest for or timestamp (in the RFC3339 standard)
+  initDb: false
