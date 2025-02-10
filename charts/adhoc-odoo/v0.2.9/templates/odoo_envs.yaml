@@ -9,7 +9,7 @@ data:
   {{- if .Values.cloudNativePG.enabled }}
   PGUSER: "postgres"
   PGPASSWORD: {{ .Values.odoo.pg.pass | quote }}
-  PGHOST: {{ include "adhoc-odoo.fullname" . }}-pg-rw
+  PGHOST: {{ .Release.Name }}-pg-rw
   PGPORT: {{ 5432 | quote }}
   PGDATABASE: {{ "odoo" | quote }}
   # TODO: Check this values
