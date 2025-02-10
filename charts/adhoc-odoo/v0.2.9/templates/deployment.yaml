@@ -99,7 +99,11 @@ spec:
           volumeMounts:
           {{- if eq .Values.storage.location "fuse" }}
           - name: gcs-fuse-csi-ephemeral
+            {{- if .Values.cloudNativePG.enabled }}
+            mountPath: /home/odoo/data/filestore/odoo
+            {{- else }}
             mountPath: /home/odoo/data/filestore/{{ .Release.Name }}
+            {{- end }}
             readOnly: false
           {{- end }}
       affinity:
@@ -175,7 +179,7 @@ spec:
             {{/*
             Directs the CSI driver to skip redundant access control checks for the Cloud Storage bucket, when set to "true".
             This reduces the overhead of redundant Kubernetes Service API, Security Token Service, and IAM calls.
-            When the flag is set, the Cloud Storage FUSE process, running as part of the sidecar container in the Pod, 
+            When the flag is set, the Cloud Storage FUSE process, running as part of the sidecar container in the Pod,
             handles the bucket access control checks
 
             Default: False
