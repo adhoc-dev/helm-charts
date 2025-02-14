@@ -1,21 +1,15 @@
 {{- if .Values.cloudNativePG.enabled }}
-
-{{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-pg-superuser
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-app
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 type: kubernetes.io/basic-auth
 data:
-  dbname: {{ "*" | b64enc }}
-  password: {{ .Values.cloudNativePG.superUserPassword | b64enc }}
-  port: {{ "5432" | b64enc }}
-  user: {{ "odoo" | b64enc }}
-  username: {{ "odoo" | b64enc }}
+  username: {{ "odoo" | b64enc | quote }}
+  password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
-{{- end }}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -33,10 +27,6 @@ metadata:
     */}}
 {{/*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
 spec:
-
-  enableSuperuserAccess: true
-  superuserSecret:
-    name: {{ .Release.Name }}-pg-superuser
 
   {{/*
   # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
@@ -127,7 +117,6 @@ spec:
     target: prefer-standby
     retentionPolicy: "360d"
 
-{{- if or .Values.cloudNativePG.restore.fromSnapshot .Values.cloudNativePG.restore.fromGCPSnapshot }}
   bootstrap:
     {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
     recovery:
@@ -149,18 +138,17 @@ spec:
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
-    {{- else }}
-    # initdb:
-    #   database: "app"
-    #   owner: "odoo"
-    #   # encoding: 'UTF8'
-    #   # localeCollate: 'C'
-    #   localeCType: 'en_US.utf8'
-    #   # postInitSQL:
-    #   #   - CREATE ROLE example
-    #   #   - CREATE ROLE anotherexample
-    #   secret:
-    #     name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}
-{{- end }}
+
+  {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
+  managed:
+    roles:
+    - name: odoo
+      ensure: present
+      comment: Odoo User
+      login: true
+      superuser: true
+      passwordSecret:
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+  {{- end }}
 {{- end }}
