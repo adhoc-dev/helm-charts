@@ -229,14 +229,7 @@ cloudNativePG:
       enabled: true
       # We want to keep the snapshots as backups.
       volumeSnapshotClass: gcp-r # gcp
-    bucket:
-      enabled: false
-      bucketName: ''
-      bucketCredential: null
-      backupServerName: null
   restore:
-    # From cnpg bucket backup
-    fromBucket: null
     # From cnpg volume snapshot backup
     fromSnapshot: ""
     # From the GCP snapshot path of the cnpg volume snapshot backup

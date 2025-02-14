@@ -27,18 +27,6 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
-{{- if and .Values.cloudNativePG.backup.bucket.enabled ( eq (lower .Values.adhoc.appType) "prod" ) }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ .Release.Name }}-backup-secret
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-type: Opaque
-data:
-  backup-key.json: {{ .Values.cloudNativePG.backup.bucket.bucketCredential | b64enc }}
-{{- end }}
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -128,19 +116,8 @@ spec:
       # wal_sender_timeout = '5s'
       # wal_receiver_timeout = '5s'
       */}}
-  {{- if eq (lower .Values.adhoc.appType) "prod" }}
   {{/* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
   backup:
-    {{- if .Values.cloudNativePG.backup.bucket.enabled }}
-    barmanObjectStore:
-      tags:
-        {{- include "adhoc-odoo.labels" . | nindent 8 }}
-      {{- if .Values.cloudNativePG.backup.bucket.backupServerName }}
-      serverName: {{ .Values.cloudNativePG.backup.bucket.backupServerName | quote }}
-      {{- end }}
-      {{- include "barmanObjectStore.gcp" . | nindent 6 }}
-    {{- end }}
-
     {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
     volumeSnapshot:
       # no ownership is set, meaning that VolumeSnapshot objects persist after the Backup and/or the Cluster resources are removed
@@ -160,7 +137,6 @@ spec:
     {{- end }}
     target: prefer-standby
     retentionPolicy: "360d"
-  {{- end }}
 
   bootstrap:
     {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
@@ -179,9 +155,6 @@ spec:
           apiGroup: snapshot.storage.k8s.io
       {{- end }}
       {{- end }}
-      {{- if .Values.cloudNativePG.backup.bucket.enabled }}
-      source: {{ include "adhoc-odoo.fullname" . }}-pg
-      {{- end }}
       {{- if ne .Values.cloudNativePG.restore.inTimeRecovery "latest" }}
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
@@ -199,38 +172,4 @@ spec:
       secret:
         name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}
-
-  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
-  externalClusters:
-  - name: {{ include "adhoc-odoo.fullname" . }}-pg
-    barmanObjectStore:
-      {{- include "barmanObjectStore.gcp" . | nindent 6 }}
-  {{- end }}
-
-{{- if eq (lower .Values.adhoc.appType) "prod" }}
-{{- if or .Values.cloudNativePG.backup.bucket.enabled .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
----
-apiVersion: postgresql.cnpg.io/v1
-kind: ScheduledBackup
-metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-pg-backup
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-spec:
-  {{- if .Values.cloudNativePG.backup.bucket.enabled }}
-  method: barmanObjectStore
-  {{- end }}
-  {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
-  method: volumeSnapshot
-  {{- end }}
-  suspend: false
-  immediate: true
-  {{/* S M H Dm Mo Dw */}}
-  schedule: {{ .Values.cloudNativePG.backup.schedule | default "0 0 0 * * *" }}
-  backupOwnerReference: none
-  target: prefer-standby
-  cluster:
-    name: {{ include "adhoc-odoo.fullname" . }}-pg
-{{- end }}
-{{- end }}
 {{- end }}

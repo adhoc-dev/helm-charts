@@ -11,8 +11,4 @@
 {{- fail "El valor de timestamp debe ser null, 'latest' o un timestamp UTC en el formato RFC3339 (YYYY-MM-DDTHH:MM:SSZ)." }}
 {{- end }}
 
-{{- if and .Values.cloudNativePG.backup.bucket.enabled (not .Values.cloudNativePG.backup.bucket.bucketName) }}
-{{- fail (print "\nbucketName must be set\n") }}
-{{- end }}
-
 {{- end }}
