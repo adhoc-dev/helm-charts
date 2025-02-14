@@ -137,7 +137,8 @@ spec:
               - weight: 100
                 podAffinityTerm:
                   labelSelector:
-                    cnpg.io/cluster: {{ .Release.Name }}-pg
+                    matchLabels:
+                      cnpg.io/cluster: {{ .Release.Name }}-pg
                   topologyKey: "kubernetes.io/hostname"
           {{- end }}
           {{- if .Values.nodeTag }}
