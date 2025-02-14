@@ -12,21 +12,21 @@ data:
   dbname: {{ "*" | b64enc }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc }}
   port: {{ "5432" | b64enc }}
-  user: {{ "postgres" | b64enc }}
-  username: {{ "postgres" | b64enc }}
+  user: {{ "odoo" | b64enc }}
+  username: {{ "odoo" | b64enc }}
 ---
 {{- end }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-pg-app
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-type: kubernetes.io/basic-auth
-data:
-  username: {{ "odoo" | b64enc | quote }}
-  password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
----
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+#   labels:
+#     {{- include "adhoc-odoo.labels" . | nindent 4 }}
+# type: kubernetes.io/basic-auth
+# data:
+#   username: {{ "odoo" | b64enc | quote }}
+#   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
+# ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -160,16 +160,16 @@ spec:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
     {{- else }}
-    initdb:
-      database: "odoo"
-      owner: "odoo"
-      # encoding: 'UTF8'
-      # localeCollate: 'C'
-      localeCType: 'en_US.utf8'
-      # postInitSQL:
-      #   - CREATE ROLE example
-      #   - CREATE ROLE anotherexample
-      secret:
-        name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+    # initdb:
+    #   database: "app"
+    #   owner: "odoo"
+    #   # encoding: 'UTF8'
+    #   # localeCollate: 'C'
+    #   localeCType: 'en_US.utf8'
+    #   # postInitSQL:
+    #   #   - CREATE ROLE example
+    #   #   - CREATE ROLE anotherexample
+    #   secret:
+    #     name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}
 {{- end }}
