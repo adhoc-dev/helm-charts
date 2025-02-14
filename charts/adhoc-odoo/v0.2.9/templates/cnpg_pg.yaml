@@ -16,17 +16,6 @@ data:
   username: {{ "odoo" | b64enc }}
 ---
 {{- end }}
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: {{ include "adhoc-odoo.fullname" . }}-pg-app
-#   labels:
-#     {{- include "adhoc-odoo.labels" . | nindent 4 }}
-# type: kubernetes.io/basic-auth
-# data:
-#   username: {{ "odoo" | b64enc | quote }}
-#   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
-# ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -138,6 +127,7 @@ spec:
     target: prefer-standby
     retentionPolicy: "360d"
 
+{{- if or .Values.cloudNativePG.restore.fromSnapshot .Values.cloudNativePG.restore.fromGCPSnapshot }}
   bootstrap:
     {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
     recovery:
@@ -172,4 +162,5 @@ spec:
     #   secret:
     #     name: {{ include "adhoc-odoo.fullname" . }}-pg-app
     {{- end }}
+{{- end }}
 {{- end }}
