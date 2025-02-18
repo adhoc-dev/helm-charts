@@ -6,7 +6,7 @@ description: El "backend predeterminado" es un servicio que maneja todas las rut
 
 type: application
 
-version: 0.1.6
+version: 0.1.7
 
 appVersion: "stable-alpine"
 
@@ -18,5 +18,7 @@ maintainers:
     email: dib@adhoc.com.ar
   - name: jjscarafia
     email: jjs@adhoc.com.ar
+  - name: azacchino
+    email: az@adhoc.com.ar
 
 icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png"
