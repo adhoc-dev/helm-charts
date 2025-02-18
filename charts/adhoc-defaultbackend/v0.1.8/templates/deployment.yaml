@@ -61,12 +61,18 @@ spec:
             - mountPath: /usr/share/nginx/html/logo_adhoc.png
               name: nginx-index
               subPath: logo_adhoc.png
+            - mountPath: /etc/nginx/nginx.conf
+              name: nginx-config
+              subPath: nginx.conf
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: nginx-index
           configMap:
             name: {{ include "adhoc-defaultbackend.fullname" . }}-index
+        - name: nginx-config
+          configMap:
+            name: {{ include "adhoc-defaultbackend.fullname" . }}-nginx-config
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
