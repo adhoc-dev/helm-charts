@@ -13,21 +13,18 @@ metadata:
     {{- include "adhoc-defaultbackend.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   rules:
     - http:
         paths:
-        - path: /
-          pathType: "Prefix"
+        - path: /(.*)
+          pathType: "ImplementationSpecific"
           backend:
-#            serviceName: {{ include "adhoc-defaultbackend.fullname" . }}
-#            servicePort: 80
             service:
               name: {{ include "adhoc-defaultbackend.fullname" . }}
               port:
                 number: 80
-
-
 {{- end }}
