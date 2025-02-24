@@ -128,6 +128,7 @@ data:
   MAIL_CATCHALL_DOMAIN: {{ .Values.odoo.smtp.catchall | quote }}
   {{- end }}
   {{/* Storage Config */}}
+  ADHOC_ODOO_STORAGE_MODE: {{ .Values.storage.location | quote }}
   {{- if eq .Values.storage.location "attachment_s3" }}
   IR_ATTACHMENT_LOCATION: "s3"
   AWS_REGION: {{ .Values.storage.aws_region | quote }}
