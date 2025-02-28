@@ -117,8 +117,8 @@ spec:
     target: prefer-standby
     retentionPolicy: "360d"
 
+  {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
   bootstrap:
-    {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
     recovery:
       {{- if or .Values.cloudNativePG.restore.fromSnapshot .Values.cloudNativePG.restore.fromGCPSnapshot }}
       volumeSnapshots:
@@ -138,7 +138,7 @@ spec:
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
-    {{- end }}
+  {{- end }}
 
   {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
   managed:
