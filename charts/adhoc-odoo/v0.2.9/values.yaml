@@ -192,7 +192,7 @@ cloudNativePG:
       memory: 5000Mi
   instances: 1
   persistence:
-    size: 10Gi
+    size: 10
     separateWAL: false
     # options are:
     # - gcp-ssd-r (to create as retain )

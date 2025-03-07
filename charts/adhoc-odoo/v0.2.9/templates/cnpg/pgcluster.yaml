@@ -46,7 +46,7 @@ spec:
     topologyKey: kubernetes.io/hostname # Default value
     podAntiAffinityType: preferred # Default value
   storage:
-    size: {{ .Values.cloudNativePG.persistence.size }}
+    size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
     storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
     {{- end }}
@@ -54,7 +54,7 @@ spec:
   {{ if .Values.cloudNativePG.persistence.separateWAL }}
   walStorage:
     {{/* TODO: This need to be calculated considerating retention and backups frecuency */}}
-    size: {{ .Values.cloudNativePG.persistence.size }}
+    size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
     storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
     {{- end }}
