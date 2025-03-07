@@ -177,6 +177,16 @@ adhoc:
   appType: prod
   clientAnalyticAccount: "Unknown"
   devMode: false
+  dnsBannedHost:
+    - mercadolibre.com
+    - mercadolibre.com.ar
+    - mercadolibre.com.uy
+    - mercadolibre.cl
+    - mercadolibre.com.mx
+    - api.pagos360.com
+    - apis.andreani.com
+    - api.mercadopago.com
+    - stripe.api.odoo.com
 
 cloudNativePG:
   checkCRD: false
@@ -192,7 +202,7 @@ cloudNativePG:
       memory: 5000Mi
   instances: 1
   persistence:
-    size: 10Gi
+    size: 10
     separateWAL: false
     # options are:
     # - gcp-ssd-r (to create as retain )

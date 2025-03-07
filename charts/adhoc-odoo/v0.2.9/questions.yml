@@ -504,7 +504,21 @@ questions:
     type: "string"
     required: true
     default: "Unknown"
-
+  - variable: adhoc.dnsBannedHost
+    group: "Adhoc"
+    label: "no not resolve this host list"
+    type: "listofstrings"
+    default:
+    - mercadolibre.com
+    - mercadolibre.com.ar
+    - mercadolibre.com.uy
+    - mercadolibre.cl
+    - mercadolibre.com.mx
+    - api.pagos360.com
+    - apis.andreani.com
+    - api.mercadopago.com
+    - stripe.api.odoo.com
+    required: False
   # Cloud Native Postgres
   - variable: cloudNativePG.enabled
     group: "CloudNativePG"
@@ -531,17 +545,10 @@ questions:
   - variable: cloudNativePG.persistence.size
     group: "CloudNativePG"
     label: "Disk size"
-    description: "size of pg disk"
-    type: enum
+    description: "size of pg disk (GB)"
+    type: "int"
     required: false
-    default: 5Gi
-    options:
-      - 1Gi
-      - 5Gi
-      - 10Gi
-      - 20Gi
-      - 50Gi
-      - 100Gi
+    default: 5
     show_if: "cloudNativePG.enabled=true"
   - variable: cloudNativePG.superUserPassword
     group: "CloudNativePG"
