@@ -99,12 +99,17 @@ spec:
           volumeMounts:
           {{- if eq .Values.storage.location "fuse" }}
           - name: gcs-fuse-csi-ephemeral
+            readOnly: false
             {{- if .Values.cloudNativePG.enabled }}
             mountPath: /home/odoo/data/filestore/odoo
             {{- else }}
             mountPath: /home/odoo/data/filestore/{{ .Release.Name }}
             {{- end }}
-            readOnly: false
+          {{- end }}
+          {{- if and .Values.adhoc.dnsBannedHost ( ne .Values.adhoc.appType "prod" ) }}
+          - name: hosts
+            mountPath: /etc/hosts
+            subPath: hosts
           {{- end }}
       affinity:
           podAntiAffinity:
@@ -162,8 +167,13 @@ spec:
       {{- with .Values.nodeSelector }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if eq .Values.storage.location "fuse" }}
       volumes:
+      {{- if and .Values.adhoc.dnsBannedHost ( ne .Values.adhoc.appType "prod" ) }}
+      - name: hosts
+        configMap:
+          name: {{ include "adhoc-odoo.fullname" . }}-hosts
+      {{- end }}
+      {{- if eq .Values.storage.location "fuse" }}
       - name: gcs-fuse-csi-ephemeral
         csi:
           driver: gcsfuse.csi.storage.gke.io

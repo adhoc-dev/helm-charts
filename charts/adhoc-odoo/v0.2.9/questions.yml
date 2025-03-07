@@ -504,7 +504,21 @@ questions:
     type: "string"
     required: true
     default: "Unknown"
-
+  - variable: adhoc.dnsBannedHost
+    group: "Adhoc"
+    label: "no not resolve this host list"
+    type: "listofstrings"
+    default:
+    - mercadolibre.com
+    - mercadolibre.com.ar
+    - mercadolibre.com.uy
+    - mercadolibre.cl
+    - mercadolibre.com.mx
+    - api.pagos360.com
+    - apis.andreani.com
+    - api.mercadopago.com
+    - stripe.api.odoo.com
+    required: False
   # Cloud Native Postgres
   - variable: cloudNativePG.enabled
     group: "CloudNativePG"
