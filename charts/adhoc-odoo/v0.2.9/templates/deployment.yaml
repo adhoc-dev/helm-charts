@@ -90,6 +90,15 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            {{/* Dynamic Entrypoint */}}
+            {{- if .Values.odoo.entrypoint.repos }}
+            - name: REPOS_YAML
+              value: {{ .Values.odoo.entrypoint.repos | quote }}
+            {{- end }}
+            {{- if .Values.odoo.entrypoint.custom }}
+            - name: CUSTOM_CONFIG
+              value: {{ .Values.odoo.entrypoint.custom | quote }}
+            {{- end }}
             {{- range $key, $value := .Values.odoo.extraEnvVars }}
             - name: {{ $key }}
               value: {{ $value | quote }}
