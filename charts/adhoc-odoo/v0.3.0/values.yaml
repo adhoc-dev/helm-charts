@@ -178,11 +178,11 @@ adhoc:
   clientAnalyticAccount: "Unknown"
   devMode: false
   dnsBannedHost:
-    - mercadolibre.com
-    - mercadolibre.com.ar
-    - mercadolibre.com.uy
-    - mercadolibre.cl
-    - mercadolibre.com.mx
+    - api.mercadolibre.com
+    - auth.mercadolibre.com.ar
+    - auth.mercadolibre.com.uy
+    - auth.mercadolibre.cl
+    - auth.mercadolibre.com.mx
     - api.pagos360.com
     - apis.andreani.com
     - api.mercadopago.com
