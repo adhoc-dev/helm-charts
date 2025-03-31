@@ -1,0 +1,57 @@
+{{- if .Values.ingress.enableReverseProxy }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-nx
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+
+  annotations:
+    {{ if .Values.ingress.enableHttps }}
+    certmanager.k8s.io/disable-auto-restart: "true"
+    {{- end }}
+spec:
+  replicas: 1 # TODO: Single failure point
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
+  strategy:
+    type: RollingUpdate
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      annotations:
+        {{- if eq .Values.storage.location "fuse" }}
+        gke-gcsfuse/volumes: "true"
+        {{- end }}
+      labels:
+        {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
+        {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "nginx"
+    spec:
+      {{- if eq .Values.storage.location "fuse" }}
+      terminationGracePeriodSeconds: 60
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      containers:
+      - name: nginx
+        image: "nginx:1.27-alpine"
+        ports:
+        - name: TCP
+          containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        {{- if eq .Values.storage.location "fuse" }}
+        - name: gcs-fuse-csi-ephemeral
+          mountPath: /mnt/filestore:ro
+          readOnly: true
+        {{- end }}
+        - mountPath: /etc/nginx/nginx.conf
+          name: nginx-config
+          subPath: nginx.conf
+          readOnly: true
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "adhoc-odoo.fullname" . }}-nginx-config
+{{- end }}
