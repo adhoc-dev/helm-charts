@@ -2,6 +2,7 @@
 {{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -60,8 +61,12 @@ spec:
                 port:
                   number: 80
           {{- if gt $usewebsocket 0 }}
-          - path: /websocket
-            pathType: Prefix
+          - pathType: Prefix
+            {{- if le $odooVersion 150 }}
+            path: /longpolling
+            {{- else }}
+            path: /websocket
+            {{- end  }}
             backend:
               service:
                 name: {{ $fullName }}-websocket
@@ -83,8 +88,12 @@ spec:
                 port:
                   number: 80
           {{- if gt $usewebsocket 0 }}
-          - path: /websocket
-            pathType: Prefix
+          - pathType: Prefix
+            {{- if le $odooVersion 150 }}
+            path: /longpolling
+            {{- else }}
+            path: /websocket
+            {{- end  }}
             backend:
               service:
                 name: {{ $fullName }}-websocket
