@@ -175,6 +175,11 @@ spec:
             - name: "ODOO_MAX_HTTP_THREADS"
               value: {{ .Values.odoo.performance.maxHttpTh | quote }}
             {{- end }}
+            {{- if .Values.odoo.performance.saasPath }}
+            - name: "ODOO_SAAS_PATH"
+              value: {{ .Values.odoo.performance.saasPath | quote }}
+            {{- end }}
+            # SaaS Config
             */}}
             {{/* SaaS Config */}}
             {{- if .Values.odoo.saas.mode }}

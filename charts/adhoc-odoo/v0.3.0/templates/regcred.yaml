@@ -1,0 +1,10 @@
+{{- if .Values.createPullSecret.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pullsecret
+  namespace: {{ .Release.Namespace }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ printf "{\"auths\": {\"%s\": {\"username\": \"%s\", \"password\": \"%s\", \"auth\": \"%s\"}}}" .Values.createPullSecret.registry .Values.createPullSecret.user .Values.createPullSecret.pass (printf "%s:%s" .Values.createPullSecret.user .Values.createPullSecret.pass | b64enc) | b64enc | quote }}
+{{- end }}
