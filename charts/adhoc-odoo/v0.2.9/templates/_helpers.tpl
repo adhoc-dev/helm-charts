@@ -38,6 +38,14 @@ Get odoo mayor version.
 {{- end }}
 
 {{/*
+Get odoo minor version.
+*/}}
+{{- define "adhoc-odoo.odoo-minor-version" -}}
+{{- printf "%s" (regexReplaceAll "^[0-9][0-9]\\.[0-9]\\.([0-9][0-9][0-9][0-9])\\.([0-9][0-9])\\.([0-9][0-9]).*" .Values.image.tag "$1$2$3") }}
+{{- end }}
+
+
+{{/*
 Common labels
 */}}
 {{- define "adhoc-odoo.labels" -}}

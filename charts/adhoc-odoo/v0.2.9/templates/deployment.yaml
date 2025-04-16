@@ -53,7 +53,8 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.odoo.entrypoint.repos }}
+          {{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
+          {{ if and (gt $minorVersion 20250415) ( .Values.odoo.entrypoint.repos) }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}.dev"
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
