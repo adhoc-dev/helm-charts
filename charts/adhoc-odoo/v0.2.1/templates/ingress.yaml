@@ -1,7 +1,6 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "adhoc-odoo.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
-{{- $useLongpolling  := .Values.odoo.performance.workers -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -29,7 +28,6 @@ metadata:
     nginx.ingress.kubernetes.io/affinity: cookie
     # en realidad vimos que no es necesario ya por defecto los pareciera levantar
     # TODO rename longpolling to websocket everywhere
-    nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-longpolling
     nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
     {{- end }}
 spec:
@@ -62,17 +60,6 @@ spec:
                   number: 80
 #              serviceName: {{ $fullName }}-http
 #              servicePort: 80
-          {{- if $useLongpolling }}
-          - path: /websocket
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ $fullName }}-longpolling
-                port:
-                  number: 80
-#              serviceName: {{ $fullName }}-longpolling
-#              servicePort: 80
-          {{- end  }}
     {{- end  }}
     {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
@@ -87,15 +74,6 @@ spec:
                 name: {{ $fullName }}-http
                 port:
                   number: 80
-          {{- if $useLongpolling }}
-          - path: /websocket
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ $fullName }}-longpolling
-                port:
-                  number: 80
-          {{- end  }}
     {{- end }}
     {{- end }}
 {{- end }}
