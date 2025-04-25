@@ -5,21 +5,105 @@ questions:
     type: "string"
     required: true
     default: "bot@adhoc.com.ar"
+    group: "Common"
+
+  - variable: defaultWildcardIssuer
+    label: "Default Wildcard Issuer"
+    description: "Issuer to use for wildcard certificates"
+    type: "select"
+    required: true
+    options:
+      - value: "cloudDNS"
+        label: "Google Cloud DNS"
+      - value: "cloudflare"
+        label: "Cloudflare"
+    default: "cloudDNS"
+    group: "Common"
+
+# Google Cloud DNS issuer
+  - variable: issuerCloudDNS.enabled
+    label: "Enable Google Cloud DNS Issuer"
+    description: "Enable the Google Cloud DNS Issuer"
+    type: "boolean"
+    required: true
+    default: true
+    group: "Common"
   - variable: issuerCloudDNS.hostedZoneName
     label: "CloudDomain"
     description: ""
     type: "string"
     required: true
     default: "dev-adhoc.com"
+    group: "Google Cloud"
+    show_if:
+      - variable: issuerCloudDNS.enabled
+        value: true
   - variable: issuerCloudDNS.dnsZoneName
     label: "CloudDomain"
     description: "DNS Zone in Google Compute Engine"
     type: "string"
     required: true
     default: "dev-adhoc"
+    group: "Google Cloud"
+    show_if:
+      - variable: issuerCloudDNS.enabled
+        value: true
   - variable: issuerCloudDNS.project
     label: "Project"
     description: "Google Compute Engine Project"
     type: "string"
     required: true
     default: "proyecto-laboratorios"
+    group: "Google Cloud"
+    show_if:
+      - variable: issuerCloudDNS.enabled
+        value: true
+
+# Cloudflare issuer
+  - variable: issuerCloudflare.enabled
+    label: "Enable Cloudflare Issuer"
+    description: "Enable the Cloudflare Issuer"
+    type: "boolean"
+    required: true
+    default: false
+    group: "Common"
+  - variable: issuerCloudflare.email
+    label: "Cloudflare Email"
+    description: "Email used for Cloudflare account"
+    type: "string"
+    required: true
+    default: "user@cloudflare.com"
+    group: "Cloudflare"
+    show_if:
+      - variable: issuerCloudflare.enabled
+        value: true
+  - variable: issuerCloudflare.apiToken
+    label: "Cloudflare API Token"
+    description: "API Token used for Cloudflare account"
+    type: "string"
+    required: true
+    default: ""
+    group: "Cloudflare"
+    show_if:
+      - variable: issuerCloudflare.enabled
+        value: true
+  - variable: issuerCloudflare.hostedZoneName
+    label: "Cloudflare Domain"
+    description: "Domain name in Cloudflare"
+    type: "string"
+    required: true
+    default: "dev-adhoc.com"
+    group: "Cloudflare"
+    show_if:
+      - variable: issuerCloudflare.enabled
+        value: true
+  - variable: issuerCloudflare.hostedZoneName
+    label: "Cloudflare Domain"
+    description: "Domain name in Cloudflare"
+    type: "string"
+    required: true
+    default: "dev-adhoc.com"
+    group: "Cloudflare"
+    show_if:
+      - variable: issuerCloudflare.enabled
+        value: true
