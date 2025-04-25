@@ -1,0 +1,88 @@
+{{ if or .Values.issuerCloudDNS.enabled .Values.issuerCloudflare.enabled }}
+{{- if .Values.issuerCloudflare.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-token-secret
+  namespace: cert-manager
+type: Opaque
+stringData:
+  api-token: {{ .Values.issuerCloudflare.apiToken }}
+{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: adhoc-wildcard
+  namespace: cert-manager
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    #server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: {{ .Values.issuerEmail }}
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: {{ include "cert-cfg.fullname" . }}-wildcard
+    # Enable the HTTP-01 challenge provider
+    solvers:
+    {{- if .Values.issuerCloudflare.enabled }}
+    - dns01:
+        cloudflare:
+          email: {{ .Values.issuerCloudflare.email }}
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+      # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
+      {{- if ne .Values.defaultWildcardIssuer "cloudflare" }}
+      selector:
+        dnsNames:
+          - '{{ .Values.issuerCloudflare.hostedZoneName }}'
+          - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+      {{- end }}
+    {{- end }}
+    {{- if .Values.issuerCloudDNS.enabled }}
+    - dns01:
+        cloudDNS:
+          project: {{ .Values.issuerCloudDNS.project }}
+          hostedZoneName: {{ .Values.issuerCloudDNS.dnsZoneName }}
+          # This was created in cert-manager namespace by terraform, so it's a constant.
+          serviceAccountSecretRef:
+            # The key of the entry in the Secret resource's `data` field to be used. Some
+            # instances of this field may be defaulted, in others it may be required.
+            key: key.json
+            # Name of the resource being referred to. More info:
+            # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+            name: clouddns-dns01-solver-svc-acct
+      # Selector if not set, so the solver will be treated as the 'default' solver with the lowest priority.
+      {{- if ne .Values.defaultWildcardIssuer "cloudDNS" }}
+      selector:
+        dnsNames:
+          - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+          - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+      {{- end }}
+      {{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-certificate
+  namespace: cert-manager
+spec:
+  commonName:  '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  dnsNames:
+  {{- if .Values.issuerCloudDNS.enabled }}
+  - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  {{- end }}
+  {{- if .Values.issuerCloudflare.enabled }}
+  - '{{ .Values.issuerCloudflare.hostedZoneName }}'
+  - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+  {{- end }}
+  issuerRef:
+    kind: ClusterIssuer
+    name: adhoc-wildcard
+  secretName: wildcard-domain-com-tls
+{{ end }}
