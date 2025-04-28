@@ -71,7 +71,11 @@ metadata:
   name: wildcard-certificate
   namespace: cert-manager
 spec:
-  commonName:  '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  {{- if eq .Values.defaultWildcardIssuer "cloudDNS" }}
+  commonName: '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  {{- else if eq .Values.defaultWildcardIssuer "cloudflare" }}
+  commonName: '{{ .Values.issuerCloudflare.hostedZoneName }}'
+  {{- end }}
   dnsNames:
   {{- if .Values.issuerCloudDNS.enabled }}
   - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
