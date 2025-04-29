@@ -1,0 +1,154 @@
+{{- if .Values.cloudNativePG.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ "odoo" | b64enc | quote }}
+  password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-pg
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}-pg
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    cnpg.io/hibernation: "off"
+    {{/*
+    # For manual intervention
+    # cnpg.io/reconciliationLoop: "disabled
+    # cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+    # cnpg.io/force-backup-recovery: "true"
+    */}}
+{{/*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
+spec:
+
+  {{/*
+  # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
+  # priorityClassName:
+  */}}
+  {{/* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
+  logLevel: info
+  inheritedMetadata:
+    labels:
+      {{- include "adhoc-odoo.labels" . | nindent 6 }}
+  imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+  primaryUpdateStrategy: unsupervised
+  instances: {{ .Values.cloudNativePG.instances | default 1 }}
+  affinity:
+    {{/* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
+    enablePodAntiAffinity: true # Default value
+    topologyKey: kubernetes.io/hostname # Default value
+    podAntiAffinityType: preferred # Default value
+  storage:
+    size: {{ .Values.cloudNativePG.persistence.size }}Gi
+    {{- if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+    {{- end }}
+  {{/* Used to Separate WAL into a diferent volume */}}
+  {{ if .Values.cloudNativePG.persistence.separateWAL }}
+  walStorage:
+    {{/* TODO: This need to be calculated considerating retention and backups frecuency */}}
+    size: {{ .Values.cloudNativePG.persistence.size }}Gi
+    {{- if .Values.cloudNativePG.persistence.storageClass }}
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+    {{- end }}
+  {{- end }}
+  resources:
+    requests:
+      memory: {{ .Values.cloudNativePG.resources.requests.memory | quote }}
+      cpu: {{ .Values.cloudNativePG.resources.requests.cpu | quote }}
+    limits:
+      memory: {{ .Values.cloudNativePG.resources.limits.memory | quote }}
+      cpu: {{ .Values.cloudNativePG.resources.limits.cpu | quote }}
+  postgresql:
+    # https://cloudnative-pg.io/documentation/1.24/postgresql_conf/
+    parameters:
+      {{- range $key, $value := .Values.cloudNativePG.parameters }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{/*
+      # shared_buffers: "1GB"
+      # archive_mode = 'on'
+      # dynamic_shared_memory_type = 'posix'
+      # full_page_writes = 'on'
+      # logging_collector = 'on'
+      # log_destination = 'csvlog'
+      # log_directory = '/controller/log'
+      # log_filename = 'postgres'
+      # log_rotation_age = '0'
+      # log_rotation_size = '0'
+      # log_truncate_on_rotation = 'false'
+      # max_parallel_workers = '32'
+      # max_replication_slots = '32'
+      # max_worker_processes = '32'
+      # shared_memory_type = 'mmap' # for PostgreSQL >= 12 only
+      # wal_keep_size = '512MB' # for PostgreSQL >= 13 only
+      # wal_keep_segments = '32' # for PostgreSQL <= 12 only
+      # wal_level = 'logical'
+      # wal_log_hints = 'on'
+      # wal_sender_timeout = '5s'
+      # wal_receiver_timeout = '5s'
+      */}}
+  {{/* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
+  backup:
+    {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
+    volumeSnapshot:
+      # no ownership is set, meaning that VolumeSnapshot objects persist after the Backup and/or the Cluster resources are removed
+      snapshotOwnerReference: none
+      annotations: {}
+      labels:
+        {{- include "adhoc-odoo.labels" . | nindent 8 }}
+      {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      className: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      {{/* Used to Separate WAL into a diferent volume */}}
+      {{- if .Values.cloudNativePG.persistence.separateWAL }}
+      {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      walClassName: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+    target: prefer-standby
+    retentionPolicy: "360d"
+
+  {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
+  bootstrap:
+    recovery:
+      {{- if or .Values.cloudNativePG.restore.fromSnapshot .Values.cloudNativePG.restore.fromGCPSnapshot }}
+      volumeSnapshots:
+        storage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot | default (printf "%s-vs" ( include "cnpg.targetBkp" . )) }}
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      {{/* Used to Separate WAL into a diferent volume */}}
+      {{ if .Values.cloudNativePG.persistence.separateWAL }}
+        walStorage:
+          name: {{ .Values.cloudNativePG.restore.fromSnapshot }}-wal
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+      {{- end }}
+      {{- end }}
+      {{- if ne .Values.cloudNativePG.restore.inTimeRecovery "latest" }}
+      recoveryTarget:
+        targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
+      {{- end }}
+  {{- end }}
+
+  {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
+  managed:
+    roles:
+    - name: odoo
+      ensure: present
+      comment: Odoo User
+      login: true
+      superuser: true
+      passwordSecret:
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+  {{- end }}
+{{- end }}
