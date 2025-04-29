@@ -125,6 +125,11 @@ spec:
             mountPath: /etc/hosts
             subPath: hosts
           {{- end }}
+          {{- if .Values.ingress.enableReverseProxy }}
+          - name: odoo-sendfile-conf
+            mountPath: /home/odoo/.resources/conf.d/odoo-send-file.conf
+            subPath: odoo-send-file.conf
+          {{- end }}
       affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -186,6 +191,11 @@ spec:
       - name: hosts
         configMap:
           name: {{ include "adhoc-odoo.fullname" . }}-hosts
+      {{- end }}
+      {{- if .Values.ingress.enableReverseProxy }}
+      - name: odoo-sendfile-conf
+        configMap:
+          name: {{ include "adhoc-odoo.fullname" . }}-odoo-sendfile-conf
       {{- end }}
       {{- if eq .Values.storage.location "fuse" }}
       - name: gcs-fuse-csi-ephemeral

@@ -57,7 +57,11 @@ spec:
             pathType: Prefix
             backend:
               service:
+                {{- if .Values.ingress.enableReverseProxy }}
+                name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
+                {{- else }}
                 name: {{ $fullName }}-http
+                {{- end }}
                 port:
                   number: 80
           {{- if gt $usewebsocket 0 }}
@@ -69,7 +73,11 @@ spec:
             {{- end  }}
             backend:
               service:
+                {{- if .Values.ingress.enableReverseProxy }}
+                name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
+                {{- else }}
                 name: {{ $fullName }}-websocket
+                {{- end }}
                 port:
                   number: 80
           {{- end  }}

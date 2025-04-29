@@ -1,0 +1,12 @@
+{{- if .Values.ingress.enableReverseProxy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-odoo-sendfile-conf
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+data:
+  odoo-send-file.conf: |
+    [options]
+      x_sendfile = True
+{{- end }}

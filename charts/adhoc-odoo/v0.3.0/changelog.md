@@ -4,6 +4,9 @@
 
 Features:
 
+- reverse Proxy:
+  - add nginx to serve files
+
 ## *0.2.9*
 
 Features:

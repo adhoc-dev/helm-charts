@@ -468,6 +468,13 @@ questions:
     type: "string"
     required: false
     default: ""
+  - variable: ingress.enableReverseProxy
+    group: "Ingress"
+    label: "Enable Reverse Proxy"
+    description: "put an nginx in front of odoo"
+    type: "boolean"
+    required: false
+    default: false
 
   # Adhoc
   - variable: adhoc.serviceLevel
