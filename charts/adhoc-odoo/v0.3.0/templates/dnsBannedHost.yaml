@@ -1,0 +1,20 @@
+{{- if and .Values.adhoc.dnsBannedHost ( ne .Values.adhoc.appType "prod" ) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-hosts
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+data:
+  hosts: |
+    # Kubernetes-managed hosts file.
+    127.0.0.1       localhost
+    ::1     localhost ip6-localhost ip6-loopback
+    fe00::0 ip6-localnet
+    fe00::0 ip6-mcastprefix
+    fe00::1 ip6-allnodes
+    fe00::2 ip6-allrouters
+    {{- range .Values.adhoc.dnsBannedHost }}
+    127.0.0.1       {{ . }}
+    {{- end }}
+{{- end }}
