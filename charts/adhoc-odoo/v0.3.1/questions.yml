@@ -475,6 +475,13 @@ questions:
     type: "boolean"
     required: false
     default: false
+  - variable: ingress.enableModSecurity
+    group: "Ingress"
+    label: "Enable Mod Security"
+    description: "activate mod security"
+    type: "boolean"
+    required: false
+    default: false
 
   # Adhoc
   - variable: adhoc.serviceLevel

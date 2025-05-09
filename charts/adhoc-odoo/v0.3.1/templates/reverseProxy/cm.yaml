@@ -7,10 +7,19 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 data:
   nginx.conf: |
+    {{- if ingress.enableModSecurity }}
+    load_module modules/ngx_http_modsecurity_module.so;
+    {{- end }}
     events {
       worker_connections 1024;
     }
     http {
+
+      {{- if ingress.enableModSecurity }}
+      modsecurity on;
+      modsecurity_rules_file /etc/nginx/modsec/modsecurity.conf;
+      {{- end }}
+
       default_type  application/octet-stream;
 
       sendfile on;
