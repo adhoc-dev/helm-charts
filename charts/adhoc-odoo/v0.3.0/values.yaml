@@ -37,21 +37,40 @@ securityContext: {}
   # runAsUser: 1000
 
 # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Waits the pod to be ready on startup, important during modules installation or running "fixdb"
+startupProbe:
+  # httpGet:
+  #   path: /web/login
+  #   port: 8069
+  tcpSocket:
+    port: 8069
+  initialDelaySeconds: 30
+  failureThreshold: 90 # 15 min
+  periodSeconds: 10
+# Check if the pod is halted and need to be restarted
 livenessProbe:
+  # httpGet:
+  #   path: /web/login
+  #   port: 8069
   tcpSocket:
     port: 8069
-  initialDelaySeconds: 10
+  initialDelaySeconds: 5
   periodSeconds: 10
-  failureThreshold: 20
-  # Must be 1 for liveness and startup
-  #successThreshold: 1
-readinessProbe:
-  tcpSocket:
-    port: 8069
-  initialDelaySeconds: 10
-  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 6 # 1 min
   successThreshold: 1
-  failureThreshold: 2
+# Check if the pod is ready to receive traffic from the service
+readinessProbe:
+  # httpGet:
+  #   path: /web/login
+  #   port: 8069
+  tcpSocket:
+    port: 8069
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 10
+  failureThreshold: 3 # 15 sec
+  successThreshold: 1
 
 service:
   type: ClusterIP

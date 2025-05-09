@@ -67,12 +67,26 @@ spec:
       memory: {{ .Values.cloudNativePG.resources.limits.memory | quote }}
       cpu: {{ .Values.cloudNativePG.resources.limits.cpu | quote }}
   postgresql:
+    shared_preload_libraries:
+      - pg_stat_statements
+      {{/*
+      # - auto_explain
+      # - pgaudit
+      */}}
     # https://cloudnative-pg.io/documentation/1.24/postgresql_conf/
     parameters:
-      {{- range $key, $value := .Values.cloudNativePG.parameters }}
-      {{ $key }}: {{ $value | quote }}
-      {{- end }}
+      {{/* pg stat statements */}}
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: all
       {{/*
+      # # pgaudit
+      # pgaudit.log: "all, -misc"
+      # pgaudit.log_catalog: "off"
+      # pgaudit.log_parameter: "on"
+      # pgaudit.log_relation: "on"
+      # # AutoExplain
+      # auto_explain.log_min_duration: "10s"
+      # # Common
       # shared_buffers: "1GB"
       # archive_mode = 'on'
       # dynamic_shared_memory_type = 'posix'
@@ -95,6 +109,9 @@ spec:
       # wal_sender_timeout = '5s'
       # wal_receiver_timeout = '5s'
       */}}
+      {{- range $key, $value := .Values.cloudNativePG.parameters }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
   {{/* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
   backup:
     {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}

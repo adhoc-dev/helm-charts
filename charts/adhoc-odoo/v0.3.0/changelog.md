@@ -4,6 +4,10 @@
 
 Features:
 
+- odoo:
+  - default readiness, liveness and startup probes updated
+- cnpg:
+  - add pg_stat_statements to shared preload libraries
 - reverse Proxy:
   - add nginx to serve files
 
