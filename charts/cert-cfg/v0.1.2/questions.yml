@@ -85,4 +85,12 @@ questions:
     default: "dev-adhoc.com"
     group: "Cloudflare"
     show_if: "issuerCloudflare.enabled=true"
+  - variable: issuerCloudflare.extraHostedZoneName
+    label: "Extra Cloudflare Domains"
+    description: "Extra domain names in Cloudflare"
+    type: "listofstrings"
+    required: false
+    default:
+    group: "Cloudflare"
+    show_if: "issuerCloudflare.enabled=true"
 

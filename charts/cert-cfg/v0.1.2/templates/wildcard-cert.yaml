@@ -41,6 +41,10 @@ spec:
         dnsNames:
           - '{{ .Values.issuerCloudflare.hostedZoneName }}'
           - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+          {{- range .Values.issuerCloudflare.extraHostedZoneName }}
+          - '{{ . }}'  # Added extra hosted zone name
+          - '*.{{ . }}'  # Added wildcard for extra hosted zone
+          {{- end }}
       {{- end }}
     {{- end }}
     {{- if .Values.issuerCloudDNS.enabled }}

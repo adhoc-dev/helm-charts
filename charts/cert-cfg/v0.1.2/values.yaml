@@ -18,5 +18,6 @@ issuerCloudDNS:
 issuerCloudflare:
   enabled: false
   hostedZoneName: "ingadhoc.com"
+  extraHostedZoneName:
   email: "devops@adhoc.com.ar"
   apiToken: "NEW_API_TOKEN_HERE"
