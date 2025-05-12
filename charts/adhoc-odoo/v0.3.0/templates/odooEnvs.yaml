@@ -9,7 +9,7 @@ data:
   {{- if .Values.cloudNativePG.enabled }}
   PGUSER: "odoo"
   PGPASSWORD: {{ .Values.cloudNativePG.superUserPassword | quote }}
-  PGHOST: {{ .Release.Name }}-pg-rw
+  PGHOST: {{ include "cnpg.sanitizedPgName" . }}-pg-rw
   PGPORT: {{ 5432 | quote }}
   PGDATABASE: {{ "odoo" | quote }}
   # TODO: Check this values

@@ -13,15 +13,15 @@ data:
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: {{ .Release.Name }}-pg
+  name: {{ include "cnpg.sanitizedPgName" . }}-pg
   labels:
-    app.kubernetes.io/name: {{ .Release.Name }}-pg
+    app.kubernetes.io/name: {{ include "cnpg.sanitizedPgName" . }}-pg
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
     cnpg.io/hibernation: "off"
     {{/*
     # For manual intervention
-    # cnpg.io/reconciliationLoop: "disabled
+    # cnpg.io/reconciliationLoop: "disabled"
     # cnpg.io/skipEmptyWalArchiveCheck: "enabled"
     # cnpg.io/force-backup-recovery: "true"
     */}}
