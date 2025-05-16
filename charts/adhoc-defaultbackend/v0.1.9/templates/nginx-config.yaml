@@ -11,7 +11,8 @@ data:
       include /etc/nginx/mime.types;
       default_type application/octet-stream;
 
-      error_page 404 =200 /index.html;
+      error_page 404 =200 /404.html;
+      error_page 503 =200 /503.html;
 
       server {
         listen 80;
@@ -19,7 +20,7 @@ data:
         root /usr/share/nginx/html;
 
         location / {
-          try_files $uri $uri/ /index.html;
+          try_files $uri $uri/ /404.html;
         }
       }
     }
