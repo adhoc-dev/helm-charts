@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-defaultbackend.fullname" . }}-index
+data:
+  404.html: {{ print "|-" }}
+  {{ range .Files.Lines "www/404.html" }}
+    {{ . }}{{ end }}
+  503.html: {{ print "|-" }}
+  {{ range .Files.Lines "www/503.html" }}
+    {{ . }}{{ end }}
+  style.css: {{ print "|-" }}
+  {{ range .Files.Lines "www/style.css" }}
+    {{ . }}{{ end }}
