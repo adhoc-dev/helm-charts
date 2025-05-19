@@ -45,7 +45,7 @@ spec:
       initContainers:
         - name: wait-for-postgres
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
-          command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
+          command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
