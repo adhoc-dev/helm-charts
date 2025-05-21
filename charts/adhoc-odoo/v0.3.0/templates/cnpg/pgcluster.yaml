@@ -45,6 +45,12 @@ spec:
     enablePodAntiAffinity: true # Default value
     topologyKey: kubernetes.io/hostname # Default value
     podAntiAffinityType: preferred # Default value
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: pg
+                operator: DoesNotExist
   storage:
     size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
