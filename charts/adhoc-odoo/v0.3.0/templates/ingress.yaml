@@ -3,6 +3,12 @@
 {{- $svcPort := .Values.service.port -}}
 {{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $srvHttp := printf "%s-http" $fullName }}
+{{- $srvWs := printf "%s-websocket" $fullName }}
+{{- if .Values.ingress.enableReverseProxy }}
+{{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- end }}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -57,11 +63,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                {{- if .Values.ingress.enableReverseProxy }}
-                name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
-                {{- else }}
-                name: {{ $fullName }}-http
-                {{- end }}
+                name: {{ $srvHttp }}
                 port:
                   number: 80
           {{- if gt $usewebsocket 0 }}
@@ -73,11 +75,7 @@ spec:
             {{- end  }}
             backend:
               service:
-                {{- if .Values.ingress.enableReverseProxy }}
-                name: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
-                {{- else }}
-                name: {{ $fullName }}-websocket
-                {{- end }}
+                name: {{ $srvWs }}
                 port:
                   number: 80
           {{- end  }}
@@ -92,7 +90,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ $fullName }}-http
+                name: {{ $srvHttp }}
                 port:
                   number: 80
           {{- if gt $usewebsocket 0 }}
@@ -104,7 +102,7 @@ spec:
             {{- end  }}
             backend:
               service:
-                name: {{ $fullName }}-websocket
+                name: {{ $srvWs }}
                 port:
                   number: 80
           {{- end  }}
