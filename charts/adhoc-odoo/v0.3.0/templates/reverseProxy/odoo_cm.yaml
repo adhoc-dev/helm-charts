@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enableReverseProxy }}
+{{- if .Values.ingress.reverseProxy.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

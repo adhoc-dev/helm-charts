@@ -92,6 +92,11 @@ ingress:
     enabled: false
     snippet: |
       add_header Referrer-Policy "no-referrer";
+  # Reverse proxy cache
+  reverseProxy:
+    enabled: false
+    scale: 1
+
 resources:
   limits:
     cpu: 3000m

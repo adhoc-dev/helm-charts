@@ -129,7 +129,7 @@ spec:
             mountPath: /etc/hosts
             subPath: hosts
           {{- end }}
-          {{- if .Values.ingress.enableReverseProxy }}
+          {{- if .Values.ingress.reverseProxy.enabled }}
           - name: odoo-sendfile-conf
             mountPath: /home/odoo/.resources/conf.d/odoo-send-file.conf
             subPath: odoo-send-file.conf
@@ -196,7 +196,7 @@ spec:
         configMap:
           name: {{ include "adhoc-odoo.fullname" . }}-hosts
       {{- end }}
-      {{- if .Values.ingress.enableReverseProxy }}
+      {{- if .Values.ingress.reverseProxy.enabled }}
       - name: odoo-sendfile-conf
         configMap:
           name: {{ include "adhoc-odoo.fullname" . }}-odoo-sendfile-conf

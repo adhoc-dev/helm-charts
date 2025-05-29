@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enableReverseProxy }}
+{{- if .Values.ingress.reverseProxy.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -179,12 +179,11 @@ data:
             proxy_cache_background_update on;
             proxy_cache_lock on;
 
-            expires 24h;
-            # expires 365d;  # TODO: Check if this is a good idea
+            expires 365d;
             add_header Cache-Control "public, immutable";
-            # proxy_cache_valid 200 302 365d;  # Cache más largo para respuestas exitosas
-            # proxy_cache_valid 404 1m;        # Cache corto para 404
-            # add_header X-Cache-Status $upstream_cache_status;  # Para debugging
+            proxy_cache_valid 200 302 365d;
+            proxy_cache_valid 404 1m;
+            # add_header X-Cache-Status $upstream_cache_status;  # debugging
 
             # Security recommendations
             # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#serving-static-files

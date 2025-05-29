@@ -5,7 +5,7 @@
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $srvHttp := printf "%s-http" $fullName }}
 {{- $srvWs := printf "%s-websocket" $fullName }}
-{{- if .Values.ingress.enableReverseProxy }}
+{{- if .Values.ingress.reverseProxy.enabled }}
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- end }}

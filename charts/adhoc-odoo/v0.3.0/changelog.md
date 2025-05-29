@@ -10,6 +10,8 @@ Features:
   - add pg_stat_statements to shared preload libraries
 - reverse Proxy:
   - add nginx to serve files
+    - `ingress.reverseProxy.enabled`
+    - `ingress.reverseProxy.scale`
 
 ## *0.2.9*
 

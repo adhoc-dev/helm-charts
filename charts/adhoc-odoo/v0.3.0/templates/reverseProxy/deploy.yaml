@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enableReverseProxy }}
+{{- if .Values.ingress.reverseProxy.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,7 +11,7 @@ metadata:
     certmanager.k8s.io/disable-auto-restart: "true"
     {{- end }}
 spec:
-  replicas: 1 # TODO: Single failure point
+  replicas: {{ .Values.ingress.reverseProxy.scale }}
   selector:
     matchLabels:
       {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
@@ -21,6 +21,7 @@ spec:
   template:
     metadata:
       annotations:
+        rollme: {{ now | quote }} # Force redeploy on change
         {{- if eq .Values.storage.location "fuse" }}
         gke-gcsfuse/volumes: "true"
         {{- end }}
