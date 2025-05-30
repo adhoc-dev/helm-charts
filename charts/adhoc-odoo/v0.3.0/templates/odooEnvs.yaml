@@ -1,3 +1,5 @@
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $workers := .Values.odoo.performance.workers | toString | int -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,12 +9,16 @@ metadata:
 data:
   {{/* Odoo Database parameters */}}
   {{- if .Values.cloudNativePG.enabled }}
+  # https://apps.odoo.com/apps/modules/18.0/session_db
+  # Session DB  on versions <= 14.0 does not support multitreading
+  {{- if or (gt $workers 0) (ge $odooVersion 150) }}
+  SESSION_DB_URI: "postgres://odoo:{{ .Values.cloudNativePG.superUserPassword }}@{{ include "cnpg.sanitizedPgName" . }}-pg-rw/app"
+  {{- end }}
   PGUSER: "odoo"
   PGPASSWORD: {{ .Values.cloudNativePG.superUserPassword | quote }}
   PGHOST: {{ include "cnpg.sanitizedPgName" . }}-pg-rw
   PGPORT: {{ 5432 | quote }}
   PGDATABASE: {{ "odoo" | quote }}
-  # TODO: Check this values
   DATABASE: {{ "odoo" | quote }}
   {{- else }}
   PGUSER: {{ .Values.odoo.pg.user | quote }}
@@ -140,7 +146,6 @@ data:
   {{/* Redis Config */}}
   {{- if .Values.redis.enabled }}
   {{/* TODO:  values for v13- (remove when no longer customers on v13-) */}}
-  {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
   {{- if le $odooVersion 130 -}}
   ENABLE_REDIS: "true"
   REDIS_HOST: {{ .Values.redis.host | quote }}
@@ -154,6 +159,7 @@ data:
   ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}
   ODOO_SESSION_REDIS_PASSWORD: {{ .Values.redis.pass | quote  }}
   {{- end }}
+
 ---
 apiVersion: v1
 kind: ConfigMap
