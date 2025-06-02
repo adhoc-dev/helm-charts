@@ -24,6 +24,19 @@ spec:
         rollme: {{ now | quote }} # Force redeploy on change
         {{- if eq .Values.storage.location "fuse" }}
         gke-gcsfuse/volumes: "true"
+        # https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver?hl=es-419
+        # De forma predeterminada, el contenedor del sidecar está configurado con las siguientes solicitudes de recursos, sin establecer los límites de recursos:
+        # CPU de 250 m
+        # 256 MiB de memoria
+        # Almacenamiento efímero de 5 GiB
+        {{- if ne .Values.adhoc.appType "prod" }}
+        gke-gcsfuse/cpu-limit: "1"
+        gke-gcsfuse/memory-limit: 1Gi
+        gke-gcsfuse/ephemeral-storage-limit: 5Gi
+        gke-gcsfuse/cpu-request: 5m
+        gke-gcsfuse/memory-request: 25Mi
+        gke-gcsfuse/ephemeral-storage-request: 1Gi
+        {{- end }}
         {{- end }}
       labels:
         {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
