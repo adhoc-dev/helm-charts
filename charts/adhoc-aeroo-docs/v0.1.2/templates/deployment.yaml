@@ -47,6 +47,22 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        - name: watcher
+          image: busybox:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              INIT_DAY=$(date +%d)
+              echo "Watchdog iniciado..."
+              while true; do
+                sleep 600
+                CURRENT_DAY=$(date +%d)
+                if [ "$CURRENT_DAY" != "$INIT_DAY" ]; then
+                  echo "New day detected ($CURRENT_DAY != $INIT_DAY). Restarting..."
+                  exit 0
+                fi
+              done
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
