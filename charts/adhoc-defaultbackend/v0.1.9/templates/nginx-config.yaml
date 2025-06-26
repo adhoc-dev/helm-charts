@@ -12,7 +12,14 @@ data:
       default_type application/octet-stream;
 
       server {
-        listen 80;
+          listen 80;
+          server_name ~^(?<subdomain>.+)\.adhoc\.ar$;
+
+          return 307 https://$subdomain.adhoc.inc$request_uri;
+      }
+
+      server {
+        listen 80 default_server;
         server_name _;
         root /usr/share/nginx/html;
 
