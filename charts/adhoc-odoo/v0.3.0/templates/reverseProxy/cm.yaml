@@ -113,6 +113,31 @@ data:
         # Additional protection against clickjacking
         add_header Content-Security-Policy "frame-ancestors 'self'";
 
+        # Preventing scans
+        # Block php requests
+        location ~* \.php$ {
+            return 403;
+        }
+        # Block wordpress /wp- (wp-admin, wp-login, etc.)
+        location ~* ^/wp- {
+            return 403;
+        }
+        location ~* ^/xmlrpc\.php$ {
+            return 403;
+        }
+        # Bloquear rutas que suelen usarse en ataques
+        location ~* (^/\.env|^/\.git|/config\.json|/config\.php|/vendor/|/composer\.(json|lock)|/README\.md)$ {
+            return 403;
+        }
+        # Bloquear acceso a archivos ocultos (dotfiles)
+        location ~ /\. {
+            return 403;
+        }
+        # Bloquear agentes de bots maliciosos conocidos
+        if ($http_user_agent ~* (acunetix|nikto|sqlmap|wpscan|nmap)) {
+            return 403;
+        }
+
         # Redirect requests to odoo backend server
         location / {
             proxy_pass http://odoo;

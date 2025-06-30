@@ -5,6 +5,9 @@ Expand the name of the chart.
 {{- now | date "20060102150405" }}
 {{- end }}
 
+{{/*
+Pg name sanitization.
+*/}}
 {{- define "cnpg.sanitizedPgName" -}}
 {{- $original := .Release.Name | lower }}
 {{- $original = regexReplaceAll "^[0-9]+" $original "" }}

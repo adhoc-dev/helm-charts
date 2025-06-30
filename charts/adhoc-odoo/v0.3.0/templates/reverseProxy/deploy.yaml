@@ -30,8 +30,8 @@ spec:
         # 256 MiB de memoria
         # Almacenamiento efímero de 5 GiB
         {{- if ne .Values.adhoc.appType "prod" }}
-        gke-gcsfuse/cpu-limit: "1"
-        gke-gcsfuse/memory-limit: 1Gi
+        gke-gcsfuse/cpu-limit: "250m"
+        gke-gcsfuse/memory-limit: 250Mi
         gke-gcsfuse/ephemeral-storage-limit: 5Gi
         gke-gcsfuse/cpu-request: 5m
         gke-gcsfuse/memory-request: 25Mi
