@@ -273,3 +273,8 @@ cloudNativePG:
     # Not implemented
     fromDump: ""
     inTimeRecovery: null # null for no recovery, latest for or timestamp (in the RFC3339 standard)
+
+  services:
+    # If you want to disable the RO service, set this to true
+    disableReadOnly: false
+    enableExternalRO: false

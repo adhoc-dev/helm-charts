@@ -163,8 +163,28 @@ spec:
       {{- end }}
   {{- end }}
 
-  {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
   managed:
+    services:
+      {{- if .Values.cloudNativePG.services.disableReadOnly }}
+      disabledDefaultServices: ["ro", "r"]
+      {{- end }}
+      additional:
+      {{- if .Values.cloudNativePG.services.enableExternalRO }}
+      # Add specific load balancer to reach the database (Boggio?)
+      # https://cloudnative-pg.io/documentation/1.25/service_management/
+      - selectorType: ro
+        serviceTemplate:
+          spec:
+            type: LoadBalancer
+          metadata:
+            name: {{ include "cnpg.sanitizedPgName" . }}-ro-lb
+            labels:
+              {{- include "adhoc-odoo.labels" . | nindent 14 }}
+              exposed-service: "true"
+            annotations:
+              exposed-service: "true"
+      {{- end }}
+  {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
     roles:
     - name: odoo
       ensure: present

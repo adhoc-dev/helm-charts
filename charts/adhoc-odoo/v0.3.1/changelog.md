@@ -4,6 +4,15 @@
 
 Features:
 
+- odoo:
+  - Added pdb
+- reverse Proxy:
+  - Added pdb
+  - Added some rules to prevent scans
+- cnpg:
+  - option to disable ro services
+  - option to enable exposed service
+
 ## *0.3.0*
 
 Features:
