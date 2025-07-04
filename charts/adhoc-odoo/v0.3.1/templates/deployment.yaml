@@ -144,7 +144,7 @@ spec:
           {{- end }}
           {{- if .Values.ingress.reverseProxy.enabled }}
           - name: odoo-sendfile-conf
-            mountPath: /home/odoo/.resources/conf.d/odoo-send-file.conf
+            mountPath: /home/odoo/.resources/conf.d/99-odoo-send-file.conf
             subPath: odoo-send-file.conf
           {{- end }}
       affinity:
