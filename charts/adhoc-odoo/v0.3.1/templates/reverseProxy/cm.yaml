@@ -92,7 +92,6 @@ data:
         listen 80 default;
         client_max_body_size 1G;
 
-
         # Prevent browsers from ever sending a plain HTTP request to this domain
         # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#https-hardening
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
@@ -114,32 +113,67 @@ data:
         add_header Content-Security-Policy "frame-ancestors 'self'";
 
         # Preventing scans
-        # Block php requests
-        location ~* \.php$ {
+        # Block access to sensitive files
+        location ~* (^/\.env|^/\.git|\.htaccess|\.DS_Store|/config\.json|/config\.php|/vendor/|/composer\.(json|lock)|/README\.md)$ {
             return 403;
         }
-        # Block wordpress /wp- (wp-admin, wp-login, etc.)
-        location ~* ^/wp- {
-            return 403;
-        }
-        location ~* ^/xmlrpc\.php$ {
-            return 403;
-        }
-        # Bloquear rutas que suelen usarse en ataques
-        location ~* (^/\.env|^/\.git|/config\.json|/config\.php|/vendor/|/composer\.(json|lock)|/README\.md)$ {
-            return 403;
-        }
-        # Bloquear acceso a archivos ocultos (dotfiles)
+        # Block access to hidden files (dotfiles)
         location ~ /\. {
             return 403;
         }
-        # Bloquear agentes de bots maliciosos conocidos
-        if ($http_user_agent ~* (acunetix|nikto|sqlmap|wpscan|nmap)) {
+        # Block malicious bot agents
+        if ($http_user_agent ~* (acunetix|sqlmap|nikto|wpscan|fimap|nmap|masscan|Xenu|WinHttp)) {
             return 403;
         }
+        # Invalid extensions
+        location ~* \.(php|jsp|asp|aspx|cgi)$ {
+            return 403;
+        }
+        # Block wordpress related requests
+        location ~* (^/wp-|^/wordpress|^/blog|^/xmlrpc\.php$) {
+            return 403;
+        }
+        # # These tools are often used in automated attacks or scans
+        # if ($http_user_agent ~* (curl|wget|libwww-perl)) {
+        #     return 403;
+        # }
 
+        # limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+        # location = /web/login {
+        #     # Rate limiting for login attempts
+        #     limit_req zone=login burst=3 nodelay;
+        #     proxy_pass http://odoo;
+        # }
+
+        # limit_req_zone $binary_remote_addr zone=authenticate:10m rate=5r/m;
+        # location = /web/session/authenticate {
+        #     # Rate limiting for login attempts
+        #     limit_req zone=authenticate burst=3 nodelay;
+        #     proxy_pass http://odoo;
+        # }
+
+        # limit_req_zone $binary_remote_addr zone=erp:10m rate=5r/s;
+        # location = /odoo {
+        #     # Rate limiting for login attempts
+        #     limit_req zone=erp burst=3 nodelay;
+        #     error_page 503 = @rate_limited;
+        #     proxy_pass http://odoo;
+        # }
+
+        # Custom response for rate-limited requests
+        # location @rate_limited {
+        #     add_header X-RateLimit-Blocked "true";
+        #     add_header Retry-After 60;
+        #     return 503;
+        # }
+
+        # Rate Limiting for basic brute force protection
+        # Create a 10MB zone called odoo, enough for ~160,000 IPs.
+        # limit_req_zone $binary_remote_addr zone=odoo:10m rate=10r/s;
         # Redirect requests to odoo backend server
         location / {
+            # limit_req zone=odoo burst=20 nodelay;
+
             proxy_pass http://odoo;
             # Add Headers for odoo proxy mode
             proxy_set_header X-Forwarded-For $http_x_forwarded_for;
@@ -153,8 +187,10 @@ data:
         }
 
         {{- if gt $usewebsocket 0 }}
+        # limit_req_zone $binary_remote_addr zone=longpoll:10m rate=10r/s;
         # Redirect longpoll requests to odoo longpolling port (Odoo <= 15.0)
         location /longpolling {
+            # limit_req zone=longpoll burst=20;
             proxy_pass http://odoochat;
             # Add Headers for odoo proxy mode
             proxy_set_header X-Forwarded-For $http_x_forwarded_for;
@@ -172,6 +208,7 @@ data:
 
         # Redirect websocket requests to odoo gevent port (Odoo >= 16.0)
         location /websocket {
+            # limit_req zone=longpoll burst=20;
             proxy_pass http://odoochat;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
