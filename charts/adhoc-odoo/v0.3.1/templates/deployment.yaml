@@ -164,6 +164,10 @@ spec:
                   labelSelector:
                     matchLabels:
                       adhoc.ar/tier: {{ .Values.adhoc.appType | lower }}
+                  namespaceSelector:
+                    matchExpressions:
+                      - key: "kubernetes.io/metadata.name"
+                        operator: Exists
                   topologyKey: "kubernetes.io/hostname"
               {{/* Try to distribute the pods with the same service level among nodes */}}
               - weight: 50
@@ -171,17 +175,20 @@ spec:
                   labelSelector:
                     matchLabels:
                       adhoc.ar/service-level: {{ .Values.adhoc.serviceLevel }}
+                  namespaceSelector:
+                    matchExpressions:
+                      - key: "kubernetes.io/metadata.name"
+                        operator: Exists
                   topologyKey: "kubernetes.io/hostname"
-          {{- if .Values.cloudNativePG.enabled }}
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
+              {{- if .Values.cloudNativePG.enabled }}
+              {{/* Try to distribute pg in different nodes increasing availability */}}
               - weight: 100
                 podAffinityTerm:
                   labelSelector:
                     matchLabels:
                       cnpg.io/cluster: {{ .Release.Name }}-pg
                   topologyKey: "kubernetes.io/hostname"
-          {{- end }}
+              {{- end }}
           {{- if .Values.nodeTag }}
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:

@@ -7,6 +7,7 @@ Features:
 - odoo:
   - Added pdb
   - Fixed report.url conf
+  - Improved affinity selectors
 - reverse Proxy:
   - Added pdb
   - Added some rules to prevent scans
