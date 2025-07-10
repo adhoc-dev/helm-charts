@@ -130,7 +130,7 @@ data:
             return 403;
         }
         # Block wordpress related requests
-        location ~* (^/wp-|^/wordpress|^/blog|^/xmlrpc\.php$) {
+        location ~* (^/wp-|^/wordpress|^/xmlrpc\.php$) {
             return 403;
         }
         # # These tools are often used in automated attacks or scans
