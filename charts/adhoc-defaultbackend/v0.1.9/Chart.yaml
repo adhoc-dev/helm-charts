@@ -15,10 +15,10 @@ sources:
   - "https://github.com/adhoc-dev/"
 maintainers:
   - name: dbollini
-    email: dib@adhoc.com.ar
+    email: dib@adhoc.inc
   - name: jjscarafia
-    email: jjs@adhoc.com.ar
+    email: jjs@adhoc.inc
   - name: azacchino
-    email: az@adhoc.com.ar
+    email: az@adhoc.inc
 
 icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/nginx.png"
