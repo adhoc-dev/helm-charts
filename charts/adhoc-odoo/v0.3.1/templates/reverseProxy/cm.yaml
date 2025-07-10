@@ -246,7 +246,7 @@ data:
             add_header Cache-Control "public, immutable";
             proxy_cache_valid 200 302 365d;
             proxy_cache_valid 404 1m;
-            # add_header X-Cache-Status $upstream_cache_status;  # debugging
+            add_header X-Cache-Status $upstream_cache_status;  # debugging
 
             # Security recommendations
             # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#serving-static-files
@@ -269,6 +269,7 @@ data:
         location /web/filestore {
             internal;
             alias /mnt/filestore;
+            add_header X-Served-By "nginx-filestore"; # debugging
         }
       }
     }
