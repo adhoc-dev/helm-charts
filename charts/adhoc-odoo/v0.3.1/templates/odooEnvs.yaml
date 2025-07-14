@@ -159,7 +159,9 @@ data:
   ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}
   ODOO_SESSION_REDIS_PASSWORD: {{ .Values.redis.pass | quote  }}
   {{- end }}
-
+  {{- range $key, $value := .Values.odoo.extraEnvVars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
