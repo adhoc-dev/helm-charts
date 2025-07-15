@@ -73,7 +73,7 @@ AdHoc labels
 */}}
 {{- define "adhoc-odoo.adhocLabels" -}}
 adhoc.ar/tier : {{ .Values.adhoc.appType | lower }}
-adhoc.ar/service-level : {{ default .Values.adhoc.serviceLevel "standard" | lower }}
+adhoc.ar/service-level : {{ default "standard" .Values.adhoc.serviceLevel | lower }}
 adhoc.ar/odoo-version : {{ include "adhoc-odoo.odoo-version" . | quote }}
 adhoc.ar/client-analytic-account : {{ .Values.adhoc.clientAnalyticAccount | quote }}
 {{- end }}
