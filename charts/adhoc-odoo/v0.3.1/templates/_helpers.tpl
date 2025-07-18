@@ -98,3 +98,10 @@ We remove initial number to compile with [a-z]([-a-z0-9]*[a-z0-9])?
 {{- $original = regexReplaceAll "^[0-9]+" $original "" }}
 {{- regexReplaceAll "[^a-z0-9-]" $original "" }}
 {{- end }}
+
+{{/*
+Create a sha256sum of the certain values. Is used to force a redeploy only when if needed.
+*/}}
+{{- define "adhoc-odoo.releaseDigest" -}}
+{{- printf "%s%s%s%s" .Values.image.tag .Values.odoo.entrypoint.custom .Values.odoo.entrypoint.repos (.Values.odoo.extraEnvVars | toYaml) | sha256sum }}
+{{- end }}

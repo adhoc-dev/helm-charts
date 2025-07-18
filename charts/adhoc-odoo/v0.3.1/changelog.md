@@ -8,12 +8,26 @@ Features:
   - Added pdb
   - Fixed report.url conf
   - Improved affinity selectors
+  - Added "changeCause"
 - reverse Proxy:
   - Added pdb
   - Added some rules to prevent scans
+  - Added node affinity
 - cnpg:
   - option to disable ro services
   - option to enable exposed service
+
+Improvements:
+
+- the roll mechanism depends of the odoo version and some key config now
+- now we use the same mechanism for nx and odoo
+
+BugFixes:
+
+- adhoc.ar/service-level: Fix typos
+- extraEnvs is a shared config now
+- reverse Proxy:
+  - add missing nodeSelector (used by fuse)
 
 ## *0.3.0*
 

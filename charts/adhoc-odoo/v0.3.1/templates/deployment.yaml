@@ -9,6 +9,7 @@ metadata:
     {{- /* https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager */ -}}
     certmanager.k8s.io/disable-auto-restart: "true"
     {{- end }}
+    "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -41,6 +42,7 @@ spec:
         gke-gcsfuse/ephemeral-storage-request: 100Mi
         {{- end }}
         {{- end }}
+        rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
       labels:
         {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
@@ -112,19 +114,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            {{/* Dynamic Entrypoint */}}
-            {{- if .Values.odoo.entrypoint.repos }}
-            - name: REPOS_YAML
-              value: {{ .Values.odoo.entrypoint.repos | quote }}
-            {{- end }}
-            {{- if .Values.odoo.entrypoint.custom }}
-            - name: CUSTOM_CONFIG
-              value: {{ .Values.odoo.entrypoint.custom | quote }}
-            {{- end }}
-            {{- range $key, $value := .Values.odoo.extraEnvVars }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
