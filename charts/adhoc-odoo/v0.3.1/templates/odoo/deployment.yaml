@@ -19,6 +19,13 @@ spec:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
   strategy:
     type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      {{- if and (not .Values.autoscaling.enabled) (gt (.Values.replicaCount | int) 2) }}
+      maxUnavailable: 1
+      {{- else }}
+      maxUnavailable: 0
+      {{- end }}
   revisionHistoryLimit: 10
   template:
     metadata:

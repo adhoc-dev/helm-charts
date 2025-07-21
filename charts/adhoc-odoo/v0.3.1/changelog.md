@@ -19,8 +19,13 @@ Features:
 
 Improvements:
 
-- the roll mechanism depends of the odoo version and some key config now
-- now we use the same mechanism for nx and odoo
+- rolling mechanism:
+  - now depends of the odoo version and some key config
+  - now we use the same mechanism for nx and odoo
+
+- rolling strategy:
+  - set maxSurge to 1 to grant pdb (avoiding noDecisionStatus.noScaleDown issues)
+  - set maxUnavailable to 0 (or 1 for deployments with multiple replicas for fast deployments)
 
 BugFixes:
 
