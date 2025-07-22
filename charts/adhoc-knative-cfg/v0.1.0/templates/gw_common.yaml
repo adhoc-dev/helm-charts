@@ -1,0 +1,53 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: knative-ingress-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        # GCP
+        {{- if .Values.issuerCloudDNS.enabled }}
+        - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+        - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+        {{- end }}
+        # Cloudflare
+        {{- if .Values.issuerCloudflare.enabled }}
+        - '{{ .Values.issuerCloudflare.hostedZoneName }}'
+        - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+        {{- if .Values.issuerCloudflare.extraHostedZoneName }}
+        {{- range .Values.issuerCloudflare.extraHostedZoneName }}
+        - '*.{{ . }}'
+        {{- end }}
+        {{- end }}
+        {{- end }}
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: knative-wildcard-tls
+        minProtocolVersion: TLSV1_2
+      hosts:
+        # GCP
+        {{- if .Values.issuerCloudDNS.enabled }}
+        - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+        - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+        {{- end }}
+        # Cloudflare
+        {{- if .Values.issuerCloudflare.enabled }}
+        - '{{ .Values.issuerCloudflare.hostedZoneName }}'
+        - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+        {{- if .Values.issuerCloudflare.extraHostedZoneName }}
+        {{- range .Values.issuerCloudflare.extraHostedZoneName }}
+        - '*.{{ . }}'
+        {{- end }}
+        {{- end }}
+        {{- end }}

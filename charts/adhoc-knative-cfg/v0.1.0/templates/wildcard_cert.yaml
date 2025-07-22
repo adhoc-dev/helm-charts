@@ -1,0 +1,27 @@
+{{ if or .Values.issuerCloudDNS.enabled .Values.issuerCloudflare.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: knative-wildcard-cert
+  namespace: istio-system
+spec:
+  {{- if eq .Values.defaultWildcardIssuer "cloudDNS" }}
+  commonName: '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  {{- else if eq .Values.defaultWildcardIssuer "cloudflare" }}
+  commonName: '{{ .Values.issuerCloudflare.hostedZoneName }}'
+  {{- end }}
+  dnsNames:
+  {{- if .Values.issuerCloudDNS.enabled }}
+  - '{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  - '*.{{ .Values.issuerCloudDNS.hostedZoneName }}'
+  {{- end }}
+  {{- if .Values.issuerCloudflare.enabled }}
+  - '{{ .Values.issuerCloudflare.hostedZoneName }}'
+  - '*.{{ .Values.issuerCloudflare.hostedZoneName }}'
+  {{- end }}
+  issuerRef:
+    kind: ClusterIssuer
+    # name: istio-letsencrypt-staging-dns
+    name: istio-letsencrypt-prod-dns
+  secretName: knative-wildcard-tls
+{{ end }}

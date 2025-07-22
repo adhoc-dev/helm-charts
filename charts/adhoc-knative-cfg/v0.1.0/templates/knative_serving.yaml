@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: knative-serving
+---
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    istio:
+      enabled: true
+  config:
+    domain:
+      # By default don't expose Knative services to the public internet.
+      svc.cluster.local: ""
+    features:
+      kubernetes.podspec-affinity: "enabled"
+    config-istio:
+      external-gateways: |
+        - name: knative-ingress-gateway
+          namespace: istio-system
+          service: istio-ingressgateway.istio-system.svc.cluster.local
+        - name: knative-customers-gateway
+          namespace: istio-system
+          service: istio-ingressgateway.istio-system.svc.cluster.local
+          labelSelector:
+            matchLabels:
+              custom.knative.dev/gateway: customers
+    config-network:
+      # https://github.com/knative/networking/blob/main/config/config-network.yaml
+      ingress-class: "istio.ingress.networking.knative.dev"
+      # Allows to knative to create custom domains and maps them to knative services.
+      external-domain-tls: "Enabled"
+      http-protocol: "Redirected" # Force http to https
+      autocreate-cluster-domain-claims: "true"
+
+      # Timeout para todo el request (default 10m)
+      request-timeout: "720s"
+      # Para conexiones persistentes (HTTP/2, WebSockets), define el tiempo que una conexión puede estar inactiva.
+      idle-timeout: "600s"
+      # Timeout para cada intento de reintento.
+      # perTryTimeout: "30s"
+      # Configura un timeout general para la ruta. Esto abarca el tiempo total desde que se envía la solicitud hasta que se recibe la respuesta.
+      # timeout: "60s"
+
+    config-certmanager:
+      # issuer for external-domain certificates used for ingress (domains not covered by wildcard certs).
+      issuerRef: |
+        kind: ClusterIssuer
+        name: istio-letsencrypt-staging
+  # version: "1.18.0" # Not set, use Latest
