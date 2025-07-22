@@ -1,4 +1,4 @@
-{{- if .Values.ingress.reverseProxy.enabled }}
+{{- if and .Values.ingress.reverseProxy.enabled .Values.ingress.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
