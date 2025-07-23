@@ -86,9 +86,6 @@ ingress:
   # AltHost
   hosts: ""
   cloudMainDomain: adhoc.ar
-
-  # True for Google Ingress or false for internal NGINX Ingress
-  useGoogleCloudExternalLB: false
   configurationSnippet:
     enabled: false
     snippet: |
