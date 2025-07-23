@@ -1,0 +1,15 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  {{- if and (eq .Values.adhoc.appType "prod") (or (.Values.autoscaling.enabled) (gt (.Values.replicaCount| int) 0)) }}
+  minAvailable: 1
+  {{- else }}
+  minAvailable: 0
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
