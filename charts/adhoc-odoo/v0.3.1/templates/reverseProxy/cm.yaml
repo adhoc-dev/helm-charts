@@ -92,6 +92,13 @@ data:
         listen 80 default;
         client_max_body_size 1G;
 
+        # ========================================================== #
+        # VALORES DE TIMEOUT GLOBALES PARA TODO EL SERVIDOR
+        # ========================================================== #
+        proxy_connect_timeout   1500s;
+        proxy_send_timeout      1500s;
+        proxy_read_timeout      1500s;
+
         # Prevent browsers from ever sending a plain HTTP request to this domain
         # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#https-hardening
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
