@@ -1,8 +1,8 @@
 annotations:
   category: DevOps
 apiVersion: v2
-name: knative-cfg
-description: Default configurations for knative
+name: istio-cfg
+description: Default configurations for istio
 
 type: application
 
@@ -21,4 +21,4 @@ maintainers:
   - name: azacchino
     email: az@adhoc.inc
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/istio.png"

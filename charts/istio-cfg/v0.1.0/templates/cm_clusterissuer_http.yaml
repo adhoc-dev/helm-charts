@@ -9,7 +9,8 @@ spec:
     privateKeySecretRef:
       name: istio-letsencrypt-prod-key
     solvers:
-      - http01:
+      - selector: {}
+        http01:
           ingress:
             class: istio
 ---
@@ -24,6 +25,7 @@ spec:
     privateKeySecretRef:
       name: istio-letsencrypt-staging-key
     solvers:
-      - http01:
+      - selector: {}
+        http01:
           ingress:
             class: istio
