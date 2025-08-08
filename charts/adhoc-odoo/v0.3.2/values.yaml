@@ -26,17 +26,6 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 # Waits the pod to be ready on startup, important during modules installation or running "fixdb"
 startupProbe:
@@ -78,11 +67,11 @@ service:
   port: 80
 
 ingress:
+  # NGINX Ingress Controller
   enabled: true
   # adhoc-letsencrypt-prod-issuer
   # adhoc-letsencrypt-staging-issuer
   issuer: adhoc-letsencrypt-prod-issuer
-  enableHttps: true
   # AltHost
   hosts: ""
   cloudMainDomain: adhoc.ar
@@ -90,6 +79,21 @@ ingress:
     enabled: false
     snippet: |
       add_header Referrer-Policy "no-referrer";
+
+  # Istio Ingress
+  istio:
+    enabled: false
+
+    issuer: istio-letsencrypt-prod
+    cloudMainDomain: shared.dev-adhoc.com
+    altHosts: ""
+
+    blockOutboundTraffic: false
+    # Extra hosts to allow egress traffic from Knative
+    allowedHosts: {}
+      # - "www.googleapis.com"
+      # - "api.mercadolibre.com"
+
   # Reverse proxy cache
   reverseProxy:
     enabled: false

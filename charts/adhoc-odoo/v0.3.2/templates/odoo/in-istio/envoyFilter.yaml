@@ -1,0 +1,30 @@
+{{- if and .Values.ingress.istio.enabled false -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: manipulations
+spec:
+  # Todos los pods en el namespace
+  workloadSelector: {}
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        # SIDECAR_INBOUND: Requests que llegan al pod (Agregar headers a respuestas, logging, auth)
+        # SIDECAR_OUTBOUND: Requests salientes del pod hace hacia otro servicio ()
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.lua
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+            inlineCode: |
+              function envoy_on_response(response_handle)
+                response_handle:headers():add("X-Namespace", "ver")
+              end
+
+{{- end }}

@@ -20,9 +20,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
-    {{- if .Values.ingress.enableHttps }}
     cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
-    {{- end }}
     {{/* https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md */}}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/affinity: cookie
@@ -35,7 +33,6 @@ metadata:
     {{- end }}
 spec:
   ingressClassName: nginx
-  {{- if and .Values.ingress.enableHttps }}
   tls:
     {{- if .Values.ingress.hosts }}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
@@ -45,7 +42,6 @@ spec:
         - {{ . | quote }}
     {{- end }}
     {{- end }}
-  {{- end }}
   rules:
     {{- if .Values.odoo.pg.db }}
     - host: "{{.Values.odoo.pg.db}}.{{.Values.ingress.cloudMainDomain}}"

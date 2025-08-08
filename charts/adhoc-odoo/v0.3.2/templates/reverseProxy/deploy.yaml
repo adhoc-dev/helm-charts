@@ -7,9 +7,7 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
     app.kubernetes.io/name: {{ .Release.Name }}-nx
   annotations:
-    {{ if .Values.ingress.enableHttps }}
     certmanager.k8s.io/disable-auto-restart: "true"
-    {{- end }}
 spec:
   replicas: {{ .Values.ingress.reverseProxy.scale }}
   selector:

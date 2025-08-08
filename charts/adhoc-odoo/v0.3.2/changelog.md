@@ -2,6 +2,20 @@
 
 ## *0.3.2*
 
+Features:
+
+- New Autoscaler (Keda)
+- New ingress available (Istio)
+- Istio:
+  - ingress:
+    - new ingress (`ingress.istio.enabled`)
+    - client domains list (`ingress.istio.altHosts`) new cloud domain (`ingress.istio.cloudMainDomain`)
+  - egress: now we can block outgoing traffick by default (`ingress.istio.blockOutboundTraffic: false`) and allow only thats ones in a white list (`ingress.istio.allowedHosts: false`)
+- Keda:
+  - When the autoscaler is enabled with istio, keda autoscaler is used instead the "regular" hpa
+- Common:
+  - remove unused values
+
 ## *0.3.1*
 
 Features:
