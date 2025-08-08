@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled -}}
+{{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,10 +6,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
-    {{ if .Values.ingress.enableHttps }}
-    {{- /* https://www.ibm.com/docs/en/cpfs?topic=certificates-refreshing-cert-manager */ -}}
     certmanager.k8s.io/disable-auto-restart: "true"
-    {{- end }}
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
@@ -60,10 +57,6 @@ spec:
       terminationGracePeriodSeconds: 60
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
-      {{ with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{ end }}
       {{- if .Values.cloudNativePG.enabled }}
       initContainers:
         - name: wait-for-postgres
@@ -72,12 +65,20 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
-          {{ if and (gt $minorVersion 20250415) ( .Values.odoo.entrypoint.repos) }}
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            {{- if gt $minorVersion 20250806 }}
+            runAsNonRoot: true
+            {{- else }}
+            runAsNonRoot: false
+            {{- end }}
+            seccompProfile:
+              type: RuntimeDefault
+          {{- if and (gt $minorVersion 20250415) ( .Values.odoo.entrypoint.repos) }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}.dev"
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -246,4 +247,3 @@ spec:
             mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
             fileCacheCapacity: "200Mi"
       {{- end }}
-{{- end }}

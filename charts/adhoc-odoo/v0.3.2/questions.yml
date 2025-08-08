@@ -440,12 +440,6 @@ questions:
     show_if: "redis.enabled=true"
 
 # Ingress Configuration
-  - variable: ingress.enableHttps
-    group: "Ingress"
-    label: "Enable TLS (HTTPs)"
-    type: "boolean"
-    required: true
-    default: true
   - variable: ingress.cloudMainDomain
     group: "Ingress"
     label: "Adhoc Cloud Host"
@@ -453,14 +447,13 @@ questions:
     type: "string"
     required: false
     default: "dev-adhoc.com"
-  - variable: ingress.issuer
-    group: "Ingress"
-    label: "HTTP let's encrypt issuer name"
-    description: ""
-    type: "string"
-    required: true
-    default: "adhoc-letsencrypt-prod-issuer"
-    show_if: "ingress.enableHttps=true"
+  # - variable: ingress.issuer
+  #   group: "Ingress"
+  #   label: "HTTP let's encrypt issuer name"
+  #   description: ""
+  #   type: "string"
+  #   required: true
+  #   default: "adhoc-letsencrypt-prod-issuer"
   - variable: ingress.hosts
     group: "Ingress"
     label: "Hosts"
@@ -468,6 +461,52 @@ questions:
     type: "string"
     required: false
     default: ""
+
+# Istio Ingress
+  - variable: ingress.istio.enabled
+    group: "Ingress"
+    label: "Enable Istio Ingress"
+    description: "Enable Istio Ingress"
+    type: "boolean"
+    required: false
+    default: false
+  # - variable: ingress.istio.issuer
+  #   group: "Ingress"
+  #   label: "Istio Let's Encrypt Issuer"
+  #   description: "Istio Let's Encrypt Issuer"
+  #   type: "string"
+  #   required: true
+  #   default: "istio-letsencrypt-prod"
+  - variable: ingress.istio.cloudMainDomain
+    group: "Ingress"
+    label: "Istio Cloud Main Domain"
+    description: "Istio Cloud Main Domain"
+    type: "string"
+    required: true
+    default: "shared.dev-adhoc.com"
+  - variable: ingress.istio.altHosts
+    group: "Ingress"
+    label: "Istio Alt Hosts"
+    description: "Istio Alt Hosts (comma separated values)"
+    type: "string"
+    required: false
+    default: ""
+  - variable: ingress.istio.blockOutboundTraffic
+    group: "Ingress"
+    label: "Block outbound traffic"
+    description: "Block outbound traffic from Istio Ingress"
+    type: "boolean"
+    required: false
+    default: false
+  - variable: ingress.istio.allowedHosts
+    group: "Ingress"
+    label: "Allowed Hosts"
+    description: "Allowed hosts for Istio egress (list of strings)"
+    type: "listofstrings"
+    default: []
+    required: false
+
+# Reverse Proxy
   - variable: ingress.reverseProxy.enabled
     group: "Ingress"
     label: "Enable Reverse Proxy"

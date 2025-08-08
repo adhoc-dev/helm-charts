@@ -105,3 +105,10 @@ Create a sha256sum of the certain values. Is used to force a redeploy only when 
 {{- define "adhoc-odoo.releaseDigest" -}}
 {{- printf "%s%s%s%s" .Values.image.tag .Values.odoo.entrypoint.custom .Values.odoo.entrypoint.repos (.Values.odoo.extraEnvVars | toYaml) | sha256sum }}
 {{- end }}
+
+{{/*
+Check if both ingress and istio are enabled
+*/}}
+{{- if and .Values.ingress.enabled .Values.ingress.istio.enabled }}
+{{- fail "You can't enable both: ingress.enabled and ingress.istio.enabled at the same time. Please enable only one." }}
+{{- end }}

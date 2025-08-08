@@ -1,0 +1,48 @@
+{{- if and .Values.ingress.istio.enabled .Values.autoscaling.enabled }}
+#  kubectl explain  --api-version=http.keda.sh/v1alpha1 httpscaledobject.spec
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: odoo-http-scale
+spec:
+  hosts:
+    - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
+    {{- if .Values.ingress.istio.altHosts -}}
+    {{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1}}
+    {{- range $hosts }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- end }}
+
+  initialCooldownPeriod: 900 # Initial period before scaling 15 min
+
+# The paths to route. All requests which the Request Target matches any
+# .spec.pathPrefixes (and the "Host" header matches any .spec.hosts)
+# will be routed to the Service and Port specified in
+# the scaleTargetRef
+#   pathPrefixes: #<[]string>
+#     - /
+  replicas:
+    min: {{ .Values.autoscaling.minReplicas | toString | int }}
+    max: {{ .Values.autoscaling.maxReplicas | toString | int }}
+  scaleTargetRef:
+    name: {{ include "adhoc-odoo.fullname" . }}
+    service: {{ include "adhoc-odoo.serviceNameSuffix" . }}-http
+    port: 80
+  scaledownPeriod: 900 # Tiempo en segundos para escalar hacia abajo
+  scalingMetric:
+
+    # Scaling based on concurrent requests for a given target
+    # Si los recursos son estables, es mejor usar concurrency ¿con workers?
+    # concurrency:
+    #   targetValue: 10 #  Target value for rate scaling
+
+    # Scaling based on request rate for a given target
+    # Util cuando las peticiones son cortas y queremos reaccionar a picos de tráfico. ¿website/sin workers?
+    requestRate:
+      granularity: 30s # Granularity for request rate scaling
+      targetValue: 100 # Target value for request rate scaling
+      window: 1m # Window for request rate scaling
+  # Scaling based on pending requests for a given target
+  # targetPendingRequests: 1 # DEPRECATED
+{{- end }}
