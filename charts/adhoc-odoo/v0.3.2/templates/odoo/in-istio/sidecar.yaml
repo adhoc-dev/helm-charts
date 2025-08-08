@@ -1,0 +1,34 @@
+{{- if .Values.ingress.istio.enabled -}}
+# Usamos el Sidecar de Istio para permitir que Keda acceda a los servicios del namespace
+# y también para permitir que los servicios del namespace accedan a Keda.
+# Esta configuracion se ereda por los envoy de los servicio y evitamos que se traingan copia de las ocnfiguraciones de los otros servicios
+
+apiVersion: networking.istio.io/v1
+kind: Sidecar
+metadata:
+  name: default
+spec:
+#  # Selector de pods al que se aplica esta configuración
+#  # No lo especificamos para que se aplique a todos los pods del namespace
+#   workloadSelector:
+#     labels:
+#       app: my-app         # Aplicar a todos los pods con esta etiquetaz
+  egress:
+  - name: default-egress
+    hosts:
+    - "{{ .Release.Namespace }}/*"           # servicios en el mismo namespace
+    - "istio-system/*"    # servicios del control plane
+    # Pero usamos DNS interno de Kubernetes (en lugar de DNS mTLS de Istio)
+    # - "kube-system/kube-dns"
+
+  {{- if .Values.ingress.istio.blockOutboundTraffic -}}
+  # Bloqueamos el tráfico de salida a internet (que no este registado )
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+  {{- else -}}
+  # Permitimos el tráfico de salida a internet
+  outboundTrafficPolicy:
+    mode: ALLOW_ANY
+  {{- end }}
+
+{{- end }}
