@@ -7,10 +7,12 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 data:
-  {{/* Odoo Database parameters */}}
+  {{- /* Odoo Database parameters */}}
   {{- if .Values.cloudNativePG.enabled }}
+  {{- /*
   # https://apps.odoo.com/apps/modules/18.0/session_db
   # Session DB  on versions <= 14.0 does not support multitreading
+  */}}
   {{- if or (gt $workers 0) (ge $odooVersion 150) }}
   SESSION_DB_URI: "postgres://odoo:{{ .Values.cloudNativePG.superUserPassword }}@{{ include "cnpg.sanitizedPgName" . }}-pg-rw/app"
   {{- end }}
@@ -28,7 +30,7 @@ data:
   PGDATABASE: {{ .Values.odoo.pg.db | quote }}
   DATABASE: {{ .Values.odoo.pg.db | quote }}
   {{- end }}
-  {{/* Base Config */}}
+  {{- /* Base Config */}}
   {{- if .Values.odoo.basic.adminPass }}
   ADMIN_PASSWORD: {{ .Values.odoo.basic.adminPass | quote }}
   {{- end }}
@@ -37,7 +39,7 @@ data:
   {{- end }}
   LIST_DB: "false"
   LOG_LEVEL: {{ if eq "false" .Values.odoo.basic.logLevel }}"false"{{ else }}{{ .Values.odoo.basic.logLevel | quote }}{{ end }}
-  {{/*
+  {{- /*
   UNACCENT: "true"
   PROXY_MODE: "true"
   */}}
@@ -52,7 +54,7 @@ data:
   {{- if .Values.odoo.basic.emailFrom }}
   EMAIL_FROM: {{ .Values.odoo.basic.emailFrom | quote }}
   {{- end }}
-  {{/* Performance Config */}}
+  {{- /* Performance Config */}}
   WORKERS: {{ .Values.odoo.performance.workers | toString | int | quote }}
   MAX_CRON_THREADS: {{ .Values.odoo.performance.maxCronTh | quote }}
   {{- if .Values.odoo.performance.maxDbConn }}
@@ -72,14 +74,14 @@ data:
   {{- end }}
   LIMIT_TIME_REAL: {{ .Values.odoo.performance.maxTimeReal | quote }}
   LIMIT_TIME_REAL_CRON: {{ .Values.odoo.performance.maxTimeCron | quote }}
-  {{/*
+  {{- /*
   FILESTORE_COPY_HARD_LINK: "true"
   FILESTORE_OPERATIONS_THREADS: "3"
   {{- if .Values.odoo.performance.maxHttpTh }}
   ODOO_MAX_HTTP_THREADS: {{ .Values.odoo.performance.maxHttpTh | quote }}
   {{- end }}
   */}}
-  {{/* SaaS Config */}}
+  {{- /* SaaS Config */}}
   {{- if .Values.odoo.saas.mode }}
   SERVER_MODE: {{ .Values.odoo.saas.mode | quote }}
   {{- end }}
@@ -92,10 +94,10 @@ data:
   {{- if .Values.odoo.saas.installDisabled }}
   MODULES_INSTALL_DISABLED: {{ .Values.odoo.saas.installDisabled | quote }}
   {{- end }}
-  {{/* For older version than 13.0
+  {{- /* For older version than 13.0
   DISABLE_SESSION_GC: "true"
   */}}
-  {{/* Entrypoint */}}
+  {{- /* Entrypoint */}}
   WAIT_PG: "false"
   {{- if .Values.odoo.entrypoint.fixdbs }}
   FIXDBS: {{ .Values.odoo.entrypoint.fixdbs | quote }}
@@ -104,14 +106,14 @@ data:
   FIXDBS_ADHOC: {{ .Values.odoo.entrypoint.fixdbsAdhoc | quote }}
   {{- end }}
   FIX_DB_WEB_DISABLED: "true"
-  {{/* Dynamic Entrypoint */}}
+  {{- /* Dynamic Entrypoint */}}
   {{- if .Values.odoo.entrypoint.repos }}
   REPOS_YAML: {{ .Values.odoo.entrypoint.repos | quote }}
   {{- end }}
   {{- if .Values.odoo.entrypoint.custom }}
   CUSTOM_CONFIG: {{ .Values.odoo.entrypoint.custom | quote }}
   {{- end }}
-  {{/* SMTP Config */}}
+  {{- /* SMTP Config */}}
   {{- if .Values.odoo.smtp.host }}
   SMTP_SERVER: {{ .Values.odoo.smtp.host | quote }}
   {{- end }}
@@ -133,7 +135,7 @@ data:
   {{- if .Values.odoo.smtp.catchall }}
   MAIL_CATCHALL_DOMAIN: {{ .Values.odoo.smtp.catchall | quote }}
   {{- end }}
-  {{/* Storage Config */}}
+  {{- /* Storage Config */}}
   ADHOC_ODOO_STORAGE_MODE: {{ .Values.storage.location | quote }}
   {{- if eq .Values.storage.location "attachment_s3" }}
   IR_ATTACHMENT_LOCATION: "s3"
@@ -143,9 +145,9 @@ data:
   AWS_ACCESS_KEY_ID: {{ .Values.storage.aws_access_key_id | quote }}
   AWS_SECRET_ACCESS_KEY: {{ .Values.storage.aws_secret_access_key | quote }}
   {{- end }}
-  {{/* Redis Config */}}
+  {{- /* Redis Config */}}
   {{- if .Values.redis.enabled }}
-  {{/* TODO:  values for v13- (remove when no longer customers on v13-) */}}
+  {{- /* TODO:  values for v13- (remove when no longer customers on v13-) */}}
   {{- if le $odooVersion 130 -}}
   ENABLE_REDIS: "true"
   REDIS_HOST: {{ .Values.redis.host | quote }}
@@ -153,7 +155,7 @@ data:
   REDIS_PASS: {{ .Values.redis.pass | quote  }}
   REDIS_DBINDEX: "1"
   {{- end }}
-  {{/* values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis) */}}
+  {{- /* values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis) */}}
   ODOO_SESSION_REDIS: "true"
   ODOO_SESSION_REDIS_PORT: {{ .Values.redis.port | quote }}
   ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}

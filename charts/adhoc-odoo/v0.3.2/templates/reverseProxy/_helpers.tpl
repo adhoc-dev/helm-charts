@@ -1,4 +1,4 @@
-{{/*
+{{- /*
 Selector labels
 */}}
 {{- define "adhoc-odoo.nxselectorLabels" -}}

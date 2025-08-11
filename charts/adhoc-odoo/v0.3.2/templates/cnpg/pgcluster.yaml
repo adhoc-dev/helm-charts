@@ -19,20 +19,20 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
     cnpg.io/hibernation: "off"
-    {{/*
+    {{- /*
     # For manual intervention
     # cnpg.io/reconciliationLoop: "disabled"
     # cnpg.io/skipEmptyWalArchiveCheck: "enabled"
     # cnpg.io/force-backup-recovery: "true"
     */}}
-{{/*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
+{{- /*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
 spec:
 
-  {{/*
+  {{- /*
   # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
   # priorityClassName:
   */}}
-  {{/* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
+  {{- /* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
   logLevel: info
   inheritedMetadata:
     labels:
@@ -41,7 +41,7 @@ spec:
   primaryUpdateStrategy: unsupervised
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
   affinity:
-    {{/* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
+    {{- /* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
     enablePodAntiAffinity: true # Default value
     topologyKey: kubernetes.io/hostname # Default value
     podAntiAffinityType: preferred # Default value
@@ -56,10 +56,10 @@ spec:
     {{- if .Values.cloudNativePG.persistence.storageClass }}
     storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
     {{- end }}
-  {{/* Used to Separate WAL into a diferent volume */}}
+  {{- /* Used to Separate WAL into a diferent volume */}}
   {{ if .Values.cloudNativePG.persistence.separateWAL }}
   walStorage:
-    {{/* TODO: This need to be calculated considerating retention and backups frecuency */}}
+    {{- /* TODO: This need to be calculated considerating retention and backups frequency */}}
     size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
     storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
@@ -75,16 +75,16 @@ spec:
   postgresql:
     shared_preload_libraries:
       - pg_stat_statements
-      {{/*
+      {{- /*
       # - auto_explain
       # - pgaudit
       */}}
-    # https://cloudnative-pg.io/documentation/1.24/postgresql_conf/
+    {{- /* https://cloudnative-pg.io/documentation/1.24/postgresql_conf/ */}}
     parameters:
-      {{/* pg stat statements */}}
+      {{- /* pg stat statements */}}
       pg_stat_statements.max: "10000"
       pg_stat_statements.track: all
-      {{/*
+      {{- /*
       # # pgaudit
       # pgaudit.log: "all, -misc"
       # pgaudit.log_catalog: "off"
@@ -118,11 +118,11 @@ spec:
       {{- range $key, $value := .Values.cloudNativePG.parameters }}
       {{ $key }}: {{ $value | quote }}
       {{- end }}
-  {{/* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
+  {{- /* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
   backup:
     {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
     volumeSnapshot:
-      # no ownership is set, meaning that VolumeSnapshot objects persist after the Backup and/or the Cluster resources are removed
+      {{- /* no ownership is set, meaning that VolumeSnapshot objects persist after the Backup and/or the Cluster resources are removed */}}
       snapshotOwnerReference: none
       annotations: {}
       labels:
@@ -130,7 +130,7 @@ spec:
       {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
       className: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
       {{- end }}
-      {{/* Used to Separate WAL into a diferent volume */}}
+      {{- /* Used to Separate WAL into a diferent volume */}}
       {{- if .Values.cloudNativePG.persistence.separateWAL }}
       {{- if .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
       walClassName: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
@@ -149,7 +149,7 @@ spec:
           name: {{ .Values.cloudNativePG.restore.fromSnapshot | default (printf "%s-vs" ( include "cnpg.targetBkp" . )) }}
           kind: VolumeSnapshot
           apiGroup: snapshot.storage.k8s.io
-      {{/* Used to Separate WAL into a diferent volume */}}
+      {{- /* Used to Separate WAL into a diferent volume */}}
       {{ if .Values.cloudNativePG.persistence.separateWAL }}
         walStorage:
           name: {{ .Values.cloudNativePG.restore.fromSnapshot }}-wal
@@ -170,8 +170,10 @@ spec:
       {{- end }}
       additional:
       {{- if .Values.cloudNativePG.services.enableExternalRO }}
-      # Add specific load balancer to reach the database (Boggio?)
+      {{- /*
+      # Add specific load balancer to reach the database
       # https://cloudnative-pg.io/documentation/1.25/service_management/
+      */}}
       - selectorType: ro
         serviceTemplate:
           spec:
