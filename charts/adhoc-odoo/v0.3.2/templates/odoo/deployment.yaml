@@ -9,7 +9,7 @@ metadata:
     certmanager.k8s.io/disable-auto-restart: "true"
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if not (or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled) }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
@@ -19,10 +19,11 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      {{- if and (not .Values.autoscaling.enabled) (gt (.Values.replicaCount | int) 2) }}
-      maxUnavailable: 1
-      {{- else }}
+      {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled (lt (.Values.replicaCount | int) 3) }}
       maxUnavailable: 0
+      {{- else }}
+      # If the replicaCount > 2 and we are not using autoscaler, we allow one pod to be unavailable during the update
+      maxUnavailable: 1
       {{- end }}
   revisionHistoryLimit: 10
   template:

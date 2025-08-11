@@ -34,9 +34,9 @@ startupProbe:
   #   port: 8069
   tcpSocket:
     port: 8069
-  initialDelaySeconds: 30
-  failureThreshold: 90 # 15 min
-  periodSeconds: 10
+  initialDelaySeconds: 1
+  failureThreshold: 900 # 15 min
+  periodSeconds: 1
 # Check if the pod is halted and need to be restarted
 livenessProbe:
   # httpGet:
@@ -44,22 +44,22 @@ livenessProbe:
   #   port: 8069
   tcpSocket:
     port: 8069
-  initialDelaySeconds: 5
+  initialDelaySeconds: 2
   periodSeconds: 10
-  timeoutSeconds: 10
+  timeoutSeconds: 1
   failureThreshold: 6 # 1 min
   successThreshold: 1
 # Check if the pod is ready to receive traffic from the service
 readinessProbe:
   # httpGet:
-  #   path: /web/login
+  #   path: /saas_client/healthz
   #   port: 8069
   tcpSocket:
     port: 8069
-  initialDelaySeconds: 5
-  periodSeconds: 5
+  initialDelaySeconds: 2
+  periodSeconds: 10
   timeoutSeconds: 10
-  failureThreshold: 3 # 15 sec
+  failureThreshold: 3 # 30 sec
   successThreshold: 1
 
 service:
@@ -108,11 +108,20 @@ resources:
     memory: 250Mi
 
 autoscaling:
-  enabled: false
+  # Common values for HPA and KEDA
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 90
+
+  # HPA
+  hpa:
+    enabled: false
+    # Target CPU Utilization Percentage
+    targetCPUUtilizationPercentage: 80
+    # Target Memory Utilization Percentage
+    targetMemoryUtilizationPercentage: 90
+  # KEDA
+  keda:
+    enabled: false
 
 nodeSelector: {}
 tolerations: {}

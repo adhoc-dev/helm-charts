@@ -523,6 +523,52 @@ questions:
     default: 1
     show_if: "ingress.reverseProxy.enabled=true"
 
+# Autoscaling
+  - variable: autoscaling.hpa.enabled
+    group: "Autoscaling"
+    label: "Enable Horizontal Pod Autoscaler (HPA)"
+    description: "Enable Horizontal Pod Autoscaler (HPA) for Odoo"
+    type: "boolean"
+    required: false
+    default: false
+  - variable: autoscaling.hpa.targetCPUUtilizationPercentage
+    group: "Autoscaling"
+    label: "Target CPU Utilization Percentage"
+    description: "Target CPU Utilization Percentage for HPA"
+    type: "int"
+    required: false
+    default: 80
+    show_if: "autoscaling.hpa.enabled=true"
+  - variable: autoscaling.hpa.targetMemoryUtilizationPercentage
+    group: "Autoscaling"
+    label: "Target Memory Utilization Percentage"
+    description: "Target Memory Utilization Percentage for HPA"
+    type: "int"
+    required: false
+    default: 90
+    show_if: "autoscaling.hpa.enabled=true"
+  - variable: autoscaling.keda.enabled
+    group: "Autoscaling"
+    label: "Enable KEDA Autoscaler"
+    description: "Enable KEDA Autoscaler for Odoo"
+    type: "boolean"
+    required: false
+    default: false
+  - variable: autoscaling.minReplicas
+    group: "Autoscaling"
+    label: "Minimum Replicas"
+    description: "Minimum number of replicas for Odoo"
+    type: "int"
+    required: false
+    default: 1
+  - variable: autoscaling.maxReplicas
+    group: "Autoscaling"
+    label: "Maximum Replicas"
+    description: "Maximum number of replicas for Odoo"
+    type: "int"
+    required: false
+    default: 10
+
   # Adhoc
   - variable: adhoc.serviceLevel
     group: "Adhoc"

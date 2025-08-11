@@ -29,7 +29,7 @@ spec:
             prefix: /
       route:
         - destination:
-            {{- if .Values.autoscaling.enabled }}
+            {{- if .Values.autoscaling.keda.enabled }}
             host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
             port:
               number: 8080
@@ -123,7 +123,7 @@ spec:
             prefix: /
       route:
         - destination:
-            {{- if .Values.autoscaling.enabled }}
+            {{- if .Values.autoscaling.keda.enabled }}
             host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
             port:
               number: 8080

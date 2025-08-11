@@ -103,7 +103,7 @@ We remove initial number to compile with [a-z]([-a-z0-9]*[a-z0-9])?
 Create a sha256sum of the certain values. Is used to force a redeploy only when if needed.
 */}}
 {{- define "adhoc-odoo.releaseDigest" -}}
-{{- printf "%s%s%s%s" .Values.image.tag .Values.odoo.entrypoint.custom .Values.odoo.entrypoint.repos (.Values.odoo.extraEnvVars | toYaml) | sha256sum }}
+{{- printf "%s%s%s%s" .Values.image.tag (.Values.odoo | toYaml ) | sha256sum }}
 {{- end }}
 
 {{- /*
@@ -113,4 +113,23 @@ Check if both ingress and istio are enabled
 {{- fail "You can't enable both: ingress.enabled and ingress.istio.enabled at the same time. Please enable only one." }}
 {{- end }}
 
+{{- /*
+Check if both hpa and keda are enabled
+*/}}
+{{- if and .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+{{- fail "You can't enable both: autoscaling.hpa.enabled and autoscaling.keda.enabled at the same time. Please enable only one." }}
+{{- end }}
+
+{{- /*
+Check if min replicas is higher than 0
+*/}}
+{{- if and .Values.autoscaling.hpa.enabled (not .Values.autoscaling.minReplicas) }}
+{{- fail "You must set autoscaling.minReplicas to a value higher than 0 when autoscaling.hpa.enabled is true." }}
+{{- end }}
+
+{{- /*
+Check if the database is set
+*/}}
+{{- if not .Values.odoo.pg.db }}
+{{- fail "You must set .Values.odoo.pg.db to a valid database name." }}
 {{- end }}
