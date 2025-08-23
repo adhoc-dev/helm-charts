@@ -27,15 +27,6 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       terminationGracePeriodSeconds: 10
-      affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: {{ .Values.nodeTag }}
-                  operator: In
-                  values:
-                  - "true"
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -45,16 +36,16 @@ spec:
           command: [ "docker-entrypoint.sh" ]
           args:
           - postgres
-          - -p 5432
-          - --max_connections={{- .Values.pg.args.maxConn }}
+          - "-p 5432"
+          - "--max_connections={{ .Values.pg.args.maxConn }}"
           {{- if .Values.pg.args.logLinePrefix }}
-          - --log_line_prefix={{- .Values.pg.args.logLinePrefix }}
+          - "--log_line_prefix={{ .Values.pg.args.logLinePrefix }}"
           {{- end }}
           {{- if .Values.pg.args.logMinDurationStatement }}
-          - --log_min_duration_statement={{- .Values.pg.args.logMinDurationStatement }}
+          - "--log_min_duration_statement={{ .Values.pg.args.logMinDurationStatement }}"
           {{- end }}
           {{- if .Values.pg.args.sharedBuffers }}
-          - --shared_buffers={{- .Values.pg.args.sharedBuffers }}
+          - "--shared_buffers={{ .Values.pg.args.sharedBuffers }}"
           {{- end }}
           - "--work_mem={{ .Values.pg.args.workMem }}"
           - "--effective_cache_size={{ .Values.pg.args.ecs }}"
@@ -114,7 +105,7 @@ spec:
               protocol: TCP
           # This is a shm workarrund https://stackoverflow.com/questions/46085748/define-size-for-dev-shm-on-container-engine/46434614#46434614
           volumeMounts:
-          {{- if ne (int .Values.pg.diskSize) 0 -}}
+          {{- if ne (int .Values.pg.diskSize) 0 }}
           - mountPath: /var/lib/postgresql/data
             name: {{ include "adhoc-pg.fullname" . }}-pvc
           {{- end }}
@@ -131,7 +122,6 @@ spec:
               port: 5432
             initialDelaySeconds: 60
             periodSeconds: 30
-
           env:
           - name: "PGDATA"
             value: "/var/lib/postgresql/data/{{ include "adhoc-pg.fullname" . }}"
@@ -151,10 +141,12 @@ spec:
             value: {{ .Values.pg.pass | quote  }}
           - name: "PGPORT"
             value: {{ .Values.service.port | quote }}
+          {{- if .Values.resources }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
       volumes:
-      # This is a shm workarrund
+      # This is a shm workaround
       - name: dshm
         emptyDir:
           medium: Memory
@@ -166,11 +158,22 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.nodeTag }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
+      {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- if ne (int .Values.pg.diskSize) 0 -}}
+  {{- if ne (int .Values.pg.diskSize) 0 }}
   volumeClaimTemplates:
   - metadata:
       name: {{ include "adhoc-pg.fullname" . }}-pvc
