@@ -19,12 +19,13 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled (lt (.Values.replicaCount | int) 3) }}
       maxUnavailable: 0
-      {{- else }}
-      # If the replicaCount > 2 and we are not using autoscaler, we allow one pod to be unavailable during the update
-      maxUnavailable: 1
-      {{- end }}
+      # {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled (lt (.Values.replicaCount | int) 3) }}
+      # maxUnavailable: 0
+      # {{- else }}
+      # # If the replicaCount > 2 and we are not using autoscaler, we allow one pod to be unavailable during the update
+      # maxUnavailable: 1
+      # {{- end }}
   revisionHistoryLimit: 10
   template:
     metadata:
