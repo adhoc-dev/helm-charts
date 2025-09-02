@@ -72,8 +72,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 AdHoc labels
 */}}
 {{- define "adhoc-odoo.adhocLabels" -}}
-adhoc.ar/tier : {{ .Values.adhoc.appType | lower }}
-adhoc.ar/service-level : {{ default "standard" .Values.adhoc.serviceLevel | lower }}
+adhoc.ar/tier : {{ default "unknown" .Values.adhoc.appType | quote | lower }}
+adhoc.ar/service-level : {{ default "standard" .Values.adhoc.serviceLevel | quote | lower }}
 adhoc.ar/odoo-version : {{ include "adhoc-odoo.odoo-version" . | quote }}
 adhoc.ar/client-analytic-account : {{ .Values.adhoc.clientAnalyticAccount | quote }}
 {{- end }}

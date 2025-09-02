@@ -38,7 +38,7 @@ data:
   DBFILTER: {{ .Values.odoo.basic.dbFilter | quote }}
   {{- end }}
   LIST_DB: "false"
-  LOG_LEVEL: {{ if eq "false" .Values.odoo.basic.logLevel }}"false"{{ else }}{{ .Values.odoo.basic.logLevel | quote }}{{ end }}
+  LOG_LEVEL: {{ if eq "false" (.Values.odoo.basic.logLevel | quote) }}"false"{{ else }}{{ .Values.odoo.basic.logLevel | quote }}{{ end }}
   {{- /*
   UNACCENT: "true"
   PROXY_MODE: "true"
@@ -137,7 +137,7 @@ data:
   {{- end }}
   {{- /* Storage Config */}}
   ADHOC_ODOO_STORAGE_MODE: {{ .Values.storage.location | quote }}
-  {{- if eq .Values.storage.location "attachment_s3" }}
+  {{- if eq (.Values.storage.location ) "attachment_s3" }}
   IR_ATTACHMENT_LOCATION: "s3"
   AWS_REGION: {{ .Values.storage.aws_region | quote }}
   AWS_HOST: {{ .Values.storage.aws_host | quote }}
@@ -148,7 +148,7 @@ data:
   {{- /* Redis Config */}}
   {{- if .Values.redis.enabled }}
   {{- /* TODO:  values for v13- (remove when no longer customers on v13-) */}}
-  {{- if le $odooVersion 130 -}}
+  {{ if le $odooVersion 130 -}}
   ENABLE_REDIS: "true"
   REDIS_HOST: {{ .Values.redis.host | quote }}
   REDIS_PORT: {{ .Values.redis.port | quote }}

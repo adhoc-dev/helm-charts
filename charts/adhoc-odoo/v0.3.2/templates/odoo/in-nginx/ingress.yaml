@@ -9,9 +9,10 @@
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- end }}
+{{- $isKedaEnabled := .Values.autoscaling.keda.enabled | default false }}
 
 # kubectl explain  --api-version=networking.k8s.io/v1 Ingress.spec
-{{- if .Values.autoscaling.keda.enabled }}
+{{- if $isKedaEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -73,7 +74,7 @@ spec:
 {{- end }}
 
 
-{{- if or (not .Values.autoscaling.keda.enabled ) ( gt $usewebsocket 0 ) }}
+{{- if or (not $isKedaEnabled ) ( gt $usewebsocket 0 ) }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -107,7 +108,7 @@ spec:
     - host: "{{ .Values.odoo.pg.db }}.{{ .Values.ingress.cloudMainDomain }}"
       http:
         paths:
-          {{- if not .Values.autoscaling.keda.enabled }}
+          {{- if not $isKedaEnabled }}
           - path: /
             pathType: Prefix
             backend:
@@ -132,12 +133,12 @@ spec:
                 name: {{ $srvHttp }}
                 {{- end  }}
     {{- if .Values.ingress.hosts }}
-    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- $hosts := regexSplit "," .Values.ingress.hosts -1}}
     {{- range $hosts }}
     - host: {{ . | quote }}
       http:
         paths:
-          {{- if not .Values.autoscaling.keda.enabled }}
+          {{- if not $isKedaEnabled }}
           - path: /
             pathType: Prefix
             backend:

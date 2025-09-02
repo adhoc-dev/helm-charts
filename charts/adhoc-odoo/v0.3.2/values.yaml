@@ -90,7 +90,7 @@ ingress:
 
     blockOutboundTraffic: false
     # Extra hosts to allow egress traffic from Knative
-    allowedHosts: {}
+    allowedHosts: []
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
 
