@@ -1,0 +1,117 @@
+{{- if and .Values.ingress.reverseProxy.enabled .Values.ingress.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-nx
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Release.Name }}-nx
+  annotations:
+    certmanager.k8s.io/disable-auto-restart: "true"
+spec:
+  replicas: {{ .Values.ingress.reverseProxy.scale }}
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      annotations:
+        rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
+        {{- if eq .Values.storage.location "fuse" }}
+        gke-gcsfuse/volumes: "true"
+        # https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver?hl=es-419
+        # De forma predeterminada, el contenedor del sidecar está configurado con las siguientes solicitudes de recursos, sin establecer los límites de recursos:
+        # CPU de 250 m
+        # 256 MiB de memoria
+        # Almacenamiento efímero de 5 GiB
+        {{- if ne .Values.adhoc.appType "prod" }}
+        gke-gcsfuse/cpu-limit: "250m"
+        gke-gcsfuse/memory-limit: 250Mi
+        gke-gcsfuse/ephemeral-storage-limit: 5Gi
+        gke-gcsfuse/cpu-request: 5m
+        gke-gcsfuse/memory-request: 25Mi
+        gke-gcsfuse/ephemeral-storage-request: 1Gi
+        {{- end }}
+        {{- end }}
+      labels:
+        {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
+        {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "nginx"
+    spec:
+      {{- if eq .Values.storage.location "fuse" }}
+      terminationGracePeriodSeconds: 60
+      {{- end }}
+      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      containers:
+      - name: nginx
+        image: "nginx:1.27-alpine"
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        {{- if eq .Values.storage.location "fuse" }}
+        - name: gcs-fuse-csi-ephemeral
+          {{- if .Values.cloudNativePG.enabled }}
+          mountPath: /mnt/filestore/odoo
+          {{- else }}
+          mountPath: /mnt/filestore/{{ .Release.Name }}
+          {{- end }}
+          readOnly: true
+        {{- end }}
+        - mountPath: /etc/nginx/nginx.conf
+          name: nginx-config
+          subPath: nginx.conf
+          readOnly: true
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "adhoc-odoo.fullname" . }}-nginx-config
+        {{- if eq .Values.storage.location "fuse" }}
+        - name: gcs-fuse-csi-ephemeral
+          csi:
+            driver: gcsfuse.csi.storage.gke.io
+            readOnly: false
+            volumeAttributes:
+              bucketName: {{ .Values.storage.aws_bucketname | quote }}
+              {{- /*
+              Description: Whether your workload should export metrics. This should be set to "false" if you plan on using
+
+              Default: true
+              */}}
+              disableMetrics: "true"
+              {{- /*
+              Directs the CSI driver to skip redundant access control checks for the Cloud Storage bucket, when set to "true".
+              This reduces the overhead of redundant Kubernetes Service API, Security Token Service, and IAM calls.
+              When the flag is set, the Cloud Storage FUSE process, running as part of the sidecar container in the Pod,
+              handles the bucket access control checks
+
+              Default: False
+              */}}
+              skipCSIBucketAccessCheck: "true"
+              gcsfuseLoggingSeverity: warning
+              mountOptions: "uid=101,gid=101,file-mode=600,dir-mode=700,implicit-dirs=true,o=r,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
+              fileCacheCapacity: "200Mi"
+        {{- end }}
+      affinity:
+        {{- if .Values.nodeTag }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
+        {{- end }}
+      nodeSelector:
+        {{- if eq .Values.storage.location "fuse" }}
+        iam.gke.io/gke-metadata-server-enabled: "true"
+        {{- end }}
+{{- end }}

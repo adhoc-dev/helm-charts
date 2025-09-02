@@ -1,0 +1,50 @@
+# Add Global Header to Responses
+# This EnvoyFilter adds a global header to all responses from the Istio ingress gateway.
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: adhoc-global-manipulations
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inlineCode: |
+            function envoy_on_request(request_handle)
+              local path = request_handle:headers():get(":path") or "/"
+              local proto = request_handle:headers():get("x-forwarded-proto") or "http"
+              local host = request_handle:headers():get("host") or ""
+              local xff = request_handle:headers():get("x-forwarded-for") or ""
+              local external_ip = request_handle:headers():get("x-envoy-external-address") or ""
+
+              local is_http = proto == "http"
+              local is_challenge = string.match(path, "^/%.well%-known/acme%-challenge/")
+              local is_internal_host = string.match(host, "%.svc%.cluster%.local$")
+              local is_external = xff ~= "" or external_ip ~= ""
+
+              if is_http and not is_challenge and not is_internal_host and is_external then
+                local redirect_url = "https://" .. host .. path
+                request_handle:respond(
+                  {[":status"] = "308", ["Location"] = redirect_url},
+                  "Redirecting to HTTPS"
+                )
+              end
+            end
+
+            function envoy_on_response(response_handle)
+              response_handle:headers():replace("x-saas-vendor", "adhoc")
+            end

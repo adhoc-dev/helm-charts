@@ -1,0 +1,185 @@
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $workers := .Values.odoo.performance.workers | toString | int -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-common-envs
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+data:
+  {{- /* Odoo Database parameters */}}
+  {{- if .Values.cloudNativePG.enabled }}
+  {{- /*
+  # https://apps.odoo.com/apps/modules/18.0/session_db
+  # Session DB  on versions <= 14.0 does not support multitreading
+  */}}
+  {{- if or (gt $workers 0) (ge $odooVersion 150) }}
+  SESSION_DB_URI: "postgres://odoo:{{ .Values.cloudNativePG.superUserPassword }}@{{ include "cnpg.sanitizedPgName" . }}-pg-rw/app"
+  {{- end }}
+  PGUSER: "odoo"
+  PGPASSWORD: {{ .Values.cloudNativePG.superUserPassword | quote }}
+  PGHOST: {{ include "cnpg.sanitizedPgName" . }}-pg-rw
+  PGPORT: {{ 5432 | quote }}
+  PGDATABASE: {{ "odoo" | quote }}
+  DATABASE: {{ "odoo" | quote }}
+  {{- else }}
+  PGUSER: {{ .Values.odoo.pg.user | quote }}
+  PGPASSWORD: {{ .Values.odoo.pg.pass | quote }}
+  PGHOST: {{ .Values.odoo.pg.host | quote }}
+  PGPORT: {{ .Values.odoo.pg.port | quote }}
+  PGDATABASE: {{ .Values.odoo.pg.db | quote }}
+  DATABASE: {{ .Values.odoo.pg.db | quote }}
+  {{- end }}
+  {{- /* Base Config */}}
+  {{- if .Values.odoo.basic.adminPass }}
+  ADMIN_PASSWORD: {{ .Values.odoo.basic.adminPass | quote }}
+  {{- end }}
+  {{- if .Values.odoo.basic.dbFilter }}
+  DBFILTER: {{ .Values.odoo.basic.dbFilter | quote }}
+  {{- end }}
+  LIST_DB: "false"
+  LOG_LEVEL: {{ if eq "false" .Values.odoo.basic.logLevel }}"false"{{ else }}{{ .Values.odoo.basic.logLevel | quote }}{{ end }}
+  {{- /*
+  UNACCENT: "true"
+  PROXY_MODE: "true"
+  */}}
+  WITHOUT_DEMO: {{ .Values.odoo.basic.withoutDemo | quote }}
+  ODOO_INITIAL_LANGUAGE: {{ .Values.odoo.basic.language | quote }}
+  {{- if .Values.odoo.basic.wideModules }}
+  SERVER_WIDE_MODULES: {{ .Values.odoo.basic.wideModules | quote }}
+  {{- end }}
+  {{- if .Values.odoo.basic.aerooHost }}
+  AEROO_DOCS_HOST: {{ .Values.odoo.basic.aerooHost | quote }}
+  {{- end }}
+  {{- if .Values.odoo.basic.emailFrom }}
+  EMAIL_FROM: {{ .Values.odoo.basic.emailFrom | quote }}
+  {{- end }}
+  {{- /* Performance Config */}}
+  WORKERS: {{ .Values.odoo.performance.workers | toString | int | quote }}
+  MAX_CRON_THREADS: {{ .Values.odoo.performance.maxCronTh | quote }}
+  {{- if .Values.odoo.performance.maxDbConn }}
+  DB_MAXCONN: {{ .Values.odoo.performance.maxDbConn | quote }}
+  {{- end }}
+  {{- if .Values.odoo.performance.dbTemplate }}
+  DB_TEMPLATE: {{ .Values.odoo.performance.dbTemplate | quote }}
+  {{- end }}
+  {{- if .Values.odoo.performance.maxMemHard }}
+  LIMIT_MEMORY_HARD: {{ .Values.odoo.performance.maxMemHard | quote }}
+  {{- end }}
+  {{- if .Values.odoo.performance.maxMemSoft }}
+  LIMIT_MEMORY_SOFT: {{ .Values.odoo.performance.maxMemSoft | quote }}
+  {{- end }}
+  {{- if .Values.odoo.performance.maxTimeCpu }}
+  LIMIT_TIME_CPU: {{ .Values.odoo.performance.maxTimeCpu | quote }}
+  {{- end }}
+  LIMIT_TIME_REAL: {{ .Values.odoo.performance.maxTimeReal | quote }}
+  LIMIT_TIME_REAL_CRON: {{ .Values.odoo.performance.maxTimeCron | quote }}
+  {{- /*
+  FILESTORE_COPY_HARD_LINK: "true"
+  FILESTORE_OPERATIONS_THREADS: "3"
+  {{- if .Values.odoo.performance.maxHttpTh }}
+  ODOO_MAX_HTTP_THREADS: {{ .Values.odoo.performance.maxHttpTh | quote }}
+  {{- end }}
+  */}}
+  {{- /* SaaS Config */}}
+  {{- if .Values.odoo.saas.mode }}
+  SERVER_MODE: {{ .Values.odoo.saas.mode | quote }}
+  {{- end }}
+  {{- if .Values.odoo.saas.autoinstallEnabled }}
+  MODULES_AUTOINSTALL_ENABLED: {{ .Values.odoo.saas.autoinstallEnabled | quote }}
+  {{- end }}
+  {{- if .Values.odoo.saas.autoinstallDisabled }}
+  MODULES_AUTOINSTALL_DISABLED: {{ .Values.odoo.saas.autoinstallDisabled | quote }}
+  {{- end }}
+  {{- if .Values.odoo.saas.installDisabled }}
+  MODULES_INSTALL_DISABLED: {{ .Values.odoo.saas.installDisabled | quote }}
+  {{- end }}
+  {{- /* For older version than 13.0
+  DISABLE_SESSION_GC: "true"
+  */}}
+  {{- /* Entrypoint */}}
+  WAIT_PG: "false"
+  {{- if .Values.odoo.entrypoint.fixdbs }}
+  FIXDBS: {{ .Values.odoo.entrypoint.fixdbs | quote }}
+  {{- end }}
+  {{- if .Values.odoo.entrypoint.fixdbsAdhoc }}
+  FIXDBS_ADHOC: {{ .Values.odoo.entrypoint.fixdbsAdhoc | quote }}
+  {{- end }}
+  FIX_DB_WEB_DISABLED: "true"
+  {{- /* Dynamic Entrypoint */}}
+  {{- if .Values.odoo.entrypoint.repos }}
+  REPOS_YAML: {{ .Values.odoo.entrypoint.repos | quote }}
+  {{- end }}
+  {{- if .Values.odoo.entrypoint.custom }}
+  CUSTOM_CONFIG: {{ .Values.odoo.entrypoint.custom | quote }}
+  {{- end }}
+  {{- /* SMTP Config */}}
+  {{- if .Values.odoo.smtp.host }}
+  SMTP_SERVER: {{ .Values.odoo.smtp.host | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.port }}
+  SMTP_PORT: {{ .Values.odoo.smtp.port | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.ssl }}
+  SMTP_SSL: {{ .Values.odoo.smtp.ssl | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.user }}
+  SMTP_USER: {{ .Values.odoo.smtp.user | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.pass }}
+  SMTP_PASSWORD: {{ .Values.odoo.smtp.pass | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.whiteList }}
+  SMTP_DOMAIN_WHITELIST: {{ .Values.odoo.smtp.whiteList | quote }}
+  {{- end }}
+  {{- if .Values.odoo.smtp.catchall }}
+  MAIL_CATCHALL_DOMAIN: {{ .Values.odoo.smtp.catchall | quote }}
+  {{- end }}
+  {{- /* Storage Config */}}
+  ADHOC_ODOO_STORAGE_MODE: {{ .Values.storage.location | quote }}
+  {{- if eq .Values.storage.location "attachment_s3" }}
+  IR_ATTACHMENT_LOCATION: "s3"
+  AWS_REGION: {{ .Values.storage.aws_region | quote }}
+  AWS_HOST: {{ .Values.storage.aws_host | quote }}
+  AWS_BUCKETNAME: {{ .Values.storage.aws_bucketname | quote }}
+  AWS_ACCESS_KEY_ID: {{ .Values.storage.aws_access_key_id | quote }}
+  AWS_SECRET_ACCESS_KEY: {{ .Values.storage.aws_secret_access_key | quote }}
+  {{- end }}
+  {{- /* Redis Config */}}
+  {{- if .Values.redis.enabled }}
+  {{- /* TODO:  values for v13- (remove when no longer customers on v13-) */}}
+  {{- if le $odooVersion 130 -}}
+  ENABLE_REDIS: "true"
+  REDIS_HOST: {{ .Values.redis.host | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+  REDIS_PASS: {{ .Values.redis.pass | quote  }}
+  REDIS_DBINDEX: "1"
+  {{- end }}
+  {{- /* values for v15+ (using https://github.com/camptocamp/odoo-cloud-platform/tree/15.0/session_redis) */}}
+  ODOO_SESSION_REDIS: "true"
+  ODOO_SESSION_REDIS_PORT: {{ .Values.redis.port | quote }}
+  ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}
+  ODOO_SESSION_REDIS_PASSWORD: {{ .Values.redis.pass | quote  }}
+  {{- end }}
+  {{- range $key, $value := .Values.odoo.extraEnvVars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-envs
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+data:
+  PLACEHOLDER_ENV: "value"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-secrets
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+type: Opaque
+data:
+  PLACEHOLDER_SEC: {{ "value" | b64enc }}

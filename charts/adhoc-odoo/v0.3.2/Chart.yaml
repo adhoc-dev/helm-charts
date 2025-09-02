@@ -1,14 +1,12 @@
 annotations:
   category: DevOps
 apiVersion: v2
-name: knative-cfg
-description: Default configurations for knative
+name: adhoc-odoo
+description: Odoo Chart for v16+
 
 type: application
 
-version: 0.1.0
-
-appVersion: "1.0.0"
+version: 0.3.2
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
@@ -21,4 +19,4 @@ maintainers:
   - name: azacchino
     email: az@adhoc.inc
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg"

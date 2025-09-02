@@ -2,7 +2,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: knative-wildcard-cert
+  name: istio-wildcard-cert
   namespace: istio-system
 spec:
   {{- if eq .Values.defaultWildcardIssuer "cloudDNS" }}
@@ -23,5 +23,8 @@ spec:
     kind: ClusterIssuer
     # name: istio-letsencrypt-staging-dns
     name: istio-letsencrypt-prod-dns
-  secretName: knative-wildcard-tls
+  secretName: istio-wildcard-tls
+  # Avoid warning In cert-manager v1.18.0, the default rotationPolicy was changed.
+  privateKey:
+    rotationPolicy: Always
 {{ end }}

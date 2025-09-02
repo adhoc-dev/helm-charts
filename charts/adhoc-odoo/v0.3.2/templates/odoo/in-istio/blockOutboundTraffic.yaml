@@ -1,0 +1,73 @@
+{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.blockOutboundTraffic -}}
+
+{{- range $host := .Values.ingress.istio.allowedHosts }}
+# ServiceEntry: declara que el host externo existe y puede ser alcanzado.
+# Necesario para que el sidecar con REGISTRY_ONLY no bloquee el tráfico.
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-{{ $host | replace "*" "wildcard" | replace "." "-" }}
+spec:
+  hosts:
+  - "{{ $host }}"
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+---
+# VirtualService: redirige el tráfico saliente para este host al egressgateway.
+# Se aplica en el sidecar del pod origen.
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: route-egress-{{ $host | replace "*" "wildcard" | replace "." "-" }}
+spec:
+  hosts:
+  - "{{ $host }}"
+  gateways:
+  - mesh
+  - istio-system/istio-egressgateway
+  tls:
+  - match:
+    - port: 443
+      sniHosts:
+      - "{{ $host }}"
+    route:
+    - destination:
+        host: "{{ $host }}"
+        port:
+          number: 443
+---
+{{- end }}
+
+{{- if .Values.ingress.istio.allowedHosts }}
+# AuthorizationPolicy: controla qué destinos (por SNI/host) puede reenviar el egressgateway.
+# Protege al gateway actuando como firewall de salida.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-egress-hosts-{{ .Release.Namespace }}
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: egressgateway
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces:
+        - "{{ .Release.Namespace }}"
+  - to:
+    - operation:
+        hosts:
+        {{- range .Values.ingress.istio.allowedHosts }}
+        - "{{ . }}"
+        {{- end }}
+---
+{{- end }}
+
+
+{{- end }}
