@@ -1,4 +1,5 @@
 {{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -73,7 +74,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-            {{- if gt $minorVersion 20250806 }}
+            {{- if and (gt $minorVersion 20250806) (gt $odooVersion 150) }}
             runAsNonRoot: true
             {{- else }}
             runAsNonRoot: false
