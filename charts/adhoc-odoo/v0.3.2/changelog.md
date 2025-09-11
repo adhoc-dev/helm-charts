@@ -7,14 +7,25 @@ Features:
 - New Autoscaler (Keda)
 - New ingress available (Istio)
 - Istio:
-  - ingress:
-    - new ingress (`ingress.istio.enabled`)
-    - client domains list (`ingress.istio.altHosts`) new cloud domain (`ingress.istio.cloudMainDomain`)
-  - egress: now we can block outgoing traffick by default (`ingress.istio.blockOutboundTraffic: false`) and allow only thats ones in a white list (`ingress.istio.allowedHosts: false`)
+  - Ingress:
+    - Enable istio as ingress (`ingress.istio.enabled`)
+    - Client domains list (`ingress.istio.altHosts`) new cloud domain (`ingress.istio.cloudMainDomain`)
+  - Egress: now we can block outgoing traffick by default (`ingress.istio.blockOutboundTraffic: false`) and allow only thats ones in a white list (`ingress.istio.allowedHosts: false`)
 - Keda: (`autoscaling.keda.enabled` )
   - Http autoscaler, works with istio and nginx as ingress. (Allowing scale to 0 `autoscaling.minReplicas`)
 - Common:
-  - remove unused values
+  - Remove unused values
+- FUSE:
+  - Reducing de requested resources
+  - Disable "streaming writes" to avoid the creation of empty files
+- Odoo:
+  - New environment variable: `RELEASE_DIGEST` with the value computed from the image and all odoo settings
+  - Remove "history" labels on deploy
+  - PDB: allow maxUnavailable to improve eviction
+- CNPG:
+  - Change anti-affinity to avoid deploy several pg in the same node.
+- reverse Proxy:
+  - PDB: allow maxUnavailable to improve eviction
 
 ## *0.3.1*
 

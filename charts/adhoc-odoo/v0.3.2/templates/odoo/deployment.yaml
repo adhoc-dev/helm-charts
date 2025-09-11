@@ -9,6 +9,8 @@ metadata:
   annotations:
     certmanager.k8s.io/disable-auto-restart: "true"
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
+    "adhoc.ar/dev-name": null # Used to identify the developer that deployed the app
+    "adhoc.ar/dev-r2cmd": null # Used to store the r2cmd command to redeploy the app
 spec:
   {{- if not (or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled) }}
   replicas: {{ .Values.replicaCount }}
@@ -41,10 +43,14 @@ spec:
         # CPU de 250 m
         # 256 MiB de memoria
         # Almacenamiento efímero de 5 GiB
-        {{- if ne .Values.adhoc.appType "prod" }}
-        gke-gcsfuse/cpu-limit: "1"
-        gke-gcsfuse/memory-limit: 1Gi
+        gke-gcsfuse/cpu-limit: "100m"
+        gke-gcsfuse/memory-limit: 512Mi
         gke-gcsfuse/ephemeral-storage-limit: 5Gi
+        {{- if eq .Values.adhoc.appType "prod" }}
+        gke-gcsfuse/cpu-request: 10m
+        gke-gcsfuse/memory-request: 50Mi
+        gke-gcsfuse/ephemeral-storage-request: 248Mi
+        {{- else }}
         gke-gcsfuse/cpu-request: 5m
         gke-gcsfuse/memory-request: 25Mi
         gke-gcsfuse/ephemeral-storage-request: 100Mi

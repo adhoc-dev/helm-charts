@@ -30,13 +30,17 @@ spec:
         # CPU de 250 m
         # 256 MiB de memoria
         # Almacenamiento efímero de 5 GiB
-        {{- if ne .Values.adhoc.appType "prod" }}
-        gke-gcsfuse/cpu-limit: "250m"
-        gke-gcsfuse/memory-limit: 250Mi
+        gke-gcsfuse/cpu-limit: "100m"
+        gke-gcsfuse/memory-limit: 512Mi
         gke-gcsfuse/ephemeral-storage-limit: 5Gi
+        {{- if eq .Values.adhoc.appType "prod" }}
+        gke-gcsfuse/cpu-request: 10m
+        gke-gcsfuse/memory-request: 50Mi
+        gke-gcsfuse/ephemeral-storage-request: 250Mi
+        {{- else }}
         gke-gcsfuse/cpu-request: 5m
         gke-gcsfuse/memory-request: 25Mi
-        gke-gcsfuse/ephemeral-storage-request: 1Gi
+        gke-gcsfuse/ephemeral-storage-request: 100Mi
         {{- end }}
         {{- end }}
       labels:

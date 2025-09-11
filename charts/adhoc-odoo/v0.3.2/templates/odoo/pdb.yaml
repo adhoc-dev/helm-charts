@@ -5,15 +5,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
-  {{- /*
-  # If the appType is prod, we want to ensure that at least one pod is always available
-  # If the appType is not prod, we allow all pods to be disrupted
-*/}}
-  {{- if eq .Values.adhoc.appType "prod" }}
-  minAvailable: 1
-  {{- else }}
-  minAvailable: 0
-  {{- end }}
+  maxUnavailable: 1
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}

@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
   selector:
     matchLabels:
       {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}

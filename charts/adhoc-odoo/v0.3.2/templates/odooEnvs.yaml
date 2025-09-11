@@ -7,6 +7,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 data:
+  RELEASE_DIGEST: {{ include "adhoc-odoo.releaseDigest" . }}
   {{- /* Odoo Database parameters */}}
   {{- if .Values.cloudNativePG.enabled }}
   {{- /*
