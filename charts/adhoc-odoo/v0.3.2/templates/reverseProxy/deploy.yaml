@@ -114,6 +114,21 @@ spec:
                 values:
                 - "true"
         {{- end }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: adhoc.ar/app-name
+                      operator: In
+                      values:
+                        - nginx
+                namespaceSelector:
+                  matchExpressions:
+                    - key: "kubernetes.io/metadata.name"
+                      operator: Exists
+                topologyKey: kubernetes.io/hostname
       nodeSelector:
         {{- if eq .Values.storage.location "fuse" }}
         iam.gke.io/gke-metadata-server-enabled: "true"
