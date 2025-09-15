@@ -11,3 +11,13 @@
 Type: enum  
 Posible values: attachment_s3, native, fuse  
 Default: native
+
+## Notes
+
+### Fuse
+
+[Options](https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/semantics.md)
+
+### CNPG
+
+[DOC](https://cloudnative-pg.io/documentation/1.27/)
