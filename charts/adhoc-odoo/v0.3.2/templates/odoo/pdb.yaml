@@ -9,3 +9,4 @@ spec:
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "odoo"
