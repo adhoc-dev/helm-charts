@@ -45,6 +45,21 @@ spec:
     enablePodAntiAffinity: true # Default value
     topologyKey: kubernetes.io/hostname # Default value
     podAntiAffinityType: preferred # Default value
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: cnpg.io/podRole
+                  operator: In
+                  values:
+                    - instance
+            namespaceSelector:
+              matchExpressions:
+                - key: "kubernetes.io/metadata.name"
+                  operator: Exists
+            topologyKey: kubernetes.io/hostname
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
@@ -138,7 +153,6 @@ spec:
       {{- end }}
     {{- end }}
     target: prefer-standby
-    retentionPolicy: "360d"
 
   {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
   bootstrap:
