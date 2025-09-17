@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "adhoc-defaultbackend.fullname" . }}-index
-data:
-  index.html: "<html>ADHOC</html>"
-

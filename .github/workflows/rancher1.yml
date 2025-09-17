@@ -1,4 +1,4 @@
-name: Release Helm Charts
+name: Backward compatibility
 
 concurrency: release-helm
 
@@ -25,29 +25,30 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: 'dest'
-          ref: 'gh-pages'
+          ref: 'master'
           fetch-depth: 0
 
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
 
-      - name: Publish Helm Charts
+      - name: Update New Files and push to master branch
         shell: bash
         working-directory: src
         run: |
           for app in "./charts/"*; do
               if [[ -d $app ]]; then
+                # Extrae la versión del Chart.yaml
                 VERSION="v"$(grep '^version:' "$app/Chart.yaml" | awk '{print $2}')
                 if [[ -z "$VERSION" ]]; then
                     echo "No se pudo obtener la versión de $app, omitiendo."
                     continue
                 fi
-                helm package "$app" -d ../dest/
-                echo "Creado paquete para $app"
+                CHART_NAME=$(basename $app)
+                rm -rf "../dest/charts/$CHART_NAME/$VERSION/"
+                mkdir -p "../dest/charts/$CHART_NAME/$VERSION/"
+                cp -R $app/* "../dest/charts/$CHART_NAME/$VERSION/"
               fi
           done
-          helm repo index ../dest/ --url https://adhoc-dev.github.io/helm-charts/ --merge ../dest/index.yaml
-
       - name: Push New Files
         shell: bash
         working-directory: dest

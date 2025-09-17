@@ -1,9 +1,0 @@
-questions:
-# NodeTag - Affinity
-  - variable: nodeTag
-    group: "Resources"
-    label: "Node tag for node affinity (nodeTag)"
-    description: "Tag to schedule pods in nodes"
-    type: "string"
-    required: true
-    default: "Prod"

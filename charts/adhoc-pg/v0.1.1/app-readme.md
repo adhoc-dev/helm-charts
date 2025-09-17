@@ -1,3 +1,0 @@
-# PG
-
-pg para odoo
