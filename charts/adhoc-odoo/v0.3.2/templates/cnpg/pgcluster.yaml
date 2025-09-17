@@ -45,7 +45,7 @@ spec:
     enablePodAntiAffinity: true # Default value
     topologyKey: kubernetes.io/hostname # Default value
     podAntiAffinityType: preferred # Default value
-    podAntiAffinity:
+    additionalPodAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 100
           podAffinityTerm:
