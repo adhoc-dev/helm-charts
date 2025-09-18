@@ -10,6 +10,21 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
+{{- if ne .Values.adhoc.appType "prod" }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-primary
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      cnpg.io/cluster: {{ include "cnpg.sanitizedPgName" . }}-pg
+      cnpg.io/instanceRole: primary
+---
+{{- end }}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -39,6 +54,9 @@ spec:
       {{- include "adhoc-odoo.labels" . | nindent 6 }}
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
   primaryUpdateStrategy: unsupervised
+  {{- if ne .Values.adhoc.appType "prod" }}
+  enablePDB: false
+  {{- end }}
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
   affinity:
     {{- /* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
