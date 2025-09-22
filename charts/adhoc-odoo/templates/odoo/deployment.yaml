@@ -63,7 +63,7 @@ spec:
         adhoc.ar/app-name: "odoo"
     spec:
       {{- if eq .Values.storage.location "fuse" }}
-      terminationGracePeriodSeconds: 120
+      terminationGracePeriodSeconds: {{ ternary 60 20 (eq .Values.adhoc.appType "prod") }}
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       {{- if .Values.cloudNativePG.enabled }}
@@ -71,6 +71,9 @@ spec:
         - name: wait-for-postgres
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
           command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
+      {{- end }}
+      {{- if eq .Values.adhoc.appType "prod" }}
+      priorityClassName: prod-priority
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}

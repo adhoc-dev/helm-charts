@@ -48,8 +48,8 @@ spec:
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
         adhoc.ar/app-name: "nginx"
     spec:
-      {{- if eq .Values.storage.location "fuse" }}
-      terminationGracePeriodSeconds: 60
+      {{- if eq .Values.adhoc.appType "prod" }}
+      priorityClassName: prod-priority
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       containers:

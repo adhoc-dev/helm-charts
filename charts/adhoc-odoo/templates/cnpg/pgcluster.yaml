@@ -45,8 +45,10 @@ spec:
 
   {{- /*
   # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
-  # priorityClassName:
   */}}
+  {{- if eq .Values.adhoc.appType "prod" }}
+  priorityClassName: prod-priority
+  {{- end }}
   {{- /* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
   logLevel: info
   inheritedMetadata:
