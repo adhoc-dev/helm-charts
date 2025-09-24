@@ -153,7 +153,7 @@ spec:
       {{- range $key, $value := .Values.cloudNativePG.parameters }}
       {{ $key }}: {{ $value | quote }}
       {{- end }}
-  {{- /* https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
+  {{- /* https://cloudnative-pg.io/documentation/1.27/cloudnative-pg.v1/#postgresql-cnpg-io-v1-BackupConfiguration */}}
   backup:
     {{- if .Values.cloudNativePG.backup.volumeSnapshot.enabled }}
     volumeSnapshot:

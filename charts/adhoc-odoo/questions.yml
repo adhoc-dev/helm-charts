@@ -522,6 +522,54 @@ questions:
     required: false
     default: 1
     show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.rateLimit.enabled
+    group: "Ingress"
+    label: "Enable Rate Limiting"
+    description: "Enable Rate Limiting for the reverse proxy"
+    type: "boolean"
+    required: false
+    default: false
+    show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.rateLimit.static
+    group: "Ingress"
+    label: "Static Rate Limit"
+    description: "Static Rate Limit (e.g., 3000r/s)"
+    type: "string"
+    required: false
+    default: "3000r/s"
+    show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
+  - variable: ingress.reverseProxy.rateLimit.access
+    group: "Ingress"
+    label: "Access Rate Limit"
+    description: "Access Rate Limit (e.g., 5r/m)"
+    type: "string"
+    required: false
+    default: "5r/m"
+    show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
+  - variable: ingress.reverseProxy.rateLimit.generic
+    group: "Ingress"
+    label: "Generic Rate Limit"
+    description: "Generic Rate Limit (e.g., 60r/s)"
+    type: "string"
+    required: false
+    default: "60r/s"
+    show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
+  - variable: ingress.reverseProxy.rateLimit.ws
+    group: "Ingress"
+    label: "WebSocket Rate Limit"
+    description: "WebSocket Rate Limit (e.g., 10r/s)"
+    type: "string"
+    required: false
+    default: "10r/s"
+    show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
+  - variable: ingress.reverseProxy.imageCacheEnabled
+    group: "Ingress"
+    label: "Enable Image Cache"
+    description: "Enable Image Cache for the reverse proxy"
+    type: "boolean"
+    required: false
+    default: false
+    show_if: "ingress.reverseProxy.enabled=true"
 
 # Autoscaling
   - variable: autoscaling.hpa.enabled

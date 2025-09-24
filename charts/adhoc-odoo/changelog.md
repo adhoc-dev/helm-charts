@@ -1,5 +1,17 @@
 # Version changes
 
+## *0.3.3*
+
+Features:
+
+- Reverse Proxy:
+  - Rate limits (Disabled by default `ingress.reverseProxy.rateLimit.enabled: false`)
+    - static files (Default 3000r/s `ingress.reverseProxy.rateLimit.static: 3000r/s`)
+    - access/secure endpoints (Default 5r/m `ingress.reverseProxy.rateLimit.access: 5r/m`)
+    - common endpoints (Default 60r/s `ingress.reverseProxy.rateLimit.generic: 60r/s`)
+    - websocket (Default 10r/s `ingress.reverseProxy.rateLimit.ws: 10r/s`)
+  - Cache for public images, static content, etc. (Disabled by default `ingress.reverseProxy.imageCacheEnabled: false`)
+
 ## *0.3.2*
 
 Features:
@@ -15,6 +27,7 @@ Features:
   - Http autoscaler, works with istio and nginx as ingress. (Allowing scale to 0 `autoscaling.minReplicas`)
 - Common:
   - Remove unused values
+  - priorityClass: to warranties critical features and production environments
 - FUSE:
   - Reducing de requested resources
   - Disable "streaming writes" to avoid the creation of empty files
@@ -24,8 +37,8 @@ Features:
   - PDB: allow maxUnavailable to improve eviction
 - CNPG:
   - Change anti-affinity to avoid deploy several pg in the same node.
-- reverse Proxy:
-  - PDB: allow maxUnavailable to improve eviction
+- Reverse Proxy:
+  - PDB: allow maxUnavailable to improve eviction  
 
 ## *0.3.1*
 
