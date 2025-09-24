@@ -63,7 +63,7 @@ spec:
         adhoc.ar/app-name: "odoo"
     spec:
       {{- if eq .Values.storage.location "fuse" }}
-      terminationGracePeriodSeconds: {{ ternary 60 20 (eq .Values.adhoc.appType "prod") }}
+      terminationGracePeriodSeconds: {{ ternary 120 60 (eq .Values.adhoc.appType "prod") }}
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       {{- if .Values.cloudNativePG.enabled }}
