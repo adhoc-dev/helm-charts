@@ -1,0 +1,170 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $srvHttp := printf "%s-http" $fullName }}
+{{- $srvWs := printf "%s-websocket" $fullName }}
+{{- if .Values.ingress.reverseProxy.enabled }}
+{{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- end }}
+{{- $isKedaEnabled := .Values.autoscaling.keda.enabled | default false }}
+
+# kubectl explain  --api-version=networking.k8s.io/v1 Ingress.spec
+{{- if $isKedaEnabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: keda
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # Dale margen al cold start:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    # Mientras arranca, que reintente en 502/504:
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502 http_503 http_504"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-tries: "5"
+    # Headers vía ConfigMap
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-set-headers: keda/ingress-proxy-headers
+spec:
+  ingressClassName: nginx
+  tls:
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts}}
+    - secretName: {{ . | quote }}
+      hosts:
+        - {{ . | quote }}
+    {{- end }}
+    {{- end }}
+  rules:
+    - host: "{{ .Values.odoo.pg.db }}.{{ .Values.ingress.cloudMainDomain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keda-add-ons-http-interceptor-proxy
+                port:
+                  number: 8080
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keda-add-ons-http-interceptor-proxy
+                port:
+                  number: 8080
+    {{- end }}
+    {{- end }}
+
+---
+{{- end }}
+
+
+{{- if or (not $isKedaEnabled ) ( gt $usewebsocket 0 ) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    {{- /* https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/annotations.md */}}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/affinity: cookie
+    {{- /* en realidad vimos que no es necesario ya por defecto los pareciera levantar */}}
+    nginx.ingress.kubernetes.io/websocket-services: {{ $fullName }}-websocket
+    nginx.ingress.kubernetes.io/proxy-set-headers: "Upgrade=$http_upgrade;Connection=$connection_upgrade;"
+    {{- if .Values.ingress.configurationSnippet.enabled }}
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+{{- .Values.ingress.configurationSnippet.snippet | nindent 6 -}}
+    {{- end }}
+spec:
+  ingressClassName: nginx
+  tls:
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts}}
+    - secretName: {{ . | quote }}
+      hosts:
+        - {{ . | quote }}
+    {{- end }}
+    {{- end }}
+  rules:
+    - host: "{{ .Values.odoo.pg.db }}.{{ .Values.ingress.cloudMainDomain }}"
+      http:
+        paths:
+          {{- if not $isKedaEnabled }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $srvHttp }}
+                port:
+                  number: 80
+          {{- end }}
+          - pathType: Prefix
+            {{- if le $odooVersion 150 }}
+            path: /longpolling
+            {{- else }}
+            path: /websocket
+            {{- end  }}
+            backend:
+              service:
+                port:
+                  number: 80
+                {{- if gt $usewebsocket 0 }}
+                name: {{ $srvWs }}
+                {{- else }}
+                name: {{ $srvHttp }}
+                {{- end  }}
+    {{- if .Values.ingress.hosts }}
+    {{- $hosts := regexSplit "," .Values.ingress.hosts -1}}
+    {{- range $hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          {{- if not $isKedaEnabled }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $srvHttp }}
+                port:
+                  number: 80
+          {{- end }}
+          - pathType: Prefix
+            {{- if le $odooVersion 150 }}
+            path: /longpolling
+            {{- else }}
+            path: /websocket
+            {{- end  }}
+            backend:
+              service:
+                port:
+                  number: 80
+                {{- if gt $usewebsocket 0 }}
+                name: {{ $srvWs }}
+                {{- else }}
+                name: {{ $srvHttp }}
+                {{- end  }}
+    {{- end }}
+    {{- end }}
+
+{{- end }}
+
+{{- end }}

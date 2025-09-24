@@ -1,0 +1,153 @@
+
+{{- if .Values.ingress.istio.enabled -}}
+
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $usewebsocket := .Values.odoo.performance.workers | toString | int -}}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $srvHttp := printf "%s-http" $fullName }}
+{{- $srvWs := printf "%s-websocket" $fullName }}
+{{- if .Values.ingress.reverseProxy.enabled }}
+{{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- end }}
+
+# Shared
+
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ printf "%s-shared" .Values.odoo.pg.db | quote }}
+spec:
+  hosts:
+    - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
+  gateways:
+    - istio-system/istio-ingress-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            {{- if .Values.autoscaling.keda.enabled }}
+            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
+            port:
+              number: 8080
+            {{- else }}
+            host: {{ $srvHttp }}
+            port:
+              number: 80
+            {{- end }}
+    {{- if gt $usewebsocket 0 }}
+    - match:
+        - uri:
+            {{- if le $odooVersion 150 }}
+            prefix: /longpolling
+            {{- else }}
+            prefix: /websocket
+            {{- end }}
+      route:
+        - destination:
+            host: {{ $srvWs }}
+            port:
+              number: 80
+    {{- end }}
+---
+# Custom
+
+{{- if .Values.ingress.istio.altHosts -}}
+{{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1}}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ printf "%s-gateway" .Values.odoo.pg.db | quote }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        # Nombre del secreto TLS creado por cert-manager
+        credentialName: {{ printf "%s-custom-tls" .Values.odoo.pg.db | quote }}
+      hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ printf "%s-custom" .Values.odoo.pg.db | quote }}
+  namespace: istio-system
+spec:
+  secretName: {{ printf "%s-custom-tls" .Values.odoo.pg.db | quote }}
+  duration: 2160h # 90 días
+  renewBefore: 360h # 15 días
+  commonName: {{ index $hosts 0 | quote }}
+  dnsNames:
+    {{- range $hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  issuerRef:
+    name: {{ .Values.ingress.istio.issuer | quote }}
+    kind: ClusterIssuer
+  privateKey:
+    rotationPolicy: Always
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ printf "%s-custom" .Values.odoo.pg.db | quote }}
+spec:
+  hosts:
+    {{- range $hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  gateways:
+    - {{ printf "%s-gateway" .Values.odoo.pg.db | quote }}
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            {{- if .Values.autoscaling.keda.enabled }}
+            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
+            port:
+              number: 8080
+            {{- else }}
+            host: {{ $srvHttp }}
+            port:
+              number: 80
+            {{- end }}
+    {{- if gt $usewebsocket 0 }}
+    - match:
+        - uri:
+            {{- if le $odooVersion 150 }}
+            prefix: /longpolling
+            {{- else }}
+            prefix: /websocket
+            {{- end }}
+      route:
+        - destination:
+            host: {{ $srvWs }}
+            port:
+              number: 80
+    {{- end }}
+
+---
+
+{{- end }}
+{{- end }}
