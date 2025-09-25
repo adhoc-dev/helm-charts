@@ -133,3 +133,66 @@ Check if the database is set
 {{- if not .Values.odoo.pg.db }}
 {{- fail "You must set .Values.odoo.pg.db to a valid database name." }}
 {{- end }}
+
+{{- define "sumMemory" -}}
+{{- $totalBytes := 0 -}}
+{{- range . -}}
+    {{- if hasSuffix "Gi" . -}}
+      {{- $value := replace "Gi" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1073741824) -}}
+    {{- else if hasSuffix "Mi" . -}}
+      {{- $value := replace "Mi" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1048576) -}}
+    {{- else if hasSuffix "Ki" . -}}
+      {{- $value := replace "Ki" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1024) -}}
+    {{- else if hasSuffix "G" . -}}
+      {{- $value := replace "G" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1000000000) -}}
+    {{- else if hasSuffix "M" . -}}
+      {{- $value := replace "M" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1000000) -}}
+    {{- else if hasSuffix "K" . -}}
+      {{- $value := replace "K" "" . | float64 -}}
+      {{- $totalBytes = add $totalBytes (mul $value 1000) -}}
+    {{- else -}}
+      {{- $totalBytes = add $totalBytes (. | float64) -}}
+    {{- end -}}
+{{- end -}}
+
+{{- if ge $totalBytes 1073741824 -}}
+  {{- printf "%.0fGi" (div $totalBytes 1073741824 | float64) -}}
+{{- else if ge $totalBytes 1048576 -}}
+  {{- printf "%.0fMi" (div $totalBytes 1048576 | float64) -}}
+{{- else if ge $totalBytes 1024 -}}
+  {{- printf "%.0fKi" (div $totalBytes 1024| float64) -}}
+{{- else -}}
+  {{- printf "%d" $totalBytes -}}
+{{- end -}}
+
+{{- end -}}
+
+{{- define "sumCPU" -}}
+{{- $totalMilli := 0 -}}
+{{- range . -}}
+  {{- if hasSuffix "m" . -}}
+    {{- $value := replace "m" "" . | int -}}
+    {{- $totalMilli = add $totalMilli $value -}}
+  {{- else -}}
+    {{- $value := . | float64 -}}
+    {{- $totalMilli = add $totalMilli (mul $value 1000) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if ge $totalMilli 1000 -}}
+  {{- $cores := div $totalMilli 1000 -}}
+  {{- if eq (mod $totalMilli 1000) 0 -}}
+    {{- printf "%d" $cores -}}
+  {{- else -}}
+    {{- printf "%.1f" (div $totalMilli 1000.0) -}}
+  {{- end -}}
+{{- else -}}
+  {{- printf "%dm" $totalMilli -}}
+{{- end -}}
+
+{{- end -}}
