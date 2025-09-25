@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: rq-{{ include "adhoc-odoo.fullname" . }}
+spec:
+  hard:
+    {{ if .Values.resourceQuota.enabled }}
+    requests.cpu: {{ include "sumCPU" (list "20m" "20m") | default "4" }}
+    requests.memory: {{ include "sumMemory" (list "20Gi" "20Mi") | default "8Gi" }}
+    requests.storage: "{{ .Values.resourceQuota.requests.storage | default "500Gi" }}"
+    requests.ephemeral-storage: {{ .Values.resourceQuota.requests.ephemeral | default "100Gi" }}
+
+    # limits.cpu: {{ include "sumCPU" (list "20m" "20m") | default "4" }}
+    # limits.memory: {{ include "sumMemory" (list "20Gi" "20Mi") | default "8Gi" }}
+    limits.cpu: {{ .Values.resourceQuota.limits.cpu | default "4" }}
+    limits.memory: {{ .Values.resourceQuota.limits.memory | default "8Gi"  }}
+    limits.ephemeral-storage: {{ .Values.resourceQuota.limits.ephemeral | default "100Gi" }}
+    {{- end }}
+
+    # odoo scale scale max 10 + 3 ( nx + pg + job )
+    count/pods: {{ add (max .Values.autoscaling.maxReplicas 10) 4 }}
+    # 2 for Odoo (http + ws) + 1 for Reverse Proxy + 1 for PG RW + 1 for PG RO if enabled
+    count/services: 5
+    # By default we create 2 ingresses if KEDA is enabled
+    count/ingresses.networking.k8s.io: {{ ternary 2 1 .Values.autoscaling.keda.enabled }}
+    # Don't allow load balancers by default, Only if external read-only is enabled
+    count/services.loadbalancers: {{ ternary 1 0 .Values.cloudNativePG.services.enableExternalRO }}
+    # By default we create 1 PVC for PG
+    count/persistentvolumeclaims: "1"
+    # requests.storage.{{ .Values.cloudNativePG.persistence.storageClass | replace "-" "" }}: "{{ max (mul .Values.cloudNativePG.persistence.size 2) 30 }}Gi"
+
+{{ if .Values.limitRange.enabled }}
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: lr-{{ include "adhoc-odoo.fullname" . }}
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: {{ .Values.limitRange.default.cpu | quote }}
+        memory: {{ .Values.limitRange.default.memory | quote }}
+      defaultRequest:
+        cpu: {{ .Values.limitRange.defaultRequest.cpu | quote }}
+        memory: {{ .Values.limitRange.defaultRequest.memory | quote }}
+      max:
+        cpu: {{ .Values.limitRange.max.cpu | quote }}
+        memory: {{ .Values.limitRange.max.memory | quote }}
+      min:
+        cpu: {{ .Values.limitRange.min.cpu | quote }}
+        memory: {{ .Values.limitRange.min.memory | quote }}
+      maxLimitRequestRatio:
+        cpu: 4  # Máximo ratio limit/request (4:1)
+        memory: 2
+    - type: Pod
+      max:
+        ephemeral-storage: {{ .Values.limitRange.maxPod.ephemeralStorage | quote }}
+{{- end }}
