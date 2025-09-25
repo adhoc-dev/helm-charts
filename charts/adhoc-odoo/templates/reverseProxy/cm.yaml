@@ -375,7 +375,7 @@ data:
             error_page 503 = @rate_limited;
             {{- end }}
 
-            # # # Only cache if it is a public product and does not have access_token
+            # Cache if it is a public product and does not have access_token
             set $no_cache 0;
             if ($uri ~ "^/(web|website)/image/(product\.template|product\.product|website\..+)/") {
                 set $no_cache 0;
@@ -384,28 +384,24 @@ data:
                 set $no_cache 1;
             }
 
-            # The image is the same for all users, so we could ignore the cookie
-            proxy_ignore_headers  Set-Cookie Vary Cache-Control Expires;
+            # The image is the same for all users, so need to ignore the backend headers
+            proxy_ignore_headers Set-Cookie Vary Cache-Control Expires;
 
-            add_header X-No-Cache $no_cache; # debugging
             proxy_no_cache $no_cache;
             proxy_cache_bypass $no_cache;
 
-            # Don't cache responses to requests with cookies
+            # Don't send cookies to the backend (on public cached images)
             proxy_set_header Cookie "";
+            # Don't send cookies to the client on public cached images
+            proxy_hide_header Set-Cookie;
 
             # Override del Cache-Control
             proxy_hide_header Cache-Control;
-            add_header Cache-Control "public, max-age=3600" always;
-
-            # Debug headers
-            add_header X-Backend-Cache-Control $upstream_http_cache_control;
-            add_header X-Cache-Enabled "true";
 
             # Ignore any Set-Cookie headers in cache key
             proxy_cache_key "$scheme$proxy_host$uri$is_args$args";
+            add_header X-Internal-Cache-Status $upstream_cache_status;
 
-            # proxy_cache_min_uses 1;
             proxy_pass http://odoo;
             {{ include "adhoc-odoo.nginx.cache_headers" . }}
         }
