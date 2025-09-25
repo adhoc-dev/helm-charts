@@ -1,0 +1,51 @@
+{{- if .Values.cloudNativePG.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "adhoc-odoo.fullname" . }}-wait-pg"
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cnpg.sanitizedPgName" . }}-pg-hook
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      {{- if eq .Values.adhoc.appType "prod" }}
+      priorityClassName: prod-priority
+      {{- end }}
+      resources:
+        requests:
+          cpu: 10m
+          memory: 10Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+      containers:
+      - name: wait-pg
+        image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+        command: ["/bin/sh", "-c"]
+        # wait up to 15 minutes for PostgreSQL to be ready
+        args:
+        - |
+            for i in $(seq 1 180); do
+              pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }} && exit 0
+              sleep 5
+            done
+            exit 1
+        env:
+          - name: PGPASSWORD
+            value: {{ .Values.cloudNativePG.superUserPassword | quote }}
+          - name: PGUSER
+            value: "odoo"
+          - name: PGHOST
+            value: "{{ include "cnpg.sanitizedPgName" . }}-pg-rw"
+          - name: PGPORT
+            value: {{ 5432 | quote }}
+          - name: PGDATABASE
+            value: "odoo"
+          - name: DATABASE
+            value: "odoo"
+{{- end }}

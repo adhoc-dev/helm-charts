@@ -296,3 +296,31 @@ cloudNativePG:
     # If you want to disable the RO service, set this to true
     disableReadOnly: false
     enableExternalRO: false
+
+resourceQuota:
+  enabled: false
+  requests:
+    cpu: "4"
+    memory: "8Gi"
+    storage: "500Gi"
+    ephemeral: "100Gi"
+  limits:
+    cpu: "4"
+    memory: "8Gi"
+    ephemeral: "100Gi"
+
+limitRange:
+  enabled: false
+  default:
+    cpu: "500m"
+    memory: "512Mi"
+  defaultRequest:
+    cpu: "100m"
+    memory: "256Mi"
+  max:
+    cpu: "2000m"
+    memory: "4096Mi"
+  min:
+    cpu: "20m"
+    memory: "20Mi"
+
