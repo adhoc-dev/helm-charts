@@ -13,6 +13,7 @@ Features:
   - Cache for public images, static content, etc. (Disabled by default `ingress.reverseProxy.imageCacheEnabled: false`)
 - CNPG:
   - Webhook added to wait pg to be ready
+  - SmartShutdown disabled
 - Resource Quotas:
   - Minimal implementation of ResourceQuota
   - Minimal implementation of LimitRange

@@ -25,6 +25,7 @@ spec:
       cnpg.io/instanceRole: primary
 ---
 {{- end }}
+# kubectl explain --api-version=postgresql.cnpg.io/v1 Cluster.spec
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -42,13 +43,16 @@ metadata:
     */}}
 {{- /*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
 spec:
-
+  {{- if eq .Values.adhoc.appType "prod" }}
   {{- /*
   # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
   */}}
-  {{- if eq .Values.adhoc.appType "prod" }}
   priorityClassName: prod-priority
   {{- end }}
+  # Set to 0 enable the immediate fast shutdown (bypassing the smart shutdown process)
+  smartShutdownTimeout: 0
+  # The time in seconds that is allowed for a PostgreSQL instance to gracefully shutdown (default 1800) We chose 3 minutes maximum
+  stopDelay: 180
   {{- /* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
   logLevel: info
   inheritedMetadata:
@@ -114,7 +118,7 @@ spec:
       # - auto_explain
       # - pgaudit
       */}}
-    {{- /* https://cloudnative-pg.io/documentation/1.24/postgresql_conf/ */}}
+    {{- /* https://cloudnative-pg.io/documentation/1.27/postgresql_conf/ */}}
     parameters:
       {{- /* pg stat statements */}}
       pg_stat_statements.max: "10000"
