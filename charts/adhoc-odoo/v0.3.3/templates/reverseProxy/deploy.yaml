@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
+        rollme: {{ include "adhoc-odoo.releaseDigest" . }}{{ include "adhoc-odoo.nginx.releaseDigest" .}} # Force redeploy on change
         {{- if eq .Values.storage.location "fuse" }}
         gke-gcsfuse/volumes: "true"
         # https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver?hl=es-419
