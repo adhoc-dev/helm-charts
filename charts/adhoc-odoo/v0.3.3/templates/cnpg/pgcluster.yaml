@@ -10,7 +10,7 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
-{{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1) 1) }}
+{{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -60,7 +60,7 @@ spec:
       {{- include "adhoc-odoo.labels" . | nindent 6 }}
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
   primaryUpdateStrategy: unsupervised
-  {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1) 1) }}
+  {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
   enablePDB: false
   {{- end }}
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
