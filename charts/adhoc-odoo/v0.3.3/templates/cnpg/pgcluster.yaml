@@ -10,7 +10,7 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
-{{- if ne .Values.adhoc.appType "prod" }}
+{{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1) 1) }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -60,7 +60,7 @@ spec:
       {{- include "adhoc-odoo.labels" . | nindent 6 }}
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
   primaryUpdateStrategy: unsupervised
-  {{- if ne .Values.adhoc.appType "prod" }}
+  {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1) 1) }}
   enablePDB: false
   {{- end }}
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
@@ -123,6 +123,14 @@ spec:
       {{- /* pg stat statements */}}
       pg_stat_statements.max: "10000"
       pg_stat_statements.track: all
+      {{- /* pg autovacuum */}}
+      autovacuum_vacuum_scale_factor: "0.002"
+      autovacuum_vacuum_threshold: "1000"
+      autovacuum_analyze_threshold: "1000"
+      autovacuum_analyze_scale_factor: "0.01"
+      {{- /* pg dstatements https://postgresqlco.nf/doc/en/param/statement_timeout/ */}}
+      statement_timeout: "1000000" # 1000 sec (~16 min)
+      work_mem: "64MB"
       {{- /*
       # # pgaudit
       # pgaudit.log: "all, -misc"
