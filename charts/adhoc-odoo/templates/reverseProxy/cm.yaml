@@ -294,6 +294,15 @@ data:
             proxy_pass http://odoo;
         }
 
+        # RPC JSON endpoint +19
+        location ~ "^/json" {
+            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
+            limit_req zone=access burst=3 nodelay;
+            error_page 503 = @rate_limited;
+            {{- end }}
+            proxy_pass http://odoo;
+        }
+
         # RPC JSON endpoint
         location ~ "^/jsonrpc" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}

@@ -14,6 +14,7 @@ Features:
 - CNPG:
   - Webhook added to wait pg to be ready
   - SmartShutdown disabled
+  - Allow disruption (this facilitates node rotation durring the maintenance windows)
 - Resource Quotas:
   - Minimal implementation of ResourceQuota
   - Minimal implementation of LimitRange
