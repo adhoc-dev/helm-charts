@@ -1,0 +1,58 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev-ar-role
+rules:
+  # k describe deploy
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["get"]
+  # - apiGroups: [""]
+  #   resources: ["events"]
+  #   verbs: ["get", "list"]
+  #  k edit deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["get", "patch", "update"]
+  # k patch deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["patch", "get"]
+  # k get deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["get", "list"]
+  # k rollout undo deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["patch", "get"]
+  # k rollout history deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["get"]
+  # k rollout restart deployment
+  # - apiGroups: ["apps", "extensions"]
+  #   resources: ["deployments"]
+  #   verbs: ["patch", "get"]
+  # k logs
+  # - apiGroups: [""]
+  #   resources: ["pods", "pods/log"]
+  #   verbs: ["get", "list"]
+  # k exec
+  # - apiGroups: [""]
+  #   resources: ["pods", "pods/exec"]
+  #   verbs: ["get", "create"]
+  # Sintetizamos los permisos anteriores en:
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list"]
+  # Allow viewing services
+  # - apiGroups: [""]
+  #   resources: ["services"]
+  #   verbs: ["get", "list"]
