@@ -114,10 +114,12 @@ spec:
   postgresql:
     shared_preload_libraries:
       - pg_stat_statements
-      {{- /*
-      # - auto_explain
-      # - pgaudit
-      */}}
+      {{ if .Values.cloudNativePG.libraries.pgaudit }}
+      - pgaudit
+      {{- end }}
+      {{ if .Values.cloudNativePG.libraries.autoExplain }}
+      - auto_explain
+      {{- end }}
     {{- /* https://cloudnative-pg.io/documentation/1.27/postgresql_conf/ */}}
     parameters:
       {{- /* pg stat statements */}}
@@ -131,14 +133,21 @@ spec:
       {{- /* pg dstatements https://postgresqlco.nf/doc/en/param/statement_timeout/ */}}
       statement_timeout: "1000000" # 1000 sec (~16 min)
       work_mem: "64MB"
+      {{ if .Values.cloudNativePG.libraries.pgaudit }}
+      # pgaudit
+      pgaudit.log: "all, -misc"
+      pgaudit.log_catalog: "off"
+      pgaudit.log_parameter: "on"
+      pgaudit.log_relation: "on"
+      {{- end }}
+      {{- if .Values.cloudNativePG.libraries.autoExplain }}
+      # AutoExplain
+      auto_explain.log_min_duration: "10s"
+      # auto_explain.log_analyze: "on"
+      # auto_explain.log_buffers: "on"
+      # auto_explain.log_timing: "off"
+      {{- end }}
       {{- /*
-      # # pgaudit
-      # pgaudit.log: "all, -misc"
-      # pgaudit.log_catalog: "off"
-      # pgaudit.log_parameter: "on"
-      # pgaudit.log_relation: "on"
-      # # AutoExplain
-      # auto_explain.log_min_duration: "10s"
       # # Common
       # shared_buffers: "1GB"
       # archive_mode = 'on'
