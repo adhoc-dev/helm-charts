@@ -252,6 +252,9 @@ cloudNativePG:
     # - null (to let undefined)
     # We don't want to keep records if we no longer need them.
     storageClass: gpc-ssd-d
+  libraries:
+    pgaudit: false
+    autoExplain: false
   parameters:
     # shared_buffers: "1GB"
     # archive_mode = 'on'
