@@ -162,6 +162,8 @@ data:
   ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}
   ODOO_SESSION_REDIS_PASSWORD: {{ .Values.redis.pass | quote  }}
   {{- end }}
+  ADHOC_ANALYTIC_ACCOUNT: {{ .Values.adhoc.clientAnalyticAccount | quote }}
+  ADHOC_DATABASE: {{ .Release.Name | quote }}
   {{- range $key, $value := .Values.odoo.extraEnvVars }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
