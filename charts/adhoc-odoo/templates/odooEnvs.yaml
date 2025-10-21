@@ -162,8 +162,16 @@ data:
   ODOO_SESSION_REDIS_HOST: {{ .Values.redis.host | quote }}
   ODOO_SESSION_REDIS_PASSWORD: {{ .Values.redis.pass | quote  }}
   {{- end }}
+  {{- /* Adhoc */}}
   ADHOC_ANALYTIC_ACCOUNT: {{ .Values.adhoc.clientAnalyticAccount | quote }}
   ADHOC_DATABASE: {{ .Release.Name | quote }}
+  {{- /* Genneral settings */}}
+  OPENBLAS_NUM_THREADS: "1"
+  ODOO_LOGGING_JSON: "1"
+  ODOO_LOGGING_JSON_STDERR: "1"
+  ODOO_MAX_HTTP_THREADS: "8"
+  ODOO_SESSION_REDIS_SSL: "0"
+  LITELLM_LOG: "CRITICAL"
   {{- range $key, $value := .Values.odoo.extraEnvVars }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
