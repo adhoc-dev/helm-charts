@@ -1,10 +1,9 @@
+# This role grants permissions for managing deployments, viewing pod logs, executing commands in pods,
+# and viewing events and services in the namespace. It is intended for development environment access.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: dev-ar-role
-  description: |
-      This role grants permissions for managing deployments, viewing pod logs, executing commands in pods,
-      and viewing events and services in the namespace. It is intended for development environment access.
 rules:
   # k describe deploy
   # - apiGroups: ["apps", "extensions"]

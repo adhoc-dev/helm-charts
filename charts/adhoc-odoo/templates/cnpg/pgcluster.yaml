@@ -132,6 +132,10 @@ spec:
       autovacuum_analyze_scale_factor: "0.01"
       {{- /* pg dstatements https://postgresqlco.nf/doc/en/param/statement_timeout/ */}}
       statement_timeout: "1000000" # 1000 sec (~16 min)
+      effective_io_concurrency: "200"
+      random_page_cost: "1.1"
+      wal_compression: "on"
+      wal_buffers: "16MB"
       work_mem: "64MB"
       {{ if .Values.cloudNativePG.libraries.pgaudit }}
       # pgaudit
