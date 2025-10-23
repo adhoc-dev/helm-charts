@@ -137,6 +137,7 @@ spec:
       wal_compression: "on"
       wal_buffers: "16MB"
       work_mem: "64MB"
+      max_wal_size: "4GB"
       {{ if .Values.cloudNativePG.libraries.pgaudit }}
       # pgaudit
       pgaudit.log: "all, -misc"
