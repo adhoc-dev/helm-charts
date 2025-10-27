@@ -5,7 +5,14 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
+  {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+  maxUnavailable: 25%
+  {{- else }}
+  {{- if lt (.Values.replicaCount | int) 3 }}
   maxUnavailable: 1
+  {{- else }}
+  maxUnavailable: 2
+  {{- end }}
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
