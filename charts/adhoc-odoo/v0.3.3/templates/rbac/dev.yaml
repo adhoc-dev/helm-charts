@@ -7,7 +7,7 @@ metadata:
 rules:
   # k describe deploy
   # - apiGroups: ["apps", "extensions"]
-  #   resources: ["deployments"]
+  #   resources: ["deployments", "replicasets"]
   #   verbs: ["get"]
   # - apiGroups: [""]
   #   resources: ["events"]
@@ -49,7 +49,7 @@ rules:
     resources: ["deployments"]
     verbs: ["get", "list", "patch", "update"]
   - apiGroups: [""]
-    resources: ["pods", "pods/log", "pods/exec"]
+    resources: ["replicasets", "pods", "pods/log", "pods/exec"]
     verbs: ["get", "list", "create"]
   - apiGroups: [""]
     resources: ["events"]
