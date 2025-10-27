@@ -13,6 +13,7 @@ spec:
   {{- else }}
   maxUnavailable: 2
   {{- end }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
