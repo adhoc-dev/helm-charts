@@ -21,14 +21,18 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
+      {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+      maxSurge: 25%
+      maxUnavailable: 25%
+      {{- else }}
+      {{- if lt (.Values.replicaCount | int) 3 }}
       maxSurge: 1
-      maxUnavailable: 0
-      # {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled (lt (.Values.replicaCount | int) 3) }}
-      # maxUnavailable: 0
-      # {{- else }}
-      # # If the replicaCount > 2 and we are not using autoscaler, we allow one pod to be unavailable during the update
-      # maxUnavailable: 1
-      # {{- end }}
+      maxUnavailable: 1
+      {{- else }}
+      maxSurge: 2
+      maxUnavailable: 2
+      {{- end }}
+      {{- end }}
   revisionHistoryLimit: 10
   template:
     metadata:
