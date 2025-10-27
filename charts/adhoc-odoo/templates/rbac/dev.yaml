@@ -7,7 +7,7 @@ metadata:
 rules:
   # k describe deploy
   # - apiGroups: ["apps", "extensions"]
-  #   resources: ["deployments"]
+  #   resources: ["deployments", "replicasets"]
   #   verbs: ["get"]
   # - apiGroups: [""]
   #   resources: ["events"]
@@ -46,7 +46,7 @@ rules:
   #   verbs: ["get", "create"]
   # Sintetizamos los permisos anteriores en:
   - apiGroups: ["apps", "extensions"]
-    resources: ["deployments"]
+    resources: ["deployments", "replicasets"]
     verbs: ["get", "list", "patch", "update"]
   - apiGroups: [""]
     resources: ["pods", "pods/log", "pods/exec"]
