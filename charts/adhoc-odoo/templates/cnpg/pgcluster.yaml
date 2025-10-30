@@ -138,6 +138,7 @@ spec:
       wal_buffers: "16MB"
       work_mem: "64MB"
       max_wal_size: "4GB"
+      max_parallel_workers_per_gather: "0"
       {{ if .Values.cloudNativePG.libraries.pgaudit }}
       # pgaudit
       pgaudit.log: "all, -misc"
