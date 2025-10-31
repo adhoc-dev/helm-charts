@@ -13,7 +13,7 @@ metadata:
     "adhoc.ar/dev-r2cmd": null # Used to store the r2cmd command to redeploy the app
 spec:
   {{- if not (or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled) }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | int }}
   {{- end }}
   selector:
     matchLabels:
@@ -25,13 +25,10 @@ spec:
       maxSurge: 25%
       maxUnavailable: 25%
       {{- else }}
-      {{- if lt (.Values.replicaCount | int) 3 }}
-      maxSurge: 1
-      maxUnavailable: 1
-      {{- else }}
-      maxSurge: 2
-      maxUnavailable: 2
-      {{- end }}
+      # We allow up to 2 extra pods on rolling updates (if there are enough replicas)
+      maxSurge: {{ ternary 2 1 (gt ((default 1 .Values.replicaCount) | int) 2) }}
+      # We don't allow disruptions on rolling updates (if there is only one pod, we can't afford to have it down)
+      maxUnavailable: {{ min (sub ((default 1 .Values.replicaCount) | int) 1) 2 }}
       {{- end }}
   revisionHistoryLimit: 10
   template:
