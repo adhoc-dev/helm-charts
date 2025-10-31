@@ -10,7 +10,7 @@ spec:
   {{- else }}
   # Prevent disruptions in maintenance windows
   # (but we allow disruptions on small deployment with just one pod)
-  {{- if lt (.Values.replicaCount | int) 3 }}
+  {{- if lt ((default 1 .Values.replicaCount) | int) 3 }}
   maxUnavailable: 1
   {{- else }}
   maxUnavailable: 2
