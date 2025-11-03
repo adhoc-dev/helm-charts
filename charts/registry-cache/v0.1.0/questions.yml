@@ -1,0 +1,35 @@
+questions:
+  - variable: nodeTag
+    group: "Deployment"
+    label: "Node tag for node affinity"
+    description: "Tag to schedule pods in nodes"
+    type: "string"
+    required: true
+    default: "Prod"
+  # Proxy settings
+  - variable: proxy.remoteurl
+    group: "Proxy"
+    label: "pull secret registry"
+    type: "string"
+    required: true
+    default: "https://registry-1.docker.io"
+  - variable: proxy.remoteurl.auth.enabled
+    group: "Proxy"
+    label: "Create pull secret?"
+    type: "boolean"
+    required: false
+    default: false
+  - variable: proxy.remoteurl.auth.username
+    group: "Proxy"
+    label: "pull secret user"
+    type: "string"
+    required: true
+    default: ""
+    show_if: "proxy.remoteurl.auth.enabled=true"
+  - variable: proxy.remoteurl.auth.password
+    group: "Proxy"
+    label: "pull secret pass"
+    type: "string"
+    required: true
+    default: ""
+    show_if: "proxy.remoteurl.auth.enabled=true"

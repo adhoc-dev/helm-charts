@@ -1,0 +1,24 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "registry-cache.fullname" . }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ .Values.ingress.whitelistSourceRange | default "10.0.0.0/8" }}"
+spec:
+  ingressClassName: nginx
+  # Empty TLS array to disable automatic TLS configuration and use the default cert
+  tls: []
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "registry-cache.fullname" . }}
+                port:
+                  number: 5000
+{{- end }}
