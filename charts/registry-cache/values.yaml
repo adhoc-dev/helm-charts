@@ -1,0 +1,38 @@
+image:
+  repository: registry
+  tag: "3"
+  pullPolicy: IfNotPresent
+
+resources: {}
+nodeSelector: {}
+#  registry-cache: "true"
+tolerations: []
+affinity: {}
+
+# MODO PROXY (pull-through)
+proxy:
+  remoteurl: "https://registry-1.docker.io"  # docker.io
+  auth:
+    enabled: false
+    username: ""     # setear vía --set o Secret existente
+    password: ""     # idem
+
+storage:
+  filesystem:
+    enabled: true
+    storageClass: "standard-rwo"
+    size: 1000Gi
+
+# Opcional: política de red (restringir acceso solo dentro del cluster/namespace)
+networkPolicy:
+  enabled: false
+  allowedNamespaces: []   # ej ["kube-system","p1-prod", "p1-demo"]
+
+ingress:
+  enabled: true
+  issuer: "letsencrypt-prod"
+  host: "dockerhub.adhoc.inc"
+  whitelistSourceRange: "10.0.0.0/8"
+
+maintenance:
+  readonly: false

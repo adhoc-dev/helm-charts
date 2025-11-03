@@ -1,0 +1,12 @@
+{{- if .Values.storage.filesystem.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "registry-cache.fullname" . }}-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: {{ .Values.storage.filesystem.size }}
+  storageClassName: {{ .Values.storage.filesystem.storageClass | quote }}
+{{- end }}

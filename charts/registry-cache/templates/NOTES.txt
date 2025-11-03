@@ -1,0 +1,18 @@
+Registry cache desplegado.
+
+{{- if .Values.ingress.enabled }}
+
+Usá referencias así (Docker Hub):
+  {{ .Values.ingress.host }}/library/redis:7
+
+{{- else }}
+Endpoint interno (ClusterIP):
+  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000
+
+Usá referencias así (Docker Hub):
+  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000/library/redis:7
+
+Recordá reescribir en tus charts:
+  image.registry: "{{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
+
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "registry-cache.fullname" . }}-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "registry-cache.name" . }}
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+{{- range .Values.networkPolicy.allowedNamespaces }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ . | quote }}
+{{- end }}
+    - namespaceSelector: {}
+    ports:
+      - protocol: TCP
+        port: 5000
+{{- end }}

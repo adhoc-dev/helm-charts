@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "registry-cache.fullname" . }}-config
+data:
+  config.yml: |
+    version: 0.1
+    log:
+      level: info
+    http:
+      addr: 0.0.0.0:5000
+      debug:
+        prometheus:
+          enabled: true
+          path: /metrics
+    storage:
+      filesystem:
+        rootdirectory: /var/lib/registry
+    proxy:
+      remoteurl: {{ .Values.proxy.remoteurl | quote }}
+      # Mark cached content as stale after 7 days
+      ttl: 168h
+    storage:
+      maintenance:
+        uploadpurging:
+          enabled: true
+          age: 168h
+          interval: 24h
+        readonly:
+          enabled: {{ .Values.maintenance.readonly | default false }}
+    tracing:
+      enabled: false
