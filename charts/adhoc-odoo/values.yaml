@@ -7,9 +7,10 @@ replicaCount: 1
 
 image:
   repository: adhoc/odoo-adhoc
+  # repository: dockerhub.adhoc.inc/adhoc/odoo-adhoc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "17.0"
+  tag: "19.0"
   pullSecret: "regcred"
 
 nameOverride: ""
@@ -105,6 +106,10 @@ ingress:
       generic: 60r/s
       ws: 10r/s
     imageCacheEnabled: false
+    image:
+      repository: nginx
+      # repository: dockerhub.adhoc.inc/nginx
+      tag: "1.29-alpine"
 
 resources:
   limits:

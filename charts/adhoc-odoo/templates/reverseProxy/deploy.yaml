@@ -54,7 +54,7 @@ spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       containers:
       - name: nginx
-        image: "nginx:1.29-alpine"
+        image: "{{ .Values.ingress.reverseProxy.image.repository }}:{{ .Values.ingress.reverseProxy.image.tag }}"
         ports:
         - name: http
           containerPort: 80

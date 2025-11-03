@@ -88,8 +88,13 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-              - key: pg
-                operator: DoesNotExist
+            - key: pg
+              operator: DoesNotExist
+          - matchExpressions:
+            - key: {{ .Values.nodeTag }}
+              operator: In
+              values:
+              - "true"
   storage:
     size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
@@ -139,6 +144,7 @@ spec:
       work_mem: "64MB"
       max_wal_size: "4GB"
       max_parallel_workers_per_gather: "0"
+      shared_buffers: "1500MB"
       {{ if .Values.cloudNativePG.libraries.pgaudit }}
       # pgaudit
       pgaudit.log: "all, -misc"
