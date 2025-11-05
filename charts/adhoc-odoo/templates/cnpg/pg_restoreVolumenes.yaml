@@ -9,6 +9,8 @@ apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotContent
 metadata:
   name: {{ printf "%s-%s" .Release.Namespace $targetBkp }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
   deletionPolicy: Retain
   driver: pd.csi.storage.gke.io
@@ -23,6 +25,11 @@ kind: VolumeSnapshot
 metadata:
   name: {{ $targetBkp }}-vs
   namespace: {{ .Release.Namespace }}
+  annotations:
+    cnpg.io/pvcRole: PG_DATA
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+    cnpg.io/backupName: {{ $targetBkp | quote }}
 spec:
   volumeSnapshotClassName: {{ $volumeSnapshotClass }}
   source:
