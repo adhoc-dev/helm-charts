@@ -141,7 +141,7 @@ spec:
       random_page_cost: "1.1"
       wal_compression: "on"
       wal_buffers: "16MB"
-      work_mem: "64MB"
+      work_mem: "128MB"
       max_wal_size: "4GB"
       max_parallel_workers_per_gather: "0"
       shared_buffers: "1500MB"
