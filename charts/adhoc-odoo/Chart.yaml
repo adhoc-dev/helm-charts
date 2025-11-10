@@ -19,4 +19,4 @@ maintainers:
   - name: azacchino
     email: az@adhoc.inc
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/Odoo_logo.svg"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/main/img/Odoo_logo.svg"

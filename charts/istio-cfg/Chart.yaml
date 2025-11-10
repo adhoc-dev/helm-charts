@@ -21,4 +21,4 @@ maintainers:
   - name: azacchino
     email: az@adhoc.inc
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/istio.png"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/main/img/istio.png"
