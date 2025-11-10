@@ -10,6 +10,19 @@ data:
   username: {{ "odoo" | b64enc | quote }}
   password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
 ---
+{{- if .Values.cloudNativePG.services.externalService.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg-app-ro
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ "rodoo" | b64enc | quote }}
+  password: {{ .Values.cloudNativePG.services.externalService.password | b64enc | quote }}
+---
+{{- end }}
 {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -64,6 +77,16 @@ spec:
   enablePDB: false
   {{- end }}
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
+  {{- if .Values.cloudNativePG.topologySpreadConstraints.enabled }}
+  {{- /* Enhance the probabilities to re colocate pods in the same node after failure/redeploy. With this we try to minimize the disruption reattaching pvc */}}
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          cnpg.io/cluster: {{ include "cnpg.sanitizedPgName" . }}-pg
+  {{- end }}
   affinity:
     {{- /* This configuration distributes instances across different hosts, minimizing disruptions in case of node failure. */}}
     enablePodAntiAffinity: true # Default value
@@ -236,17 +259,20 @@ spec:
       disabledDefaultServices: ["ro", "r"]
       {{- end }}
       additional:
-      {{- if .Values.cloudNativePG.services.enableExternalRO }}
-      {{- /*
-      # Add specific load balancer to reach the database
-      # https://cloudnative-pg.io/documentation/1.25/service_management/
-      */}}
-      - selectorType: ro
+      {{- if .Values.cloudNativePG.services.externalService.enabled }}
+      - selectorType: {{ ternary "rw" "ro" ( eq (.Values.cloudNativePG.instances | default 1 | int) 1) }}
         serviceTemplate:
           spec:
             type: LoadBalancer
+            {{- if .Values.cloudNativePG.services.externalService.loadBalancerIP }}
+            loadBalancerIP: {{ .Values.cloudNativePG.services.externalService.loadBalancerIP | quote }}
+            {{- end }}
+            {{- if .Values.cloudNativePG.services.externalService.sourceRanges }}
+            loadBalancerSourceRanges:
+              {{- toYaml .Values.cloudNativePG.services.externalService.sourceRanges | nindent 14 }}
+            {{- end }}
           metadata:
-            name: {{ include "cnpg.sanitizedPgName" . }}-ro-lb
+            name: {{ include "cnpg.sanitizedPgName" . }}-lb
             labels:
               {{- include "adhoc-odoo.labels" . | nindent 14 }}
               exposed-service: "true"
@@ -262,5 +288,16 @@ spec:
       superuser: true
       passwordSecret:
         name: {{ include "adhoc-odoo.fullname" . }}-pg-app
+    {{- if .Values.cloudNativePG.services.externalService.enabled }}
+    - name: rodoo
+      ensure: present
+      comment: Odoo ReadOnly User
+      login: true
+      inRoles:
+        - pg_read_all_data
+      superuser: false
+      passwordSecret:
+        name: {{ include "adhoc-odoo.fullname" . }}-pg-app-ro
+    {{- end }}
   {{- end }}
 {{- end }}

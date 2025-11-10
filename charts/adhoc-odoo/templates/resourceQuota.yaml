@@ -24,7 +24,7 @@ spec:
     # By default we create 2 ingresses if KEDA is enabled (and other for cert renewal)
     count/ingresses.networking.k8s.io: {{ ternary 3 2 .Values.autoscaling.keda.enabled }}
     # Don't allow load balancers by default, Only if external read-only is enabled
-    count/services.loadbalancers: {{ ternary 1 0 .Values.cloudNativePG.services.enableExternalRO }}
+    count/services.loadbalancers: {{ ternary 1 0 .Values.cloudNativePG.services.externalService.enabled }}
     # By default we create 1 PVC for PG
     count/persistentvolumeclaims: "1"
     # requests.storage.{{ .Values.cloudNativePG.persistence.storageClass | replace "-" "" }}: "{{ max (mul .Values.cloudNativePG.persistence.size 2) 30 }}Gi"
