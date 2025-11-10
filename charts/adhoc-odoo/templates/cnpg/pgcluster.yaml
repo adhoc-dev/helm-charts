@@ -111,13 +111,20 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-            - key: pg
-              operator: DoesNotExist
+            - key: shared-pg
+              operator: NotIn
+              values:
+                - "true"
           - matchExpressions:
             - key: {{ .Values.nodeTag }}
               operator: In
               values:
               - "true"
+          # - matchExpressions:
+          #   - key: cloud.google.com/gke-spot
+          #     operator: NotIn
+          #     values:
+          #       - "true"
   storage:
     size: {{ .Values.cloudNativePG.persistence.size }}Gi
     {{- if .Values.cloudNativePG.persistence.storageClass }}
