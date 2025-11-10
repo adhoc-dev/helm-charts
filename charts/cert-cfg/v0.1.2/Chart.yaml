@@ -19,4 +19,4 @@ maintainers:
   - name: jjscarafia
     email: jjs@adhoc.com.ar
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/kube-cert-manager-nginx-kubernetes.png"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/main/img/kube-cert-manager-nginx-kubernetes.png"

@@ -17,4 +17,4 @@ maintainers:
   - name: dbollini
     email: dib@adhoc.com.ar
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/vacuum-cleaner.png"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/main/img/vacuum-cleaner.png"

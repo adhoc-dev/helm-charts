@@ -21,4 +21,4 @@ maintainers:
   - name: azacchino
     email: az@adhoc.com.ar
 
-icon: "https://github.com/adhoc-dev/helm-charts/raw/master/img/postgresql_horizontal_logo_icon.svg"
+icon: "https://github.com/adhoc-dev/helm-charts/raw/main/img/postgresql_horizontal_logo_icon.svg"
