@@ -16,17 +16,17 @@ data:
     storage:
       filesystem:
         rootdirectory: /var/lib/registry
-    proxy:
-      remoteurl: {{ .Values.proxy.remoteurl | quote }}
-      # Mark cached content as stale after 7 days
-      ttl: 168h
-    storage:
       maintenance:
         uploadpurging:
           enabled: true
-          age: 168h
+          age: 1440h
           interval: 24h
+          dryrun: false
         readonly:
           enabled: {{ .Values.maintenance.readonly | default false }}
+    proxy:
+      remoteurl: {{ .Values.proxy.remoteurl | quote }}
+      # Mark cached content as stale after 60 days
+      ttl: 1440h
     tracing:
       enabled: false
