@@ -16,10 +16,7 @@ spec:
       nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
       tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
       strategy:
-        type: RollingUpdate
-        rollingUpdate:
-          maxSurge: 0
-          maxUnavailable: 100%
+        type: Recreate
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -39,10 +36,10 @@ spec:
           resources:
             limits:
               cpu: 500m
-              memory: 1Gi
+              memory: 4Gi
             requests:
               cpu: 250m
-              memory: 512Mi
+              memory: 1Gi
           ports:
             - containerPort: 5000
           env:
@@ -76,8 +73,56 @@ spec:
               path: /
               port: 5000
             initialDelaySeconds: 3
-            periodSeconds: 5
+            periodSeconds: 30
           resources: {{- toYaml .Values.resources | nindent 12 }}
+        - name: cleaner
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              THRESHOLD=${DISK_THRESHOLD:-70}
+              TTL_DAYS=${TTL_DAYS:-7}
+              SLEEP_INTERVAL=${SLEEP_INTERVAL:-86400}
+
+              echo "started with threshold=${THRESHOLD}% ttl=${TTL_DAYS}d interval=${SLEEP_INTERVAL}s"
+
+              while true; do
+                used=$(df -P /var/lib/registry | awk 'NR==2 {print $5}' | tr -d '%')
+                echo "disk usage: ${used}%"
+
+                if [ "$used" -ge "$THRESHOLD" ]; then
+                  echo "threshold exceeded (${used}% > ${THRESHOLD}%), cleaning old blobs..."
+                  find /var/lib/registry/docker/registry/v2/blobs/sha256 -type f -mtime +${TTL_DAYS} -print -delete
+
+                  echo "restart main registry container..."
+                  kill 1
+                else
+                  echo "disk usage under threshold, skipping cleanup."
+                fi
+
+                echo "sleeping ${SLEEP_INTERVAL}s..."
+                sleep "${SLEEP_INTERVAL}"
+              done
+          env:
+            - name: DISK_THRESHOLD
+              value: "70"
+            - name: TTL_DAYS
+              value: "61"
+            - name: SLEEP_INTERVAL
+              value: "86400" # 24h
+          resources:
+            limits:
+              cpu: 50m
+              memory: 128Gi
+            requests:
+              cpu: 5m
+              memory: 32Mi
+          volumeMounts:
+            {{- if .Values.storage.filesystem.enabled }}
+            - name: data
+              mountPath: /var/lib/registry
+            {{- end }}
       volumes:
         - name: config
           configMap:
