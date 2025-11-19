@@ -46,9 +46,9 @@ livenessProbe:
   tcpSocket:
     port: 8069
   initialDelaySeconds: 2
-  periodSeconds: 10
-  timeoutSeconds: 1
-  failureThreshold: 6 # 1 min
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 8 # 1 min
   successThreshold: 1
 # Check if the pod is ready to receive traffic from the service
 readinessProbe:
