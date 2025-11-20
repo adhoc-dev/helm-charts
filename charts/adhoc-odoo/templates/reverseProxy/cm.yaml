@@ -184,6 +184,10 @@ data:
         #     return 403;
         # }
 
+        location /metrics {
+          return 403;
+        }
+
         ### Limit Requests
 
         # Custom response for rate-limited requests
