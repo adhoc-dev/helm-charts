@@ -1,0 +1,28 @@
+image:
+  repository: weblate/weblate
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  pullSecret: "regcred"
+
+cloudNativePG:
+  superUserPassword: "please-fill-with-secure-password"
+  version: "15.0"
+  persistence:
+    size: 1
+    storageClass: "gpc-ssd-d"
+  backup:
+    volumeSnapshot:
+      volumeSnapshotClass: gcp-r
+
+ingress:
+  host: "translation.example.com"
+  issuer: "prod-issuer"
+
+nodeTag: "Prod"
+
+weblate:
+  adminName: "Admin"
+  adminEmail: "weblate@example.com"
+  adminPassword: "please-fill-with-secure-password"
+

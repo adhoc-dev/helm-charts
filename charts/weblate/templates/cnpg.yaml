@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "app-instance.fullname" . }}-pg-app
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ "weblate" | b64enc | quote }}
+  password: {{ .Values.cloudNativePG.superUserPassword | b64enc | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "app-instance.fullname" . }}-pg
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "app-instance.fullname" . }}-pg
+  annotations:
+    cnpg.io/hibernation: "off"
+spec:
+  priorityClassName: prod-priority
+  smartShutdownTimeout: 0
+  logLevel: info
+  imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+  primaryUpdateStrategy: unsupervised
+  enablePDB: false
+  instances: 1
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: cloud.google.com/gke-spot
+              operator: NotIn
+              values:
+                - "true"
+  storage:
+    size: {{ .Values.cloudNativePG.persistence.size }}Gi
+    storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  backup:
+    volumeSnapshot:
+      snapshotOwnerReference: none
+      annotations: {}
+      labels:
+        app.kubernetes.io/name: {{ include "app-instance.fullname" . }}-pg
+      className: {{ .Values.cloudNativePG.backup.volumeSnapshot.volumeSnapshotClass }}
+    target: prefer-standby
+  managed:
+    services:
+      disabledDefaultServices: ["ro", "r"]
+    roles:
+    - name: weblate
+      ensure: present
+      comment: Weblate User
+      login: true
+      superuser: true
+      passwordSecret:
+        name: {{ include "app-instance.fullname" . }}-pg-app
