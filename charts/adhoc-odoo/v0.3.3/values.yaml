@@ -191,6 +191,8 @@ odoo:
   extraEnvVars:
     # example: "yes"
     # example2: "no"
+  monitoring:
+    enabled: false
 
 
 # Redis Config

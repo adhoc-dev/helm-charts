@@ -136,6 +136,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            {{- if .Values.odoo.monitoring.enabled }}
+            - name: PROMETHEUS_ENABLED
+              value: "1"
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
