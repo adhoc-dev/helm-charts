@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  schedule: "0 4 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: weblate-command
+              image: "{{ .Values.cron.image.repository }}:{{ .Values.cron.image.tag }}"
+              envFrom:
+              - secretRef:
+                  name: {{ include "app-instance.fullname" . }}
+              env:
+                - name: GITHUB_TOKEN
+                  value: {{ .Values.githubToken | quote }}
+              command:
+                - /usr/local/bin/main.py
+              args: []
