@@ -11,7 +11,8 @@ kind: Deployment
 metadata:
   name: {{ include "app-instance.fullname" . }}-valkey
   labels:
-    app: valkey
+    app: {{ include "app-instance.fullname" . }}-valkey
+    {{- include "app-instance.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -21,6 +22,7 @@ spec:
     metadata:
       labels:
         app: {{ include "app-instance.fullname" . }}-valkey
+        {{- include "app-instance.labels" . | nindent 8 }}
         adhoc.ar/app-name: "valkey"
     spec:
       nodeSelector:
@@ -60,15 +62,15 @@ spec:
               port: 6379
             initialDelaySeconds: 10
             periodSeconds: 10
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: {{ .Values.nodeTag }}
-              operator: In
-              values:
-              - "true"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
 ---
 apiVersion: v1
 kind: Service
