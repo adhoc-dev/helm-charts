@@ -27,130 +27,18 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
-          env:
-            # See Weblate documentation for detailed description:
-            # https://docs.weblate.org/en/latest/admin/deployments.html#docker
-            # limit concurrency
-            - name: WEB_WORKERS
-              value: "4"
-            - name: CELERY_MAIN_OPTIONS
-              value: "--concurrency 2"
-            - name: CELERY_NOTIFY_OPTIONS
-              value: "--concurrency 1"
-            - name: CELERY_TRANSLATE_OPTIONS
-              value: "--concurrency 1"
-
-            - name: WEBLATE_DEBUG
-              value: "0"
-            - name: WEBLATE_LOGLEVEL
-              value: "DEBUG"
-            - name: WEBLATE_SITE_TITLE
-              value: "Adhoc Weblate"
-            - name: WEBLATE_ADMIN_NAME
-              value: "{{ .Values.weblate.adminName }}"
-            - name: WEBLATE_ADMIN_EMAIL
-              value: "{{ .Values.weblate.adminEmail }}"
-            - name: WEBLATE_ADMIN_PASSWORD
-              value: "{{ .Values.weblate.adminPassword }}"
-            - name: WEBLATE_SERVER_EMAIL
-              value: "noreply@adhoc.inc"
-            - name: WEBLATE_DEFAULT_FROM_EMAIL
-              value: "{{ .Values.weblate.adminEmail }}"
-            - name: WEBLATE_ALLOWED_HOSTS
-              # value: "*"
-              value: {{ .Values.ingress.host | quote }}
-            # - name: WEBLATE_CORS_ALLOWED_ORIGINS
-            #   value: "https://{{ .Values.ingress.host }},http://{{ .Values.ingress.host }}"
-            # - name: WEBLATE_CORS_ALLOW_ALL_ORIGINS
-            #   value: "1"
-            - name: WEBLATE_SITE_DOMAIN
-              value: {{ .Values.ingress.host | quote }}
-            - name: WEBLATE_REGISTRATION_OPEN
-              value: "0"
-            - name: WEBLATE_SIMPLIFY_LANGUAGES
-              value: "0"
-            - name: WEBLATE_AUTO_UPDATE
-              value: "1"
-            - name: WEBLATE_DEFAULT_SHARED_TM
-              value: "1"
-
-            # Extra (comentadas)
-            # - name: WEBLATE_TIME_ZONE
-            #   value: ""
-            # - name: WEBLATE_MT_GOOGLE_KEY
-            #   value: ""
-
-            # see https://github.com/organizations/OCA/settings/applications
-            - name: WEBLATE_SOCIAL_AUTH_GITHUB_KEY
-              value: ""
-            - name: WEBLATE_SOCIAL_AUTH_GITHUB_SECRET
-              value: ""
-
-            #WEBLATE_SOCIAL_AUTH_BITBUCKET_KEY: ""
-            #WEBLATE_SOCIAL_AUTH_BITBUCKET_SECRET: ""
-            #WEBLATE_SOCIAL_AUTH_FACEBOOK_KEY: ""
-            #WEBLATE_SOCIAL_AUTH_FACEBOOK_SECRET: ""
-            #WEBLATE_SOCIAL_AUTH_GOOGLE_OAUTH2_KEY: ""
-            #WEBLATE_SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET: ""
-
-            #WEBLATE_OFFLOAD_INDEXING: "1"
-            #WEBLATE_GOOGLE_ANALYTICS_ID: ""
-            - name: WEBLATE_REQUIRE_LOGIN
-              value: "1"
-            - name: WEBLATE_ENABLE_HTTPS
-              value: "1"
-            - name: WEBLATE_SECURE_PROXY_SSL_HEADER
-              value: "HTTP_X_FORWARDED_PROTO,https"
-            # - name: WEBLATE_IP_PROXY_HEADER
-            #   value: "HTTP_X_REAL_IP" # HTTP_X_FORWARDED_FOR
-
-            # PostgreSQL setup
-            - name: POSTGRES_PASSWORD
-              value: "{{ .Values.cloudNativePG.superUserPassword }}"
-            - name: POSTGRES_USER
-              value: "weblate"
-            - name: POSTGRES_DB
-              value: "app"
-            - name: POSTGRES_HOST
-              value: "{{ include "app-instance.fullname" . }}-pg-rw"
-            - name: POSTGRES_PORT
-              value: "5432"
-
-            # Cache setup
-            # https://docs.weblate.org/en/latest/admin/install.html#production-cache
-            - name: REDIS_HOST
-              value: "{{ include "app-instance.fullname" . }}-valkey"
-            # - name: REDIS_PORT
-            #   value: "6379"
-
-            # Mail server, the server has to listen on port 587 and understand TLS
-            - name: WEBLATE_EMAIL_HOST
-              value: "smtp.translation.dev-adhoc.com"
-            # Do NOT use quotes here
-            - name: WEBLATE_EMAIL_HOST_USER
-              value: weblate
-            # Do NOT use quotes here
-            - name: WEBLATE_EMAIL_HOST_PASSWORD
-              value: "weblate"
-
-            # SENTRY
-            - name: SENTRY_DSN
-              value: ""
-            - name: SENTRY_PUBLIC_DSN
-              value: ""
-
-            # oca-transbot GitHub token to for maintainer-tools get_repositories()
-            - name: GITHUB_TOKEN
-              value: ""
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: {{ .Values.nodeTag }}
-              operator: In
-              values:
-              - "true"
+          envFrom:
+          - secretRef:
+              name: {{ include "app-instance.fullname" . }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
 ---
 apiVersion: v1
 kind: Service

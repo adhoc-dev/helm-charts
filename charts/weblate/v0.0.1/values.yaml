@@ -1,9 +1,12 @@
 image:
   repository: weblate/weblate
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
-  pullSecret: "regcred"
+  tag: "5.10"
+
+cron:
+  image:
+    repository: dockerhub.adhoc.inc/adhoc/weblate
+    tag: "5.10"
 
 cloudNativePG:
   superUserPassword: "please-fill-with-secure-password"
@@ -26,3 +29,4 @@ weblate:
   adminEmail: "weblate@example.com"
   adminPassword: "please-fill-with-secure-password"
 
+githubToken: ""
