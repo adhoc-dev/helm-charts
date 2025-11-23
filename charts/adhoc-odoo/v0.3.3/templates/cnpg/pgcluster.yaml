@@ -263,8 +263,8 @@ spec:
       {{- if .Values.cloudNativePG.services.disableReadOnly }}
       disabledDefaultServices: ["ro", "r"]
       {{- end }}
-      additional:
       {{- if .Values.cloudNativePG.services.externalService.enabled }}
+      additional:
       - selectorType: {{ ternary "rw" "ro" ( eq (.Values.cloudNativePG.instances | default 1 | int) 1) }}
         serviceTemplate:
           spec:

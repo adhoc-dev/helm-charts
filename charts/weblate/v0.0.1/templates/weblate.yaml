@@ -15,6 +15,8 @@ spec:
         {{- include "app-instance.selectorLabels" . | nindent 8 }}
         adhoc.ar/app-name: "weblate"
     spec:
+      securityContext:
+        fsGroup: 1000
       initContainers:
         - name: wait-for-postgres
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
@@ -23,6 +25,9 @@ spec:
         - name: weblate
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: weblate-data
+              mountPath: /app/data/
           ports:
             - name: http
               containerPort: 8080
@@ -30,6 +35,48 @@ spec:
           envFrom:
           - secretRef:
               name: {{ include "app-instance.fullname" . }}
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+        - name: weblate-sidecar
+          image: "{{ .Values.cron.image.repository }}:{{ .Values.cron.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+          volumeMounts:
+            - name: weblate-data
+              mountPath: /app/data/
+            - name: ssh-dir
+              mountPath: /home/weblate/.ssh
+            - name: ssh-keys
+              mountPath: /home/weblate/.ssh/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: ssh-keys
+              mountPath: /home/weblate/.ssh/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+          envFrom:
+          - secretRef:
+              name: {{ include "app-instance.fullname" . }}
+          env:
+          - name: GITHUB_TOKEN
+            value: {{ .Values.githubToken | quote }}
+          command:
+          - sh
+          - -c
+          # - 'sleep infinity'
+          - 'ssh-keyscan github.com >> /home/weblate/.ssh/known_hosts && /usr/local/bin/main.py'
+      volumes:
+        - name: weblate-data
+          emptyDir: {}
+        - name: ssh-dir
+          emptyDir: {}
+        - name: ssh-keys
+          secret:
+            secretName: {{ include "app-instance.fullname" . }}-ssh-keys
+            defaultMode: 0600
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

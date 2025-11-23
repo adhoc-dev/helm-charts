@@ -6,7 +6,7 @@ image:
 cron:
   image:
     repository: dockerhub.adhoc.inc/adhoc/weblate
-    tag: "5.10"
+    tag: "5.10-ext"
 
 cloudNativePG:
   superUserPassword: "please-fill-with-secure-password"
@@ -25,8 +25,15 @@ ingress:
 nodeTag: "Prod"
 
 weblate:
-  adminName: "Admin"
-  adminEmail: "weblate@example.com"
-  adminPassword: "please-fill-with-secure-password"
+
+weblateGenerator:
+  sshPub: "ssh ..... weblate"
+  sshPriv: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    -----END OPENSSH PRIVATE KEY-----
+    
+# The new line is important!
+
 
 githubToken: ""
