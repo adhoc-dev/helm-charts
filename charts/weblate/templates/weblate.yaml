@@ -70,7 +70,8 @@ spec:
           - 'ssh-keyscan github.com >> /home/weblate/.ssh/known_hosts && /usr/local/bin/main.py'
       volumes:
         - name: weblate-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: {{ include "app-instance.fullname" . }}-data
         - name: ssh-dir
           emptyDir: {}
         - name: ssh-keys
