@@ -1,7 +1,7 @@
 {{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $odooImage := printf "%s:%s" .Values.image.repository (default .Chart.AppVersion .Values.image.tag) -}}
-{{- if and (gt $minorVersion 20250415) (or .Values.adhoc.devMode ( .Values.odoo.entrypoint.repos)) (hasSuffix $odooImage ".dev") }}
+{{- if and (gt $minorVersion 20250415) (or .Values.adhoc.devMode ( .Values.odoo.entrypoint.repos)) (not (hasSuffix $odooImage ".dev")) }}
 {{- $odooImage = printf "%s.dev" $odooImage }}
 {{- end }}
 apiVersion: apps/v1
