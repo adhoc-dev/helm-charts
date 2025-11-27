@@ -7,17 +7,19 @@
 #   password: "S3cUr0-valkey-password"
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "app-instance.fullname" . }}-valkey
   labels:
     app: {{ include "app-instance.fullname" . }}-valkey
     {{- include "app-instance.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "app-instance.fullname" . }}-valkey
   replicas: 1
   selector:
     matchLabels:
       app: {{ include "app-instance.fullname" . }}-valkey
+      adhoc.ar/app-name: "valkey"
   template:
     metadata:
       labels:

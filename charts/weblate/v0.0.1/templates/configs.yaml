@@ -20,13 +20,13 @@ stringData:
     WEBLATE_ADMIN_NAME: "{{ .Values.weblate.adminName }}"
     WEBLATE_ADMIN_EMAIL: "{{ .Values.weblate.adminEmail }}"
     WEBLATE_ADMIN_PASSWORD: "{{ .Values.weblate.adminPassword }}"
-    WEBLATE_SERVER_EMAIL: "noreply@adhoc.inc"
-    WEBLATE_DEFAULT_FROM_EMAIL: "{{ .Values.weblate.adminEmail }}"
+    WEBLATE_SERVER_EMAIL: "noreply@{{ .Values.ingress.host }}"
+    WEBLATE_DEFAULT_FROM_EMAIL: "noreply@{{ .Values.ingress.host }}"
     WEBLATE_ALLOWED_HOSTS: {{ .Values.ingress.host | quote }}
     # WEBLATE_CORS_ALLOWED_ORIGINS: "https://{{ .Values.ingress.host }},http://{{ .Values.ingress.host }}"
     # WEBLATE_CORS_ALLOW_ALL_ORIGINS: "1"
     WEBLATE_SITE_DOMAIN: {{ .Values.ingress.host | quote }}
-    WEBLATE_REGISTRATION_OPEN: "0"
+    WEBLATE_REGISTRATION_OPEN: "1"
     WEBLATE_SIMPLIFY_LANGUAGES: "0"
     WEBLATE_AUTO_UPDATE: "1"
     WEBLATE_DEFAULT_SHARED_TM: "1"
@@ -65,11 +65,11 @@ stringData:
     REDIS_HOST: "{{ include "app-instance.fullname" . }}-valkey"
 
     # Mail server, the server has to listen on port 587 and understand TLS
-    WEBLATE_EMAIL_HOST: "smtp.translation.dev-adhoc.com"
+    WEBLATE_EMAIL_HOST: "{{ .Values.weblate.smtp_host }}"
     # Do NOT use quotes here
-    WEBLATE_EMAIL_HOST_USER: weblate
+    WEBLATE_EMAIL_HOST_USER: {{ .Values.weblate.smtp_user }}
     # Do NOT use quotes here
-    WEBLATE_EMAIL_HOST_PASSWORD: "weblate"
+    WEBLATE_EMAIL_HOST_PASSWORD: {{ .Values.weblate.smtp_password }}
 
     # SENTRY
     SENTRY_DSN: ""
