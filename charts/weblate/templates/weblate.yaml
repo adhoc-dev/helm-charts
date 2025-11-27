@@ -1,14 +1,16 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "app-instance.fullname" . }}
   labels:
     {{- include "app-instance.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "app-instance.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
     {{- include "app-instance.selectorLabels" . | nindent 6 }}
+    adhoc.ar/app-name: "weblate"
   template:
     metadata:
       labels:
@@ -66,12 +68,13 @@ spec:
           command:
           - sh
           - -c
-          # - 'sleep infinity'
-          - 'ssh-keyscan github.com >> /home/weblate/.ssh/known_hosts && /usr/local/bin/main.py'
+          - |
+            ssh-keyscan github.com >> /home/weblate/.ssh/known_hosts
+            while true; do
+              sleep 86400
+              /usr/local/bin/main.py
+            done
       volumes:
-        - name: weblate-data
-          persistentVolumeClaim:
-            claimName: {{ include "app-instance.fullname" . }}-data
         - name: ssh-dir
           emptyDir: {}
         - name: ssh-keys
@@ -87,6 +90,17 @@ spec:
                 operator: In
                 values:
                 - "true"
+  volumeClaimTemplates:
+  - metadata:
+      name: weblate-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.storageClassName }}
+      storageClassName: {{ .Values.storage.storageClassName | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size | default "10Gi" }}
 ---
 apiVersion: v1
 kind: Service

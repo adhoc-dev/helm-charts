@@ -1,15 +1,15 @@
 image:
-  repository: weblate/weblate
+  repository: adhoc/weblate
   pullPolicy: IfNotPresent
-  tag: "5.10"
+  tag: "5.10-ext-3"
 
 cron:
   image:
-    repository: dockerhub.adhoc.inc/adhoc/weblate
-    tag: "5.10-ext"
+    repository: adhoc/weblate
+    tag: "5.10-ext-3"
 
 cloudNativePG:
-  superUserPassword: "please-fill-with-secure-password"
+  superUserPassword: "superSecretPasswordExample12345"
   version: "15.0"
   persistence:
     size: 1
@@ -25,17 +25,30 @@ ingress:
 nodeTag: "Prod"
 
 weblate:
+  adminName: "admin"
+  adminEmail: "weblate@example.com"
+  adminPassword: "examplePassword12345"
+  smtp_host: "sandbox.smtp.mailtrap.io"
+  smtp_user: "exampleUser"
+  smtp_password: "examplePassword"
 
 weblateGenerator:
-  sshPub: "ssh ..... weblate"
+  sshPub: "ssh-ed25519 AAAA...examplePublicKey weblate@example.com"
   sshPriv: |
     -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    Fill this with the actual private key content
+     .
+     .
+     .
     -----END OPENSSH PRIVATE KEY-----
+
 # This new line (the previous one) is important! It's part of the private key format.
 
 storage:
   size: "10Gi"
 
+# This token is used to access GitHub to search repositories.
+githubToken: "github_exampleToken"
 
-githubToken: ""
+k8sAdmin:
+  users: []
