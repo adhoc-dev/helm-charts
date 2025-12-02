@@ -4,6 +4,7 @@
 {{- if and (gt $minorVersion 20250415) (or .Values.adhoc.devMode ( .Values.odoo.entrypoint.repos)) (not (hasSuffix $odooImage ".dev")) }}
 {{- $odooImage = printf "%s.dev" $odooImage }}
 {{- end }}
+{{ $replicaCount := (default 1 .Values.replicaCount) | int }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,9 +31,9 @@ spec:
       maxUnavailable: 25%
       {{- else }}
       # We allow up to 2 extra pods on rolling updates (if there are enough replicas)
-      maxSurge: {{ ternary 2 1 (gt ((default 1 .Values.replicaCount) | int) 2) }}
+      maxSurge: {{ ternary 2 1 (gt $replicaCount 2) }}
       # We don't allow disruptions on rolling updates (if there is only one pod, we can't afford to have it down)
-      maxUnavailable: {{ max (min (sub ((default 1 .Values.replicaCount) | int) 1) 2) 0 }}
+      maxUnavailable: {{ max (min (sub $replicaCount 1) 2) 0 }}
       {{- end }}
   revisionHistoryLimit: 10
   template:
@@ -95,11 +96,7 @@ spec:
             {{- end }}
             seccompProfile:
               type: RuntimeDefault
-          {{- if or .Values.adhoc.devMode (and (gt $minorVersion 20250415) ( .Values.odoo.entrypoint.repos)) }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}.dev"
-          {{- else }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          {{- end }}
+          image: {{ $odooImage | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.adhoc.devMode }}
           args:

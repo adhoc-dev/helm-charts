@@ -533,10 +533,10 @@ questions:
   - variable: ingress.reverseProxy.rateLimit.static
     group: "Ingress"
     label: "Static Rate Limit"
-    description: "Static Rate Limit (e.g., 3000r/s)"
+    description: "Static Rate Limit (e.g., 1000r/m)"
     type: "string"
     required: false
-    default: "3000r/s"
+    default: "1000r/m"
     show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
   - variable: ingress.reverseProxy.rateLimit.access
     group: "Ingress"
@@ -549,18 +549,18 @@ questions:
   - variable: ingress.reverseProxy.rateLimit.generic
     group: "Ingress"
     label: "Generic Rate Limit"
-    description: "Generic Rate Limit (e.g., 60r/s)"
+    description: "Generic Rate Limit (e.g., 1000r/m)"
     type: "string"
     required: false
-    default: "60r/s"
+    default: "1000r/m"
     show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
-  - variable: ingress.reverseProxy.rateLimit.ws
+  - variable: ingress.reverseProxy.rateLimit.rpc
     group: "Ingress"
-    label: "WebSocket Rate Limit"
-    description: "WebSocket Rate Limit (e.g., 10r/s)"
+    label: "RPC Rate Limit"
+    description: "RPC Rate Limit (e.g., 60r/m)"
     type: "string"
     required: false
-    default: "10r/s"
+    default: "60r/m"
     show_if: "ingress.reverseProxy.enabled=true,ingress.reverseProxy.rateLimit.enabled=true"
   - variable: ingress.reverseProxy.imageCacheEnabled
     group: "Ingress"

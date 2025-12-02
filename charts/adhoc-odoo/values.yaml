@@ -101,15 +101,17 @@ ingress:
     scale: 1
     rateLimit:
       enabled: false
-      static: 3000r/s
+      static: 1000r/m
       access: 5r/m
-      generic: 60r/s
-      ws: 10r/s
+      generic: 1000r/m
+      rpc: 60r/m
     imageCacheEnabled: false
     image:
-      repository: nginx
-      # repository: dockerhub.adhoc.inc/nginx
+      # repository: nginx
+      repository: dockerhub.adhoc.inc/library/nginx
       tag: "1.29-alpine"
+    loadBalancerCIDR: 10.0.0.0/8
+    internalClusterCIDR: 10.0.0.0/8
 
 resources:
   limits:
