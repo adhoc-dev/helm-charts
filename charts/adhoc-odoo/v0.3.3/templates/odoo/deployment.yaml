@@ -32,7 +32,7 @@ spec:
       # We allow up to 2 extra pods on rolling updates (if there are enough replicas)
       maxSurge: {{ ternary 2 1 (gt ((default 1 .Values.replicaCount) | int) 2) }}
       # We don't allow disruptions on rolling updates (if there is only one pod, we can't afford to have it down)
-      maxUnavailable: {{ min (sub ((default 1 .Values.replicaCount) | int) 1) 2 }}
+      maxUnavailable: {{ max (min (sub ((default 1 .Values.replicaCount) | int) 1) 2) 0) }}
       {{- end }}
   revisionHistoryLimit: 10
   template:
