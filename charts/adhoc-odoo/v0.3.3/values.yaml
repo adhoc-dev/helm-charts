@@ -108,7 +108,7 @@ ingress:
     imageCacheEnabled: false
     image:
       # repository: nginx
-      repository: dockerhub.adhoc.inc/nginx
+      repository: dockerhub.adhoc.inc/library/nginx
       tag: "1.29-alpine"
     loadBalancerCIDR: 10.0.0.0/8
     internalClusterCIDR: 10.0.0.0/8
