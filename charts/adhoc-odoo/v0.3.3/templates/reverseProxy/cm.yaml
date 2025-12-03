@@ -13,7 +13,7 @@ data:
     http {
       default_type  application/octet-stream;
 
-      set_real_ip_from 10.0.0.0/8; # Internal cluster IPs
+      set_real_ip_from {{ .Values.ingress.reverseProxy.loadBalancerCIDR }}; # Internal cluster IPs
       real_ip_header X-Forwarded-For;
       real_ip_recursive on;
 
@@ -94,6 +94,7 @@ data:
       upstream odoo {
         server {{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80;
         keepalive 32;  # Mejora rendimiento para conexiones persistentes
+
       }
 
       {{- $usewebsocket  := .Values.odoo.performance.workers | toString | int -}}
@@ -126,12 +127,16 @@ data:
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
       # Rate Limiting for basic brute force protection
       # Create a 10MB zone, enough for ~160,000 IPs.
-      limit_req_zone $binary_remote_addr zone=static:10m rate={{ .Values.ingress.reverseProxy.rateLimit.static | default "3000r/s" }};
+      # Use geo to define which IPs bypass rate limiting
+      geo $limit_key {
+          default $binary_remote_addr;
+          {{ .Values.ingress.reverseProxy.internalClusterCIDR }} "";
+      }
+
+      limit_req_zone $binary_remote_addr zone=static:10m rate={{ .Values.ingress.reverseProxy.rateLimit.static | default "1000r/m" }};
       limit_req_zone $binary_remote_addr zone=access:10m rate={{ .Values.ingress.reverseProxy.rateLimit.access | default "5r/m" }};
-      limit_req_zone $binary_remote_addr zone=generic:10m rate={{ .Values.ingress.reverseProxy.rateLimit.generic | default "60r/s" }};
-      {{- if gt $usewebsocket 0 }}
-      limit_req_zone $binary_remote_addr zone=longpoll:10m rate={{ .Values.ingress.reverseProxy.rateLimit.ws | default "10r/s" }};
-      {{- end }}
+      limit_req_zone $binary_remote_addr zone=generic:10m rate={{ .Values.ingress.reverseProxy.rateLimit.generic | default "1000r/m" }};
+      limit_req_zone $limit_key zone=rpc:10m rate={{ .Values.ingress.reverseProxy.rateLimit.rpc | default "60r/m" }};
       {{- end }}
 
       server {
@@ -194,9 +199,12 @@ data:
         location @rate_limited {
             add_header X-RateLimit-Blocked "true";
             add_header Retry-After 60;
-            return 503;
+            return 429; # HTTP 429 Too Many Requests
         }
 
+        {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
+
+        ############ INI ZONE ACCESS ############
         # Specific limits for login and authenticate requests
         # These are the most common targets for brute-force attacks
         # We allow a burst of 3 requests, with no delay for excessive requests
@@ -204,129 +212,133 @@ data:
         # but will be limited to the defined rate thereafter.
 
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/login$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             # Rate limiting for login attempts
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/session/authenticate$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             # Rate limiting for authenticate attempts
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/reset_password$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/signup$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/session/logout$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ ^/saas_auth {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         location ~ "^/web/dataset/(call_kw|call_button|call_kw_multi)$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         # Database management endpoints
         location ~ "^/web/database/(create|drop|duplicate|backup|restore|change_password)$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         # Other sensitive endpoints that could be targeted
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/login/qr$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
         # SMS sending endpoint
         location ~ "^(/[a-z]{2}(_[A-Z]{2})?)?/web/session/send_sms$" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             proxy_pass http://odoo;
         }
 
-        # RPC XML endpoint
+        ############ END ZONE ACCESS ############
 
-        location ~ "^/xmlrpc" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
-            proxy_pass http://odoo;
-        }
-
-        # RPC JSON endpoint +19
-        location ~ "^/json" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
-            proxy_pass http://odoo;
-        }
-
-        # RPC JSON endpoint
-        location ~ "^/jsonrpc" {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=access burst=3 nodelay;
-            error_page 503 = @rate_limited;
-            {{- end }}
-            proxy_pass http://odoo;
-        }
-
+        ############ INI ZONE RPC ############
         # Specific limit for the Odoo root URL
         # This is often targeted for various types of attacks
         # We allow a burst of 3 requests, with no delay for excessive requests
         # This means that a client can make 3 requests in quick succession
         # but will be limited to the defined rate thereafter.
 
+        # RPC XML endpoint
+
+        location ~ "^/xmlrpc" {
+            limit_req zone=rpc burst=3 nodelay;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
+            proxy_pass http://odoo;
+        }
+
+        # RPC JSON endpoint +19
+        location ~ "^/json" {
+            limit_req zone=rpc burst=3 nodelay;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
+            proxy_pass http://odoo;
+        }
+
+        # RPC JSON endpoint
+        location ~ "^/jsonrpc" {
+            limit_req zone=rpc burst=3 nodelay;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
+            proxy_pass http://odoo;
+        }
+
+        ############ END ZONE RPC ############
+
+        {{- end }}
+
+
+        ############ INI ZONE GENERIC ############
+
+        # Specific limit for the Odoo root URL
+        # This is often targeted for various types of attacks
+        # We allow a burst of N requests, with no delay for excessive requests
+        # This means that a client can make 3 requests in quick succession
+        # but will be limited to the defined rate thereafter.
+
         location ~ "^/odoo" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             # Rate limiting for ERP requests
-            limit_req zone=generic burst=3 nodelay;
-            error_page 503 = @rate_limited;
+            limit_req zone=generic burst=10 nodelay;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             {{- end }}
             proxy_pass http://odoo;
         }
@@ -336,20 +348,20 @@ data:
         location / {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=generic burst=20 nodelay;
-            error_page 503 = @rate_limited;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             {{- end }}
             proxy_pass http://odoo;
         }
 
-        # Specific limit for Websocket and longpolling support (Odoo chat)
+        ############ END ZONE GENERIC ############
 
         {{- if gt $usewebsocket 0 }}
+
+        ############ INI ZONE WS ############
+
         # Redirect longpoll requests to odoo longpolling port (Odoo <= 15.0)
         location /longpolling {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=longpoll burst=20;
-            error_page 503 = @rate_limited;
-            {{- end }}
             proxy_pass http://odoochat;
             # Avoid premature disconections
             proxy_read_timeout 86400s;
@@ -358,10 +370,6 @@ data:
 
         # Redirect websocket requests to odoo gevent port (Odoo >= 16.0)
         location /websocket {
-            {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=longpoll burst=20;
-            error_page 503 = @rate_limited;
-            {{- end }}
             proxy_pass http://odoochat;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -370,6 +378,9 @@ data:
             proxy_read_timeout 86400s;
             proxy_send_timeout 86400s;
         }
+
+        ############ END ZONE WS ############
+
         {{- end }}
 
         # Specific limit for static content: images, css, js, ...
@@ -379,15 +390,16 @@ data:
         # This means that a client can make 100 requests in quick succession
         # but will be limited to the defined rate thereafter.
 
-        {{- if .Values.ingress.reverseProxy.imageCacheEnabled }}
-        # Specific caching for product images (more aggressive)
-        # Product images are the most commonly accessed images in Odoo
-
         location ~ "^/(web|website)/image/" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=static burst=100 nodelay;
-            error_page 503 = @rate_limited;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             {{- end }}
+
+            {{- if .Values.ingress.reverseProxy.imageCacheEnabled }}
+            # Specific caching for product images (more aggressive)
+            # Product images are the most commonly accessed images in Odoo
 
             # Cache if it is a public product and does not have access_token
             set $no_cache 0;
@@ -415,23 +427,23 @@ data:
             # Ignore any Set-Cookie headers in cache key
             proxy_cache_key "$scheme$proxy_host$uri$is_args$args";
             add_header X-Internal-Cache-Status $upstream_cache_status;
+            {{- end }}
 
             proxy_pass http://odoo;
-            {{ include "adhoc-odoo.nginx.cache_headers" . }}
+            {{ include "adhoc-odoo.nginx.cache_headers" . | nindent 12 }}
         }
-
-        {{- end }}
 
         # Static files are still served by Odoo, because Nginx doesn't have access to
         # the Odoo source code. However, they are cached.
         location ~ "^/[^/]+/static/.+$" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=static burst=100 nodelay;
-            error_page 503 = @rate_limited;
+            limit_req_status 429;
+            error_page 429 = @rate_limited;
             {{- end }}
             proxy_ignore_headers Set-Cookie;
             proxy_pass http://odoo;
-            {{ include "adhoc-odoo.nginx.cache_headers" . }}
+            {{ include "adhoc-odoo.nginx.cache_headers" . | nindent 12 }}
         }
 
         # Filestore storage files are served by Nginx thanks to the X-Accel extension
