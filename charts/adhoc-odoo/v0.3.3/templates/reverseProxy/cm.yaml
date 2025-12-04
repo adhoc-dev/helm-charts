@@ -255,12 +255,13 @@ data:
             proxy_pass http://odoo;
         }
 
-        location ~ "^/web/dataset/(call_kw|call_button|call_kw_multi)$" {
-            limit_req zone=access burst=3 nodelay;
-            limit_req_status 429;
-            error_page 429 = @rate_limited;
-            proxy_pass http://odoo;
-        }
+        # This causes issues with spreadsheet
+        # location ~ "^/web/dataset/(call_kw|call_button|call_kw_multi)$" {
+        #     limit_req zone=access burst=3 nodelay;
+        #     limit_req_status 429;
+        #     error_page 429 = @rate_limited;
+        #     proxy_pass http://odoo;
+        # }
 
         # Database management endpoints
         location ~ "^/web/database/(create|drop|duplicate|backup|restore|change_password)$" {
@@ -347,7 +348,8 @@ data:
         # Redirect requests to odoo backend server
         location / {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=generic burst=20 nodelay;
+            # This causes issues with spreadsheet dashboard ninja, so we use a higher burst
+            limit_req zone=generic burst=60 nodelay;
             limit_req_status 429;
             error_page 429 = @rate_limited;
             {{- end }}
