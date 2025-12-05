@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "registry-cache.fullname" . }}
 spec:
-  replicas: {{ ternary 0 1 .Values.maintenance.readonly }}
+  serviceName: {{ include "registry-cache.fullname" . }}
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "registry-cache.name" . }}
@@ -15,8 +16,6 @@ spec:
       priorityClassName: registry-cache-priority
       nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
       tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
-      strategy:
-        type: Recreate
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -82,7 +81,9 @@ spec:
             - -ec
             - |
               THRESHOLD=${DISK_THRESHOLD:-70}
+              # Time to live for blobs, in days
               TTL_DAYS=${TTL_DAYS:-7}
+              # Sleep for a day by default between checks 86400 seconds = 24 hours
               SLEEP_INTERVAL=${SLEEP_INTERVAL:-86400}
 
               echo "started with threshold=${THRESHOLD}% ttl=${TTL_DAYS}d interval=${SLEEP_INTERVAL}s"
@@ -114,7 +115,7 @@ spec:
           resources:
             limits:
               cpu: 50m
-              memory: 128Gi
+              memory: 128Mi
             requests:
               cpu: 5m
               memory: 32Mi
@@ -134,4 +135,14 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "registry-cache.fullname" . }}-data
+      # TODO: Use volumeClaimTemplates for StatefulSet and remove PVC.yaml reference
+      # volumeClaimTemplates:
+      #   - metadata:
+      #       name: data
+      #     spec:
+      #       accessModes: ["ReadWriteOnce"]
+      #       resources:
+      #         requests:
+      #           storage: {{ .Values.storage.size | default "10Gi" }}
+      #       storageClassName: {{ .Values.storage.class | default "standard-rwo" | quote }}
         {{- end }}

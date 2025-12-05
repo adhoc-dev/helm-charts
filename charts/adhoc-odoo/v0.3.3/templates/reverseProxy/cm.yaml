@@ -125,17 +125,25 @@ data:
       }
 
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-      # Rate Limiting for basic brute force protection
-      # Create a 10MB zone, enough for ~160,000 IPs.
-      # Use geo to define which IPs bypass rate limiting
+
+      # If there are a session_id cookie, use it as limit key
+      map $cookie_session_id $session_user {
+          default $cookie_session_id;
+          "" $binary_remote_addr;
+      }
+
+      # Geo to define which IPs bypass rate limiting
       geo $limit_key {
-          default $binary_remote_addr;
+          default $session_user;
           {{ .Values.ingress.reverseProxy.internalClusterCIDR }} "";
       }
 
-      limit_req_zone $binary_remote_addr zone=static:10m rate={{ .Values.ingress.reverseProxy.rateLimit.static | default "1000r/m" }};
-      limit_req_zone $binary_remote_addr zone=access:10m rate={{ .Values.ingress.reverseProxy.rateLimit.access | default "5r/m" }};
-      limit_req_zone $binary_remote_addr zone=generic:10m rate={{ .Values.ingress.reverseProxy.rateLimit.generic | default "1000r/m" }};
+      # Rate Limiting for basic brute force protection
+      # Create a 10MB zone, enough for ~160,000 IPs.
+      # Use geo to define which IPs bypass rate limiting
+      limit_req_zone $limit_key zone=static:10m rate={{ .Values.ingress.reverseProxy.rateLimit.static | default "1000r/m" }};
+      limit_req_zone $limit_key zone=access:10m rate={{ .Values.ingress.reverseProxy.rateLimit.access | default "5r/m" }};
+      limit_req_zone $limit_key zone=generic:10m rate={{ .Values.ingress.reverseProxy.rateLimit.generic | default "1000r/m" }};
       limit_req_zone $limit_key zone=rpc:10m rate={{ .Values.ingress.reverseProxy.rateLimit.rpc | default "60r/m" }};
       {{- end }}
 
@@ -162,6 +170,11 @@ data:
         # proxy_cookie_flags ~*^(?!cids$).* Secure HttpOnly SameSite=Lax;
         # Additional protection against clickjacking
         add_header Content-Security-Policy "frame-ancestors 'self'";
+
+        # # Debug headers
+        # add_header X-Debug-Limit-Key $limit_key always;
+        # add_header X-Debug-Session-User $session_user always;
+        # add_header X-Debug-Cookie-Session $cookie_session_id always;
 
         # Preventing scans
         # Block access to sensitive files
@@ -454,7 +467,8 @@ data:
         location /web/filestore {
             internal;
             alias /mnt/filestore;
-            add_header X-Served-By "nginx-filestore"; # debugging
+            # debugging
+            # add_header X-Served-By "nginx-filestore";
         }
       }
     }
