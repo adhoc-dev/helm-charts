@@ -36,6 +36,7 @@ Common labels
 {{- define "app-instance.labels" -}}
 helm.sh/chart: {{ include "app-instance.chart" . }}
 {{ include "app-instance.selectorLabels" . }}
+{{ include "app-instance.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,6 +49,13 @@ Selector labels
 {{- define "app-instance.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "app-instance.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "app-instance.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
 {{- end }}
 
 {{/*

@@ -36,6 +36,7 @@ Common labels
 {{- define "registry-cache.labels" -}}
 helm.sh/chart: {{ include "registry-cache.chart" . }}
 {{ include "registry-cache.selectorLabels" . }}
+{{ include "registry-cache.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,6 +49,13 @@ Selector labels
 {{- define "registry-cache.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "registry-cache.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "registry-cache.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
 {{- end }}
 
 {{/*

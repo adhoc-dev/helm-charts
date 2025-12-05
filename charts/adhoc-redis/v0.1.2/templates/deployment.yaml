@@ -17,6 +17,7 @@ spec:
       {{- end }}
       labels:
         {{- include "adhoc-redis.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "redis"
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

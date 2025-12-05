@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       {{- include "adhoc-aeroo.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "aeroo"
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,6 +20,7 @@ spec:
       {{- end }}
       labels:
         {{- include "adhoc-aeroo.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "aeroo"
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
