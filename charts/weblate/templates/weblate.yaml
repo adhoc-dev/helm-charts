@@ -10,7 +10,6 @@ spec:
   selector:
     matchLabels:
     {{- include "app-instance.selectorLabels" . | nindent 6 }}
-    adhoc.ar/app-name: "weblate"
   template:
     metadata:
       labels:

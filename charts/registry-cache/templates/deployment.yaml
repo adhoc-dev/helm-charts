@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "registry-cache.name" . }}
+        adhoc.ar/app-name: "registry-cache"
     spec:
       priorityClassName: registry-cache-priority
       nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
