@@ -33,6 +33,3 @@ ingress:
   issuer: "letsencrypt-prod"
   host: "dockerhub.adhoc.inc"
   whitelistSourceRange: "10.0.0.0/8"
-
-maintenance:
-  readonly: false

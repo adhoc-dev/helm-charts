@@ -23,7 +23,7 @@ data:
           interval: 24h
           dryrun: false
         readonly:
-          enabled: {{ .Values.maintenance.readonly | default false }}
+          enabled: false
     proxy:
       remoteurl: {{ .Values.proxy.remoteurl | quote }}
       # Mark cached content as stale after 60 days
