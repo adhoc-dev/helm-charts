@@ -36,6 +36,7 @@ Common labels
 {{- define "adhoc-defaultbackend.labels" -}}
 helm.sh/chart: {{ include "adhoc-defaultbackend.chart" . }}
 {{ include "adhoc-defaultbackend.selectorLabels" . }}
+{{ include "adhoc-defaultbackend.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,6 +49,13 @@ Selector labels
 {{- define "adhoc-defaultbackend.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "adhoc-defaultbackend.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "adhoc-defaultbackend.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
 {{- end }}
 
 {{/*

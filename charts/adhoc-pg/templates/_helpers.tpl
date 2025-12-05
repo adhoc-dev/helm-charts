@@ -36,6 +36,7 @@ Common labels
 {{- define "adhoc-pg.labels" -}}
 helm.sh/chart: {{ include "adhoc-pg.chart" . }}
 {{ include "adhoc-pg.selectorLabels" . }}
+{{ include "adhoc-pg.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -49,6 +50,15 @@ Selector labels
 app.kubernetes.io/name: {{ include "adhoc-pg.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "adhoc-pg.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
+adhoc.ar/odoo-client-shared: "true"
+{{- end }}
+
 
 {{/*
 Create the name of the service account to use

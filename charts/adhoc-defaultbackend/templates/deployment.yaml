@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       {{- include "adhoc-defaultbackend.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "nginx-default-backend"
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,6 +20,7 @@ spec:
       {{- end }}
       labels:
         {{- include "adhoc-defaultbackend.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "nginx-default-backend"
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

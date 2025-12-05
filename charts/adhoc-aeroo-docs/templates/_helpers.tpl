@@ -36,6 +36,7 @@ Common labels
 {{- define "adhoc-aeroo.labels" -}}
 helm.sh/chart: {{ include "adhoc-aeroo.chart" . }}
 {{ include "adhoc-aeroo.selectorLabels" . }}
+{{ include "adhoc-aeroo.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,6 +49,14 @@ Selector labels
 {{- define "adhoc-aeroo.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "adhoc-aeroo.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "adhoc-aeroo.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
+adhoc.ar/odoo-client-shared: "true"
 {{- end }}
 
 {{/*

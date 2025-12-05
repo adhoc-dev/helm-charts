@@ -36,6 +36,7 @@ Common labels
 {{- define "adhoc-redis.labels" -}}
 helm.sh/chart: {{ include "adhoc-redis.chart" . }}
 {{ include "adhoc-redis.selectorLabels" . }}
+{{ include "adhoc-redis.adhocLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,6 +49,14 @@ Selector labels
 {{- define "adhoc-redis.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "adhoc-redis.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- /*
+AdHoc labels
+*/}}
+{{- define "adhoc-redis.adhocLabels" -}}
+adhoc.ar/infrastructure: "true"
+adhoc.ar/odoo-client-shared: "true"
 {{- end }}
 
 {{/*
