@@ -137,10 +137,16 @@ data:
           "" $binary_remote_addr;
       }
 
-      # Geo to define which IPs bypass rate limiting
-      geo $limit_key {
-          default $session_user;
-          {{ .Values.ingress.reverseProxy.internalClusterCIDR }} "";
+      # Bypass rate limiting for internal cluster IPs geo only supports IP ranges, not variables
+      geo $is_internal_ip {
+          default 0;
+          {{ .Values.ingress.reverseProxy.internalClusterCIDR }} 1;
+      }
+
+      # Final limit key: empty if internal IP, otherwise use session_user
+      map $is_internal_ip $limit_key {
+          1 "";                    # Internal IP -> no rate limit
+          default $session_user;   # External -> use session or IP
       }
 
       # Rate Limiting for basic brute force protection
