@@ -182,7 +182,7 @@ data:
         add_header X-Debug-Session-User $session_user always;
         add_header X-Debug-Cookie-Session $cookie_session_id always;
         add_header X-Debug-Limit-Status $limit_req_status always;
-        add_header X-Debug-Remote-Addr $binary_remote_addr always;
+        add_header X-Debug-Remote-Addr $remote_addr always;
         {{- end }}
 
         # Preventing scans
@@ -215,6 +215,8 @@ data:
           return 403;
         }
 
+        {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
+
         ### Limit Requests
 
         # Custom response for rate-limited requests
@@ -222,13 +224,11 @@ data:
             add_header X-RateLimit-Blocked "true" always;
             add_header X-Debug-Limit-Key $limit_key always;
             add_header X-Debug-Session-User $session_user always;
-            add_header X-Debug-Cookie-Session-ID $cookie_session_id always;
+            add_header X-Debug-Cookie-Session $cookie_session_id always;
             add_header Retry-After 60 always;
             add_header Content-Type "text/plain" always;
             return 429 "Rate limit exceeded. Limit key: $limit_key\n";
         }
-
-        {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
 
         ############ INI ZONE ACCESS ############
         # Specific limits for login and authenticate requests
