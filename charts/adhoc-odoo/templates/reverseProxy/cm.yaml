@@ -20,7 +20,8 @@ data:
       sendfile on;
       server_tokens off;
 
-      # Rate limit debug log format
+      {{- if and .Values.ingress.reverseProxy.rateLimit.enabled .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+      # Rate limit debug log format (only available when rateLimit is enabled)
       log_format ratelimit_debug escape=json '{'
         '"time":"$time_local",'
         '"remote_addr":"$remote_addr",'
@@ -35,10 +36,12 @@ data:
       '}';
 
       # Enable for debugging rate limiting
-      # access_log /dev/stdout ratelimit_debug;
-      access_log off;
+      access_log /dev/stdout ratelimit_debug;
       # Log rate limit rejections to stderr
-      # error_log /dev/stderr warn;
+      error_log /dev/stderr warn;
+      {{- else -}}
+      access_log off;
+      {{- end }}
 
       keepalive_timeout  65;
       tcp_nodelay        on;
@@ -131,13 +134,19 @@ data:
       # If there are a session_id cookie, use it as limit key
       map $cookie_session_id $session_user {
           default $cookie_session_id;
-          "" $binary_remote_addr;
+          "" $remote_addr;
       }
 
-      # Geo to define which IPs bypass rate limiting
-      geo $limit_key {
-          default $session_user;
-          {{ .Values.ingress.reverseProxy.internalClusterCIDR }} "";
+      # Bypass rate limiting for internal cluster IPs geo only supports IP ranges, not variables
+      geo $is_internal_ip {
+          default 0;
+          {{ .Values.ingress.reverseProxy.internalClusterCIDR }} 1;
+      }
+
+      # Final limit key: empty if internal IP, otherwise use session_user
+      map $is_internal_ip $limit_key {
+          1 "";                    # Internal IP -> no rate limit
+          default $session_user;   # External -> use session or IP
       }
 
       # Rate Limiting for basic brute force protection
@@ -173,13 +182,13 @@ data:
         # Additional protection against clickjacking
         add_header Content-Security-Policy "frame-ancestors 'self'";
 
-        # # Debug headers
-        {{- if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        {{- if and .Values.ingress.reverseProxy.rateLimit.enabled .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        # Debug headers (REMOVER EN PRODUCCIÓN)
         add_header X-Debug-Limit-Key $limit_key always;
         add_header X-Debug-Session-User $session_user always;
         add_header X-Debug-Cookie-Session $cookie_session_id always;
         add_header X-Debug-Limit-Status $limit_req_status always;
-        add_header X-Debug-Remote-Addr $binary_remote_addr always;
+        add_header X-Debug-Remote-Addr $remote_addr always;
         {{- end }}
 
         # Preventing scans
@@ -212,6 +221,8 @@ data:
           return 403;
         }
 
+        {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
+
         ### Limit Requests
 
         # Custom response for rate-limited requests
@@ -219,13 +230,11 @@ data:
             add_header X-RateLimit-Blocked "true" always;
             add_header X-Debug-Limit-Key $limit_key always;
             add_header X-Debug-Session-User $session_user always;
-            add_header X-Debug-Cookie-Session-ID $cookie_session_id always;
+            add_header X-Debug-Cookie-Session $cookie_session_id always;
             add_header Retry-After 60 always;
             add_header Content-Type "text/plain" always;
             return 429 "Rate limit exceeded. Limit key: $limit_key\n";
         }
-
-        {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
 
         ############ INI ZONE ACCESS ############
         # Specific limits for login and authenticate requests
