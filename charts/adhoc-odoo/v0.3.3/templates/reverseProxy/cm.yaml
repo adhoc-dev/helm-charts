@@ -134,7 +134,7 @@ data:
       # If there are a session_id cookie, use it as limit key
       map $cookie_session_id $session_user {
           default $cookie_session_id;
-          "" $binary_remote_addr;
+          "" $remote_addr;
       }
 
       # Bypass rate limiting for internal cluster IPs geo only supports IP ranges, not variables
