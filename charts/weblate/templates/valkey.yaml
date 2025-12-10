@@ -19,7 +19,6 @@ spec:
   selector:
     matchLabels:
       app: {{ include "app-instance.fullname" . }}-valkey
-      adhoc.ar/app-name: "valkey"
   template:
     metadata:
       labels:

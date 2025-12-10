@@ -20,23 +20,25 @@ data:
       sendfile on;
       server_tokens off;
 
-      # log_format json_combined escape=json '{'
-      #   '"time_local":"$time_local",'
-      #   '"remote_addr":"$http_x_forwarded_for",'
-      #   '"request":"$request",'
-      #   '"status": "$status",'
-      #   '"body_bytes_sent":"$body_bytes_sent",'
-      #   '"request_time":"$request_time",'
-      #   '"http_referer":"$http_referer",'
-      #   '"http_user_agent":"$http_user_agent",'
-      #   '"upstream_addr":"$upstream_addr",'
-      #   '"upstream_status":"$upstream_status",'
-      #   '"upstream_response_time":"$upstream_response_time"'
-      # '}';
-      # access_log /dev/stdout json_combined;
+      # Rate limit debug log format
+      log_format ratelimit_debug escape=json '{'
+        '"time":"$time_local",'
+        '"remote_addr":"$remote_addr",'
+        '"x_forwarded_for":"$http_x_forwarded_for",'
+        '"request":"$request",'
+        '"status":"$status",'
+        '"limit_key":"$limit_key",'
+        '"session_user":"$session_user",'
+        '"cookie_session_id":"$cookie_session_id",'
+        '"request_time":"$request_time",'
+        '"upstream_response_time":"$upstream_response_time"'
+      '}';
+
+      # Enable for debugging rate limiting
+      # access_log /dev/stdout ratelimit_debug;
       access_log off;
-      # access_log /dev/stdout;
-      # error_log /dev/stderr error json;  # o info, warn, debug.
+      # Log rate limit rejections to stderr
+      # error_log /dev/stderr warn;
 
       keepalive_timeout  65;
       tcp_nodelay        on;
@@ -172,9 +174,13 @@ data:
         add_header Content-Security-Policy "frame-ancestors 'self'";
 
         # # Debug headers
-        # add_header X-Debug-Limit-Key $limit_key always;
-        # add_header X-Debug-Session-User $session_user always;
-        # add_header X-Debug-Cookie-Session $cookie_session_id always;
+        {{- if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        add_header X-Debug-Limit-Key $limit_key always;
+        add_header X-Debug-Session-User $session_user always;
+        add_header X-Debug-Cookie-Session $cookie_session_id always;
+        add_header X-Debug-Limit-Status $limit_req_status always;
+        add_header X-Debug-Remote-Addr $binary_remote_addr always;
+        {{- end }}
 
         # Preventing scans
         # Block access to sensitive files
@@ -210,9 +216,13 @@ data:
 
         # Custom response for rate-limited requests
         location @rate_limited {
-            add_header X-RateLimit-Blocked "true";
-            add_header Retry-After 60;
-            return 429; # HTTP 429 Too Many Requests
+            add_header X-RateLimit-Blocked "true" always;
+            add_header X-Debug-Limit-Key $limit_key always;
+            add_header X-Debug-Session-User $session_user always;
+            add_header X-Debug-Cookie-Session-ID $cookie_session_id always;
+            add_header Retry-After 60 always;
+            add_header Content-Type "text/plain" always;
+            return 429 "Rate limit exceeded. Limit key: $limit_key\n";
         }
 
         {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
@@ -357,7 +367,6 @@ data:
             proxy_pass http://odoo;
         }
 
-        # limit_req_zone $binary_remote_addr zone=odoo:10m rate=10r/s;
         # Redirect requests to odoo backend server
         location / {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
