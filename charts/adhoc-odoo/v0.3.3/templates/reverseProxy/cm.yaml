@@ -20,7 +20,8 @@ data:
       sendfile on;
       server_tokens off;
 
-      # Rate limit debug log format
+      {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
+      # Rate limit debug log format (only available when rateLimit is enabled)
       log_format ratelimit_debug escape=json '{'
         '"time":"$time_local",'
         '"remote_addr":"$remote_addr",'
@@ -35,10 +36,12 @@ data:
       '}';
 
       # Enable for debugging rate limiting
-      # access_log /dev/stdout ratelimit_debug;
-      access_log off;
+      access_log /dev/stdout ratelimit_debug;
       # Log rate limit rejections to stderr
-      # error_log /dev/stderr warn;
+      error_log /dev/stderr warn;
+      {{- else -}}
+      access_log off;
+      {{- end }}
 
       keepalive_timeout  65;
       tcp_nodelay        on;
@@ -173,8 +176,8 @@ data:
         # Additional protection against clickjacking
         add_header Content-Security-Policy "frame-ancestors 'self'";
 
-        # # Debug headers
-        {{- if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        {{- if and .Values.ingress.reverseProxy.rateLimit.enabled .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        # Debug headers (REMOVER EN PRODUCCIÓN)
         add_header X-Debug-Limit-Key $limit_key always;
         add_header X-Debug-Session-User $session_user always;
         add_header X-Debug-Cookie-Session $cookie_session_id always;
