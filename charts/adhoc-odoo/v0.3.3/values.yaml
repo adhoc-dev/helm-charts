@@ -105,6 +105,7 @@ ingress:
       access: 5r/m
       generic: 1000r/m
       rpc: 60r/m
+      debugHeaders: false
     imageCacheEnabled: false
     image:
       # repository: nginx
