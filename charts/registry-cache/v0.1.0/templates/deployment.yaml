@@ -33,13 +33,6 @@ spec:
         - name: registry
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          resources:
-            limits:
-              cpu: 500m
-              memory: 4Gi
-            requests:
-              cpu: 250m
-              memory: 1Gi
           ports:
             - containerPort: 5000
           env:
