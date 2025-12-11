@@ -425,7 +425,7 @@ data:
 
         location ~ "^/(web|website)/image/" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
-            limit_req zone=static burst=100 nodelay;
+            limit_req zone=static burst=200 nodelay;
             limit_req_status 429;
             error_page 429 = @rate_limited;
             {{- end }}
