@@ -14,6 +14,15 @@ stringData:
     CELERY_NOTIFY_OPTIONS: "--concurrency 1"
     CELERY_TRANSLATE_OPTIONS: "--concurrency 1"
 
+    # Required when behind a reverse proxy (k8s ingress)
+    WEBLATE_IP_BEHIND_REVERSE_PROXY: "True"
+    WEBLATE_IP_PROXY_HEADER: "HTTP_X_FORWARDED_FOR"
+    # Rate Limiting
+    WEBLATE_RATELIMIT_WINDOW: "300" # (in seconds, default 300) How long authentication is accepted after rate limiting applies.
+    WEBLATE_RATELIMIT_LOCKOUT: "600" # (in seconds, default 600) How long authentication is locked after rate limiting applies.
+    WEBLATE_AUTH_LOCK_ATTEMPTS: "10" # (default 10) How many failed login attempts are allowed before locking the account. (Sign in or Password reset.)
+    WEBLATE_RATELIMIT_ATTEMPTS: "5" # (default 5) Maximum number of authentication attempts before rate limiting is applied.
+
     WEBLATE_DEBUG: "0"
     WEBLATE_LOGLEVEL: "DEBUG"
     WEBLATE_SITE_TITLE: "Adhoc Weblate"
@@ -23,8 +32,8 @@ stringData:
     WEBLATE_SERVER_EMAIL: "noreply@{{ .Values.ingress.host }}"
     WEBLATE_DEFAULT_FROM_EMAIL: "noreply@{{ .Values.ingress.host }}"
     WEBLATE_ALLOWED_HOSTS: {{ .Values.ingress.host | quote }}
-    # WEBLATE_CORS_ALLOWED_ORIGINS: "https://{{ .Values.ingress.host }},http://{{ .Values.ingress.host }}"
-    # WEBLATE_CORS_ALLOW_ALL_ORIGINS: "1"
+    WEBLATE_CORS_ALLOWED_ORIGINS: "https://{{ .Values.ingress.host }}"
+
     WEBLATE_SITE_DOMAIN: {{ .Values.ingress.host | quote }}
     WEBLATE_REGISTRATION_OPEN: "1"
     WEBLATE_SIMPLIFY_LANGUAGES: "0"
@@ -51,7 +60,6 @@ stringData:
     WEBLATE_REQUIRE_LOGIN: "1"
     WEBLATE_ENABLE_HTTPS: "1"
     WEBLATE_SECURE_PROXY_SSL_HEADER: "HTTP_X_FORWARDED_PROTO,https"
-    # WEBLATE_IP_PROXY_HEADER: "HTTP_X_REAL_IP" # HTTP_X_FORWARDED_FOR
 
     # PostgreSQL setup
     POSTGRES_PASSWORD: "{{ .Values.cloudNativePG.superUserPassword }}"
@@ -70,6 +78,11 @@ stringData:
     WEBLATE_EMAIL_HOST_USER: {{ .Values.weblate.smtp_user }}
     # Do NOT use quotes here
     WEBLATE_EMAIL_HOST_PASSWORD: {{ .Values.weblate.smtp_password }}
+
+    # Content Security Policy - Allow Cloudflare Insights
+    # https://docs.weblate.org/en/latest/admin/install.html#csp
+    WEBLATE_CSP_SCRIPT_SRC: "'self' https://static.cloudflareinsights.com"
+    WEBLATE_CSP_CONNECT_SRC: "'self' https://cloudflareinsights.com"
 
     # SENTRY
     SENTRY_DSN: ""
