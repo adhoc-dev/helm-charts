@@ -75,5 +75,5 @@ stringData:
     SENTRY_DSN: ""
     SENTRY_PUBLIC_DSN: ""
 
-    # oca-transbot GitHub token to for maintainer-tools get_repositories()
-    GITHUB_TOKEN: ""
+    RUNBOT_URL: "{{ .Values.runbot.url }}"
+    RUNBOT_TOKEN: "{{ .Values.runbot.token }}"

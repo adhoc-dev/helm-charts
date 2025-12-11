@@ -1,12 +1,12 @@
 image:
   repository: adhoc/weblate
   pullPolicy: IfNotPresent
-  tag: "5.10-ext-3"
+  tag: "5.10-ext-4"
 
 cron:
   image:
     repository: adhoc/weblate
-    tag: "5.10-ext-3"
+    tag: "5.10-ext-4"
 
 cloudNativePG:
   superUserPassword: "superSecretPasswordExample12345"
@@ -47,8 +47,10 @@ weblateGenerator:
 storage:
   size: "10Gi"
 
-# This token is used to access GitHub to search repositories.
-githubToken: "github_exampleToken"
+# This is used to search for repositories.
+runbot:
+  url: "https://runbot.example.com"
+  token: ""
 
 k8sAdmin:
   users: []
