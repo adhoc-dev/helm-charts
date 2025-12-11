@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "app-instance.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+    {{- include "app-instance.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app-instance.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "weblate"
+    spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: wait-for-postgres
+          image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+          command: ['sh', '-c', 'until pg_isready -h {{ include "app-instance.fullname" . }}-pg-rw -p 5432; do echo "Waiting for PostgreSQL to be ready..."; sleep 2; done']
+      containers:
+        - name: weblate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: weblate-data
+              mountPath: /app/data/
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          envFrom:
+          - secretRef:
+              name: {{ include "app-instance.fullname" . }}
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+        - name: weblate-sidecar
+          image: "{{ .Values.cron.image.repository }}:{{ .Values.cron.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+          volumeMounts:
+            - name: weblate-data
+              mountPath: /app/data/
+            - name: ssh-dir
+              mountPath: /home/weblate/.ssh
+            - name: ssh-keys
+              mountPath: /home/weblate/.ssh/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: ssh-keys
+              mountPath: /home/weblate/.ssh/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+          envFrom:
+          - secretRef:
+              name: {{ include "app-instance.fullname" . }}
+          env:
+          - name: GITHUB_TOKEN
+            value: {{ .Values.githubToken | quote }}
+          command:
+          - sh
+          - -c
+          - |
+            ssh-keyscan github.com >> /home/weblate/.ssh/known_hosts
+            while true; do
+              sleep 86400
+              /usr/local/bin/main.py
+            done
+      volumes:
+        - name: ssh-dir
+          emptyDir: {}
+        - name: ssh-keys
+          secret:
+            secretName: {{ include "app-instance.fullname" . }}-ssh-keys
+            defaultMode: 0600
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
+  volumeClaimTemplates:
+  - metadata:
+      name: weblate-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.storageClassName }}
+      storageClassName: {{ .Values.storage.storageClassName | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size | default "10Gi" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "app-instance.selectorLabels" . | nindent 6 }}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

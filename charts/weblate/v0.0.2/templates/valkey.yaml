@@ -1,0 +1,87 @@
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: {{ include "app-instance.fullname" . }}-valkey-auth
+# type: Opaque
+# stringData:
+#   password: "S3cUr0-valkey-password"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "app-instance.fullname" . }}-valkey
+  labels:
+    app: {{ include "app-instance.fullname" . }}-valkey
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "app-instance.fullname" . }}-valkey
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "app-instance.fullname" . }}-valkey
+  template:
+    metadata:
+      labels:
+        app: {{ include "app-instance.fullname" . }}-valkey
+        {{- include "app-instance.labels" . | nindent 8 }}
+        adhoc.ar/app-name: "valkey"
+    spec:
+      nodeSelector:
+        Prod: "true"
+      containers:
+        - name: valkey
+          image: valkey/valkey:9-alpine
+          args:
+            # - "--requirepass"
+            # - "$(REDIS_PASSWORD)"
+            - "--maxmemory"
+            - "200mb"
+            - "--maxmemory-policy"
+            - "allkeys-lru"
+        #   env:
+        #     - name: REDIS_PASSWORD
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ include "app-instance.fullname" . }}-valkey-auth
+        #           key: password
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app-instance.fullname" . }}-valkey
+spec:
+  type: ClusterIP
+  ports:
+    - name: valkey
+      port: 6379
+      targetPort: 6379
+  selector:
+    app: {{ include "app-instance.fullname" . }}-valkey

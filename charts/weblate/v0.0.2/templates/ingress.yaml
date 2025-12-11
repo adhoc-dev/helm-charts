@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.issuer | quote }}
+    # nginx.ingress.kubernetes.io/whitelist-source-range: "{{ .Values.ingress.whitelistSourceRange | default "10.0.0.0/8" }}"
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: {{ .Values.ingress.host | quote }}
+      hosts:
+        - {{ .Values.ingress.host | quote }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "app-instance.fullname" . }}
+                port:
+                  number: 8080

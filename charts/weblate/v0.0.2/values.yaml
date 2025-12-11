@@ -1,0 +1,56 @@
+image:
+  repository: adhoc/weblate
+  pullPolicy: IfNotPresent
+  tag: "5.10-ext-4"
+
+cron:
+  image:
+    repository: adhoc/weblate
+    tag: "5.10-ext-4"
+
+cloudNativePG:
+  superUserPassword: "superSecretPasswordExample12345"
+  version: "15.0"
+  persistence:
+    size: 1
+    storageClass: "gpc-ssd-d"
+  backup:
+    volumeSnapshot:
+      volumeSnapshotClass: gcp-r
+
+ingress:
+  host: "translation.example.com"
+  issuer: "prod-issuer"
+
+nodeTag: "Prod"
+
+weblate:
+  adminName: "admin"
+  adminEmail: "weblate@example.com"
+  adminPassword: "examplePassword12345"
+  smtp_host: "sandbox.smtp.mailtrap.io"
+  smtp_user: "exampleUser"
+  smtp_password: "examplePassword"
+
+weblateGenerator:
+  sshPub: "ssh-ed25519 AAAA...examplePublicKey weblate@example.com"
+  sshPriv: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    Fill this with the actual private key content
+     .
+     .
+     .
+    -----END OPENSSH PRIVATE KEY-----
+
+# This new line (the previous one) is important! It's part of the private key format.
+
+storage:
+  size: "10Gi"
+
+# This is used to search for repositories.
+runbot:
+  url: "https://runbot.example.com"
+  token: ""
+
+k8sAdmin:
+  users: []
