@@ -3,7 +3,14 @@ image:
   tag: "3"
   pullPolicy: IfNotPresent
 
-resources: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 4Gi
+  requests:
+    cpu: 250m
+    memory: 1Gi
+
 nodeSelector: {}
 #  registry-cache: "true"
 tolerations: []
