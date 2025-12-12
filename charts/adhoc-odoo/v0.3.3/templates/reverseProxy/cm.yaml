@@ -423,7 +423,7 @@ data:
         # This means that a client can make 100 requests in quick succession
         # but will be limited to the defined rate thereafter.
 
-        location ~ "^/(web|website)/image/" {
+        location ~ "^/(web|website)/image(/|$)" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             limit_req zone=static burst=200 nodelay;
             limit_req_status 429;
@@ -437,6 +437,10 @@ data:
             # Cache if it is a public product and does not have access_token
             set $no_cache 0;
             if ($uri ~ "^/(web|website)/image/(product\.template|product\.product|website\..+)/") {
+                set $no_cache 0;
+            }
+            # Also cache /web/image called without parameters (like avatars)
+            if ($uri ~ "^/web/image$") {
                 set $no_cache 0;
             }
             if ($cache_bypass) {
