@@ -54,7 +54,7 @@ spec:
         gke-gcsfuse/ephemeral-storage-limit: 5Gi
         {{- if eq .Values.adhoc.appType "prod" }}
         gke-gcsfuse/cpu-request: 10m
-        gke-gcsfuse/memory-request: 50Mi
+        gke-gcsfuse/memory-request: 100Mi
         gke-gcsfuse/ephemeral-storage-request: 248Mi
         {{- else }}
         gke-gcsfuse/cpu-request: 5m

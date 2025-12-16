@@ -59,6 +59,15 @@ spec:
         - name: http
           containerPort: 80
           protocol: TCP
+        {{- if eq .Values.adhoc.appType "prod" }}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 50Mi
+          # limits:
+          #   cpu: 300m
+          #   memory: 515Mi
+        {{- end }}
         volumeMounts:
         {{- if eq .Values.storage.location "fuse" }}
         - name: gcs-fuse-csi-ephemeral
@@ -73,7 +82,36 @@ spec:
           name: nginx-config
           subPath: nginx.conf
           readOnly: true
+        {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        {{- end }}
+      {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
+      - name: nginx-exporter
+        image: "{{ .Values.ingress.reverseProxy.monitoring.exporterRepository }}:{{ .Values.ingress.reverseProxy.monitoring.exporterTag }}"
+        args:
+          - -nginx.scrape-uri=http://127.0.0.1:8080/nginx_status
+        ports:
+          - containerPort: 9113
+      - name: log-exporter
+        image: "{{ .Values.ingress.reverseProxy.monitoring.logRepository }}:{{ .Values.ingress.reverseProxy.monitoring.logTag }}"
+        args:
+          - -format=$status
+          - -listen-port=9114
+          - /var/log/nginx/metrics.log
+        ports:
+          - name: metrics
+            containerPort: 9114
+        volumeMounts:
+          - name: nginx-logs
+            mountPath: /var/log/nginx
+            readOnly: true
+      {{- end }}
       volumes:
+        {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
+        - name: nginx-logs
+          emptyDir: {}
+        {{- end }}
         - name: nginx-config
           configMap:
             name: {{ include "adhoc-odoo.fullname" . }}-nginx-config

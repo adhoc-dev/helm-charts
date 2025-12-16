@@ -1,0 +1,16 @@
+{{- if and .Values.ingress.reverseProxy.enabled .Values.ingress.enabled .Values.ingress.reverseProxy.monitoring.enabled }}
+---
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-nx
+spec:
+  selector:
+    matchLabels:
+      {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
+  endpoints:
+    - port: 9113
+      interval: 60s
+    - port: 9114
+      interval: 60s
+{{- end }}
