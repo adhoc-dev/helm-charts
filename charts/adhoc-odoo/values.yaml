@@ -113,6 +113,14 @@ ingress:
       tag: "1.29-alpine"
     loadBalancerCIDR: 10.0.0.0/8
     internalClusterCIDR: 10.0.0.0/8
+    # Monitoring
+    monitoring:
+      enabled: false
+      exporterRepository: dockerhub.adhoc.inc/nginx/nginx-prometheus-exporter
+      exporterTag: "1.5.1"
+      # ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter
+      logRepository: dockerhub.adhoc.inc/adhoc/ops-tools
+      logTag: "prometheus-nginxlog-exporter-20251216"
 
 resources:
   limits:

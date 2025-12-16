@@ -1,12 +1,12 @@
 image:
   repository: adhoc/weblate
   pullPolicy: IfNotPresent
-  tag: "5.10-ext-4"
+  tag: "5.10-ext-6"
 
 cron:
   image:
     repository: adhoc/weblate
-    tag: "5.10-ext-4"
+    tag: "5.10-ext-6"
 
 cloudNativePG:
   superUserPassword: "superSecretPasswordExample12345"

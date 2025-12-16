@@ -20,6 +20,11 @@ data:
       sendfile on;
       server_tokens off;
 
+      {{- if and .Values.ingress.reverseProxy.rateLimit.enabled .Values.ingress.reverseProxy.monitoring.enabled }}
+      log_format prometheus '$status';
+      access_log /var/log/nginx/metrics.log prometheus;
+      {{- end }}
+
       {{- if and .Values.ingress.reverseProxy.rateLimit.enabled .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
       # Rate limit debug log format (only available when rateLimit is enabled)
       log_format ratelimit_debug escape=json '{'
@@ -39,7 +44,9 @@ data:
       access_log /dev/stdout ratelimit_debug;
       # Log rate limit rejections to stderr
       error_log /dev/stderr warn;
-      {{- else -}}
+      {{- end }}
+
+      {{- if not .Values.ingress.reverseProxy.rateLimit.enabled }}
       access_log off;
       {{- end }}
 
@@ -156,6 +163,18 @@ data:
       limit_req_zone $limit_key zone=access:10m rate={{ .Values.ingress.reverseProxy.rateLimit.access | default "5r/m" }};
       limit_req_zone $limit_key zone=generic:10m rate={{ .Values.ingress.reverseProxy.rateLimit.generic | default "1000r/m" }};
       limit_req_zone $limit_key zone=rpc:10m rate={{ .Values.ingress.reverseProxy.rateLimit.rpc | default "60r/m" }};
+      {{- end }}
+
+      {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
+      server {
+        listen 127.0.0.1:8080;
+
+        location /nginx_status {
+            stub_status;
+            allow 127.0.0.1;
+            deny all;
+        }
+      }
       {{- end }}
 
       server {

@@ -5,7 +5,7 @@
 apiVersion: monitoring.googleapis.com/v1
 kind: PodMonitoring
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}
+  name: {{ include "adhoc-odoo.fullname" . }}-odoo
 spec:
   selector:
     matchLabels:

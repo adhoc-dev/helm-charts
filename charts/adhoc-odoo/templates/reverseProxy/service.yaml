@@ -12,6 +12,16 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
+    - port: 9113
+      targetPort: 9113
+      protocol: TCP
+      name: metrics
+    - port: 9114
+      targetPort: 9114
+      protocol: TCP
+      name: metrics-log
+    {{- end }}
   selector:
     {{- include "adhoc-odoo.nxselectorLabels" . | nindent 4 }}
 {{- end }}
