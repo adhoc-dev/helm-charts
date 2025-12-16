@@ -59,6 +59,15 @@ spec:
         - name: http
           containerPort: 80
           protocol: TCP
+        {{- if eq .Values.adhoc.appType "prod" }}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 50Mi
+          # limits:
+          #   cpu: 300m
+          #   memory: 515Mi
+        {{- end }}
         volumeMounts:
         {{- if eq .Values.storage.location "fuse" }}
         - name: gcs-fuse-csi-ephemeral
