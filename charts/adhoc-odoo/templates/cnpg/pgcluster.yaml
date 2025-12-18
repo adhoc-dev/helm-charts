@@ -256,6 +256,11 @@ spec:
       recoveryTarget:
         targetTime: {{ .Values.cloudNativePG.restore.inTimeRecovery | quote }}
       {{- end }}
+  {{- else }}
+  bootstrap:
+    initdb:
+      dataChecksums: true
+
   {{- end }}
 
   managed:
