@@ -395,7 +395,7 @@ data:
             proxy_pass http://odoo;
         }
 
-        location /web/dataset/call_kw/ {
+        location ~ "^/web/dataset/call_kw(/|$)" {
             {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
             # This causes issues with spreadsheet dashboard ninja, so we use a higher burst
             limit_req zone=generic burst=200 nodelay;
