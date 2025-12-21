@@ -1,16 +1,17 @@
-{{- if and .Values.ingress.reverseProxy.enabled .Values.ingress.enabled .Values.ingress.reverseProxy.monitoring.enabled }}
----
-apiVersion: monitoring.googleapis.com/v1
-kind: PodMonitoring
+{{- if and .Values.ingress.reverseProxy.enabled .Values.ingress.reverseProxy.monitoring.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-nx
+  labels:
+    release: prom
 spec:
   selector:
     matchLabels:
       {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
-  endpoints:
-    - port: 9113
+  podMetricsEndpoints:
+    - port: prom-nx
       interval: 60s
-    - port: 9114
+    - port: prom-nx-log
       interval: 60s
 {{- end }}

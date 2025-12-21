@@ -1,18 +1,18 @@
-{{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
+{{- $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int -}}
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- if and .Values.odoo.monitoring.enabled (ge $odooVersion 180) (ge $minorVersion 20251121) }}
----
-apiVersion: monitoring.googleapis.com/v1
-kind: PodMonitoring
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}-odoo
+  labels:
+    release: prom
 spec:
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
-  endpoints:
-    - path: /metrics
-      port: 8069
-      interval: 60s
-
+  podMetricsEndpoints:
+  - port: http
+    path: /metrics
+    interval: 60s
 {{- end }}
