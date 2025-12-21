@@ -92,7 +92,8 @@ spec:
         args:
           - -nginx.scrape-uri=http://127.0.0.1:8080/nginx_status
         ports:
-          - containerPort: 9113
+          - name: prom-nx
+            containerPort: 9113
       - name: log-exporter
         image: "{{ .Values.ingress.reverseProxy.monitoring.logRepository }}:{{ .Values.ingress.reverseProxy.monitoring.logTag }}"
         args:
@@ -100,7 +101,7 @@ spec:
           - -listen-port=9114
           - /var/log/nginx/metrics.log
         ports:
-          - name: metrics
+          - name: prom-nx-log
             containerPort: 9114
         volumeMounts:
           - name: nginx-logs
