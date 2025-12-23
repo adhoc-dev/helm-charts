@@ -18,7 +18,7 @@ Features:
 - Resource Quotas:
   - Minimal implementation of ResourceQuota
   - Minimal implementation of LimitRange
-- Google Pod monitoring:
+- Prometheus Pod monitoring:
   - Minimal odoo implementation
 
 ## *0.3.2*
