@@ -20,6 +20,8 @@ Features:
   - Minimal implementation of LimitRange
 - Prometheus Pod monitoring:
   - Minimal odoo implementation
+  - Minimal nx implementation
+  - Minimal cnpg implementation
 
 ## *0.3.2*
 

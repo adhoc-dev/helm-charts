@@ -1,5 +1,4 @@
-{{- if .Values.cloudNativePG.enabled }}
-{{- if .Values.cloudNativePG.restore.fromGCPSnapshot }}
+{{- if and .Values.cloudNativePG.enabled .Values.cloudNativePG.restore.fromGCPSnapshot }}
 
 # Class
 {{- $volumeSnapshotClass := default "gcp-r" .Values.cloudNativePG.restore.volumeSnapshotClass }}
@@ -35,5 +34,4 @@ spec:
   source:
     volumeSnapshotContentName: {{ printf "%s-%s" .Release.Namespace $targetBkp }}
 
-{{- end }}
 {{- end }}

@@ -325,6 +325,9 @@ cloudNativePG:
       sourceRanges: {}
       password: "odoo-readonly-password"
 
+  monitoring:
+    enabled: false
+
 resourceQuota:
   enabled: false
   requests:

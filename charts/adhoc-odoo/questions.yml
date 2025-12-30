@@ -670,7 +670,7 @@ questions:
   # Cloud Native Postgres
   - variable: cloudNativePG.enabled
     group: "CloudNativePG"
-    label: "Enable Cloud Native PF"
+    label: "Enable Cloud Native PG"
     type: "boolean"
     required: true
     default: false
@@ -705,4 +705,11 @@ questions:
     type: "string"
     required: false
     default: null
+    show_if: "cloudNativePG.enabled=true"
+  - variable: cloudNativePG.monitoring.enabled
+    group: "CloudNativePG"
+    label: "Enable Cloud Native PG Monitoring"
+    type: "boolean"
+    required: true
+    default: false
     show_if: "cloudNativePG.enabled=true"
