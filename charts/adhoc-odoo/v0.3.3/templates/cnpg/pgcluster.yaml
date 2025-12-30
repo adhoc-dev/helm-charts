@@ -260,7 +260,6 @@ spec:
   bootstrap:
     initdb:
       dataChecksums: true
-
   {{- end }}
 
   managed:
