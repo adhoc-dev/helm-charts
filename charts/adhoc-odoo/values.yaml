@@ -160,7 +160,7 @@ odoo:
   # Base Config
   basic:
     adminPass: "admin"
-    dbFilter: null
+    dbFilter: ""
     wideModules: "base,web,server_mode,saas_client"
     logLevel: "info"
     aerooHost: ""
