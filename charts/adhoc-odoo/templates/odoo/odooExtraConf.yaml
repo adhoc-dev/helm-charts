@@ -1,3 +1,4 @@
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- if ge $odooVersion 190 }}
 apiVersion: v1
 kind: ConfigMap
