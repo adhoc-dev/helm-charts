@@ -165,6 +165,12 @@ spec:
             subPath: odoo-send-file.conf
             readOnly: true
           {{- end }}
+          {{- if ge $odooVersion 190 }}
+          - name: odoo-extra-conf
+            mountPath: /home/odoo/.resources/conf.d/99-odoo-extra.conf
+            subPath: odoo-extra.conf
+            readOnly: true
+          {{- end }}
       affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -238,6 +244,11 @@ spec:
       - name: odoo-sendfile-conf
         configMap:
           name: {{ include "adhoc-odoo.fullname" . }}-odoo-sendfile-conf
+      {{- end }}
+      {{- if ge $odooVersion 190 }}
+      - name: odoo-extra-conf
+        configMap:
+          name: {{ include "adhoc-odoo.fullname" . }}-odoo-extra-conf
       {{- end }}
       {{- if eq .Values.storage.location "fuse" }}
       - name: gcs-fuse-csi-ephemeral
