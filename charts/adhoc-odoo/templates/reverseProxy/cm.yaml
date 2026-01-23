@@ -136,6 +136,12 @@ data:
           default      0;    # Cache in other cases (includes no-cache)
       }
 
+      # GLOBAL BOT BLOCK
+      map $http_user_agent $block_bad_ua {
+        default 0;
+        ~*(GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude|Bytespider|Barkrowler|SemrushBot) 1;
+      }
+
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
 
       # If there are a session_id cookie, use it as limit key
@@ -148,12 +154,6 @@ data:
       geo $is_internal_ip {
           default 0;
           {{ .Values.ingress.reverseProxy.internalClusterCIDR }} 1;
-      }
-
-      # GLOBAL BOT BLOCK
-      map $http_user_agent $block_bad_ua {
-        default 0;
-        ~*(GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude|Bytespider|Barkrowler|SemrushBot) 1;
       }
 
       # Final limit key: empty if internal IP, otherwise use session_user
