@@ -150,6 +150,12 @@ data:
           {{ .Values.ingress.reverseProxy.internalClusterCIDR }} 1;
       }
 
+      # GLOBAL BOT BLOCK
+      map $http_user_agent $block_bad_ua {
+        default 0;
+        ~*(GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude|Bytespider|Barkrowler|SemrushBot) 1;
+      }
+
       # Final limit key: empty if internal IP, otherwise use session_user
       map $is_internal_ip $limit_key {
           1 "";                    # Internal IP -> no rate limit
@@ -180,6 +186,11 @@ data:
       server {
         listen 80 default;
         client_max_body_size 1G;
+
+        # 🚫 BLOQUEO BOTS
+        if ($block_bad_ua) {
+          return 403;
+        }
 
         # Prevent browsers from ever sending a plain HTTP request to this domain
         # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#https-hardening
