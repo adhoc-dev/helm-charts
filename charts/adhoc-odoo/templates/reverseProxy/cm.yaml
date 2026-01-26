@@ -136,16 +136,23 @@ data:
           default      0;    # Cache in other cases (includes no-cache)
       }
 
-            {{- $botBlockEnabled := .Values.ingress.reverseProxy.botBlock.enabled | default true }}
-            {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+      {{- $botBlockEnabled := true }}
+      {{- if hasKey .Values.ingress.reverseProxy "botBlock" }}
+      {{- if hasKey .Values.ingress.reverseProxy.botBlock "enabled" }}
+      {{- $botBlockEnabled = .Values.ingress.reverseProxy.botBlock.enabled }}
+      {{- end }}
+      {{- end }}
+      {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
 
+      {{- if $botBlockEnabled }}
       # GLOBAL BOT BLOCK
       map $http_user_agent $block_bad_ua {
         default 0;
-                {{ if and $botBlockEnabled $blockedUserAgents }}
-                ~*({{ join "|" $blockedUserAgents }}) 1;
-                {{ end }}
+        {{- if $blockedUserAgents }}
+        ~*({{ join "|" $blockedUserAgents }}) 1;
+        {{- end }}
       }
+      {{- end }}
 
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
 
@@ -192,10 +199,12 @@ data:
         listen 80 default;
         client_max_body_size 1G;
 
+        {{- if $botBlockEnabled }}
         # 🚫 BLOQUEO BOTS
         if ($block_bad_ua) {
           return 403;
         }
+        {{- end }}
 
         # Prevent browsers from ever sending a plain HTTP request to this domain
         # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#https-hardening
