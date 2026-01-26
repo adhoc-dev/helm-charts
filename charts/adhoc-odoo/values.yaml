@@ -99,6 +99,21 @@ ingress:
   reverseProxy:
     enabled: false
     scale: 1
+    botBlock:
+      enabled: true
+    blockedUserAgents:
+      - GPTBot
+      - ChatGPT-User
+      - CCBot
+      - anthropic-ai
+      - Claude
+      - Bytespider
+      - Barkrowler
+      - SemrushBot
+      - Thinkbot
+      - bingbot
+      - PetalBot
+      - Baiduspider
     rateLimit:
       enabled: false
       static: 1000r/m

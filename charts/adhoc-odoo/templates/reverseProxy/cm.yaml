@@ -136,10 +136,15 @@ data:
           default      0;    # Cache in other cases (includes no-cache)
       }
 
+            {{- $botBlockEnabled := .Values.ingress.reverseProxy.botBlock.enabled | default true }}
+            {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+
       # GLOBAL BOT BLOCK
       map $http_user_agent $block_bad_ua {
         default 0;
-        ~*(GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude|Bytespider|Barkrowler|SemrushBot) 1;
+                {{ if and $botBlockEnabled $blockedUserAgents }}
+                ~*({{ join "|" $blockedUserAgents }}) 1;
+                {{ end }}
       }
 
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
@@ -435,7 +440,7 @@ data:
         # Redirect longpoll requests to odoo longpolling port (Odoo <= 15.0)
         location /longpolling {
             proxy_pass http://odoochat;
-            # Avoid premature disconections
+            # Avoid premature disconnections
             proxy_read_timeout 86400s;
             proxy_send_timeout 86400s;
         }
@@ -446,7 +451,7 @@ data:
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
-            # Avoid premature disconections
+            # Avoid premature disconnections
             proxy_read_timeout 86400s;
             proxy_send_timeout 86400s;
         }

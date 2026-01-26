@@ -1,5 +1,31 @@
 # Version changes
 
+## *0.3.4*
+
+Features:
+
+- Reverse Proxy:
+  - Global bot blocking based on User-Agent (NGINX `map`)
+    - Declarative configuration via Helm values (`ingress.reverseProxy.blockedUserAgents`)
+    - Enable / disable switch (`ingress.reverseProxy.botBlock.enabled`)
+    - 403 response for matching bots at reverse proxy level
+    - Default blocked bots list includes common AI, crawler and scraping agents (GPTBot, Claude, Bytespider, SemrushBot, Baiduspider, etc.)
+  - Helm questions added to manage blocked User-Agents without modifying templates
+  - Unified behavior across Odoo versions (18.x and 19.x)
+
+BugFixes:
+
+- Reverse Proxy:
+  - Fix NGINX crash on Odoo 18 due to undefined variables (`unknown "block_bad_ua" variable`)
+  - Ensure bot-block variables are always defined before usage
+  - Improved configuration consistency between nginx versions
+
+Improvements:
+
+- Reverse Proxy:
+  - Reduced configuration drift by moving bot blocking logic from hardcoded templates to values-driven configuration
+  - Safer upgrades and rollbacks using Helm-managed values
+
 ## *0.3.3*
 
 Features:
