@@ -1,0 +1,372 @@
+# Default values for adhoc-odoo.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+changeCause: "Helm Update"
+replicaCount: 1
+
+image:
+  repository: adhoc/odoo-adhoc
+  # repository: dockerhub.adhoc.inc/adhoc/odoo-adhoc
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "19.0"
+  pullSecret: "regcred"
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+# https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Waits the pod to be ready on startup, important during modules installation or running "fixdb"
+startupProbe:
+  # httpGet:
+  #   path: /web/login
+  #   port: 8069
+  tcpSocket:
+    port: 8069
+  initialDelaySeconds: 1
+  failureThreshold: 900 # 15 min
+  periodSeconds: 1
+# Check if the pod is halted and need to be restarted
+livenessProbe:
+  # httpGet:
+  #   path: /web/login
+  #   port: 8069
+  tcpSocket:
+    port: 8069
+  initialDelaySeconds: 2
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 8 # 1 min
+  successThreshold: 1
+# Check if the pod is ready to receive traffic from the service
+readinessProbe:
+  # httpGet:
+  #   path: /saas_client/healthz
+  #   port: 8069
+  tcpSocket:
+    port: 8069
+  initialDelaySeconds: 2
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3 # 30 sec
+  successThreshold: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  # NGINX Ingress Controller
+  enabled: true
+  # adhoc-letsencrypt-prod-issuer
+  # adhoc-letsencrypt-staging-issuer
+  issuer: adhoc-letsencrypt-prod-issuer
+  # AltHost
+  hosts: ""
+  cloudMainDomain: adhoc.ar
+  configurationSnippet:
+    enabled: false
+    snippet: |
+      add_header Referrer-Policy "no-referrer";
+
+  # Istio Ingress
+  istio:
+    enabled: false
+
+    issuer: istio-letsencrypt-prod
+    cloudMainDomain: shared.dev-adhoc.com
+    altHosts: ""
+
+    blockOutboundTraffic: false
+    # Extra hosts to allow egress traffic from Knative
+    allowedHosts: []
+      # - "www.googleapis.com"
+      # - "api.mercadolibre.com"
+
+  # Reverse proxy cache
+  reverseProxy:
+    enabled: false
+    scale: 1
+    botBlock:
+      enabled: true
+      blockedUserAgents:
+        - GPTBot
+        - ChatGPT-User
+        - CCBot
+        - anthropic-ai
+        - Claude
+        - Bytespider
+        - Barkrowler
+        - SemrushBot
+        - Thinkbot
+        - bingbot
+        - PetalBot
+        - Baiduspider
+    rateLimit:
+      enabled: false
+      static: 1000r/m
+      access: 5r/m
+      generic: 1000r/m
+      rpc: 60r/m
+      debugHeaders: false
+    imageCacheEnabled: false
+    image:
+      # repository: nginx
+      repository: dockerhub.adhoc.inc/library/nginx
+      tag: "1.29-alpine"
+    loadBalancerCIDR: 10.0.0.0/8
+    internalClusterCIDR: 10.0.0.0/8
+    # Monitoring
+    monitoring:
+      enabled: false
+      exporterRepository: dockerhub.adhoc.inc/nginx/nginx-prometheus-exporter
+      exporterTag: "1.5.1"
+      # ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter
+      logRepository: dockerhub.adhoc.inc/adhoc/ops-tools
+      logTag: "prometheus-nginxlog-exporter-20251216"
+
+resources:
+  limits:
+    cpu: 3000m
+    memory: 4096Mi
+  requests:
+    cpu: 30m
+    memory: 250Mi
+
+autoscaling:
+  # Common values for HPA and KEDA
+  minReplicas: 1
+  maxReplicas: 10
+
+  # HPA
+  hpa:
+    enabled: false
+    # Target CPU Utilization Percentage
+    targetCPUUtilizationPercentage: 80
+    # Target Memory Utilization Percentage
+    targetMemoryUtilizationPercentage: 90
+  # KEDA
+  keda:
+    enabled: false
+
+nodeSelector: {}
+tolerations: {}
+
+odoo:
+  # Database parameters
+  pg:
+    user: ""
+    pass: ""
+    host: "adhoc-pg.adhoc-pg.svc.cluster.local"
+    port: 5432
+    db: "adhoc-pg"
+  # Base Config
+  basic:
+    adminPass: "admin"
+    dbFilter: ""
+    wideModules: "base,web,server_mode,saas_client"
+    logLevel: "info"
+    aerooHost: ""
+    emailFrom: "notifications@adhoc.nubeadhoc.com"
+    withoutDemo: true
+    language: "es_419"
+  # Performance Config
+  saas:
+    mode: false
+    autoinstallEnabled: "server_mode"
+    autoinstallDisabled: "snailmail,account_edi_facturx"
+    installDisabled: "l10n_es"
+  performance:
+    workers: 0
+    maxCronTh: 1
+    maxDbConn: 96
+    dbTemplate: "template0"
+    maxMemHard: "4777721600"
+    maxMemSoft: "3147484000"
+    maxTimeCpu: 3000
+    maxTimeReal: 1600
+    maxTimeCron: 6000
+    maxHttpTh: 8
+  entrypoint:
+    fixdbs: false
+    fixdbsAdhoc: true
+    # Dynamic Entrypoint
+    repos: ""
+    custom: ""
+  # SMTP Config
+  smtp:
+    host: ""
+    port: 0
+    ssl: false
+    user: ""
+    pass: ""
+    catchall: ""
+    whiteList: "adhoc.nubeadhoc.com"
+  extraEnvVars:
+    # example: "yes"
+    # example2: "no"
+  monitoring:
+    enabled: false
+
+
+# Redis Config
+redis:
+  enabled: false
+  host: ""
+  pass: ""
+  port: 6379
+
+# Storage
+storage:
+  location: "attachment_s3"
+  aws_region: "US-EAST1"
+  aws_host: "https://storage.googleapis.com"
+  aws_bucketname: "acp-us-east1-test"
+  aws_access_key_id: "keyId"
+  aws_secret_access_key: "secret"
+
+nodeTag: "Prod"
+
+createPullSecret:
+  enabled: false
+  user: ""
+  pass: ""
+  registry: "https://index.docker.io/v2/"
+
+adhoc:
+  # standard, advanced, premium
+  serviceLevel: standard
+  # Type: test, train, backup, new, old
+  appType: prod
+  clientAnalyticAccount: "Unknown"
+  devMode: false
+  dnsBannedHost:
+    - api.mercadolibre.com
+    - auth.mercadolibre.com.ar
+    - auth.mercadolibre.com.uy
+    - auth.mercadolibre.cl
+    - auth.mercadolibre.com.mx
+    - api.pagos360.com
+    - apis.andreani.com
+    - api.mercadopago.com
+    - stripe.api.odoo.com
+
+cloudNativePG:
+  checkCRD: false
+  enabled: false
+  version: "15.0"
+  superUserPassword: Rgd20sGT5JKUheTbRM5VWW4sDSLHJjzh6P3JwAqtRrsnURCKzPbX4FNJ5fGWwgh8
+  resources:
+    requests:
+      cpu: 20m
+      memory: 200Mi
+    limits:
+      cpu: 1000m
+      memory: 5000Mi
+  instances: 1
+  persistence:
+    size: 10
+    separateWAL: false
+    # options are:
+    # - gcp-ssd-r (to create as retain )
+    # - gcp-ssd-d (to create as Delate )
+    # - null (to let undefined)
+    # We don't want to keep records if we no longer need them.
+    storageClass: gpc-ssd-d
+  libraries:
+    pgaudit: false
+    autoExplain: false
+  parameters:
+    # shared_buffers: "1GB"
+    # archive_mode = 'on'
+    # dynamic_shared_memory_type = 'posix'
+    # full_page_writes = 'on'
+    # logging_collector = 'on'
+    # log_destination = 'csvlog'
+    # log_directory = '/controller/log'
+    # log_filename = 'postgres'
+    # log_rotation_age = '0'
+    # log_rotation_size = '0'
+    # log_truncate_on_rotation = 'false'
+    # max_parallel_workers = '32'
+    # max_replication_slots = '32'
+    # max_worker_processes = '32'
+    # shared_memory_type = 'mmap' # for PostgreSQL >= 12 only
+    # wal_keep_size = '512MB' # for PostgreSQL >= 13 only
+    # wal_keep_segments = '32' # for PostgreSQL <= 12 only
+    # wal_level = 'logical'
+    # wal_log_hints = 'on'
+    # wal_sender_timeout = '5s'
+    # wal_receiver_timeout = '5s'
+
+  backup:
+    schedule: "0 0 0 * * *" # Daily at UTC midnight
+    volumeSnapshot:
+      enabled: true
+      # We want to keep the snapshots as backups.
+      volumeSnapshotClass: gcp-r # gcp
+  restore:
+    # From cnpg volume snapshot backup
+    fromSnapshot: ""
+    # From the GCP snapshot path of the cnpg volume snapshot backup
+    fromGCPSnapshot: null
+    # We want to keep the snapshots as backups.
+    volumeSnapshotClass: gcp-r # gcp
+    # Not implemented
+    fromDump: ""
+    inTimeRecovery: null # null for no recovery, latest for or timestamp (in the RFC3339 standard)
+
+  topologySpreadConstraints:
+    enabled: false
+
+  services:
+    # If you want to disable the RO service, set this to true
+    disableReadOnly: false
+    externalService:
+      enabled: false
+      loadBalancerIP: ""
+      sourceRanges: {}
+      password: "odoo-readonly-password"
+
+  monitoring:
+    enabled: false
+
+resourceQuota:
+  enabled: false
+  requests:
+    cpu: "4"
+    memory: "8Gi"
+    storage: "500Gi"
+    ephemeral: "100Gi"
+  limits:
+    cpu: "4"
+    memory: "8Gi"
+    ephemeral: "100Gi"
+
+limitRange:
+  enabled: false
+  default:
+    cpu: "500m"
+    memory: "512Mi"
+  defaultRequest:
+    cpu: "100m"
+    memory: "256Mi"
+  max:
+    cpu: "2000m"
+    memory: "4096Mi"
+  min:
+    cpu: "20m"
+    memory: "20Mi"
+

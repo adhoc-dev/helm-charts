@@ -1,0 +1,16 @@
+{{- if and .Values.cloudNativePG.enabled .Values.cloudNativePG.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-pg
+  labels:
+    release: prom
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: {{ include "cnpg.sanitizedPgName" . }}-pg
+  podMetricsEndpoints:
+  - port: metrics
+    path: /metrics
+    interval: 60s
+{{- end }}
