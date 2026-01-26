@@ -530,7 +530,7 @@ questions:
     required: false
     default: true
     show_if: "ingress.reverseProxy.enabled=true"
-  - variable: ingress.reverseProxy.blockedUserAgents
+  - variable: ingress.reverseProxy.botBlock.blockedUserAgents
     group: "Ingress"
     label: "Blocked User-Agents"
     description: "Lista de patrones (regex) para bloquear por User-Agent (se unen con '|')"

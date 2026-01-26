@@ -142,7 +142,7 @@ data:
       {{- $botBlockEnabled = .Values.ingress.reverseProxy.botBlock.enabled }}
       {{- end }}
       {{- end }}
-      {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+      {{- $blockedUserAgents := .Values.ingress.reverseProxy.botBlock.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
 
       {{- if $botBlockEnabled }}
       # GLOBAL BOT BLOCK

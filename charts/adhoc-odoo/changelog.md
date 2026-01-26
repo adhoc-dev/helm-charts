@@ -6,7 +6,7 @@ Features:
 
 - Reverse Proxy:
   - Global bot blocking based on User-Agent (NGINX `map`)
-    - Declarative configuration via Helm values (`ingress.reverseProxy.blockedUserAgents`)
+    - Declarative configuration via Helm values (`ingress.reverseProxy.botBlock.blockedUserAgents`)
     - Enable / disable switch (`ingress.reverseProxy.botBlock.enabled`)
     - 403 response for matching bots at reverse proxy level
     - Default blocked bots list includes common AI, crawler and scraping agents (GPTBot, Claude, Bytespider, SemrushBot, Baiduspider, etc.)
