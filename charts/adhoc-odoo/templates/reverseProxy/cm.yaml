@@ -137,7 +137,7 @@ data:
       }
 
             {{- $botBlockEnabled := .Values.ingress.reverseProxy.botBlock.enabled | default true }}
-            {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+            {{- $blockedUserAgents := .Values.ingress.reverseProxy.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
 
       # GLOBAL BOT BLOCK
       map $http_user_agent $block_bad_ua {
