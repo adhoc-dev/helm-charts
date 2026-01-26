@@ -136,11 +136,23 @@ data:
           default      0;    # Cache in other cases (includes no-cache)
       }
 
+      {{- $botBlockEnabled := true }}
+      {{- if hasKey .Values.ingress.reverseProxy "botBlock" }}
+      {{- if hasKey .Values.ingress.reverseProxy.botBlock "enabled" }}
+      {{- $botBlockEnabled = .Values.ingress.reverseProxy.botBlock.enabled }}
+      {{- end }}
+      {{- end }}
+      {{- $blockedUserAgents := .Values.ingress.reverseProxy.botBlock.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+
+      {{- if $botBlockEnabled }}
       # GLOBAL BOT BLOCK
       map $http_user_agent $block_bad_ua {
         default 0;
-        ~*(GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude|Bytespider|Barkrowler|SemrushBot) 1;
+        {{- if $blockedUserAgents }}
+        ~*({{ join "|" $blockedUserAgents }}) 1;
+        {{- end }}
       }
+      {{- end }}
 
       {{- if .Values.ingress.reverseProxy.rateLimit.enabled }}
 
@@ -187,10 +199,12 @@ data:
         listen 80 default;
         client_max_body_size 1G;
 
+        {{- if $botBlockEnabled }}
         # 🚫 BLOQUEO BOTS
         if ($block_bad_ua) {
           return 403;
         }
+        {{- end }}
 
         # Prevent browsers from ever sending a plain HTTP request to this domain
         # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#https-hardening
@@ -435,7 +449,7 @@ data:
         # Redirect longpoll requests to odoo longpolling port (Odoo <= 15.0)
         location /longpolling {
             proxy_pass http://odoochat;
-            # Avoid premature disconections
+            # Avoid premature disconnections
             proxy_read_timeout 86400s;
             proxy_send_timeout 86400s;
         }
@@ -446,7 +460,7 @@ data:
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
-            # Avoid premature disconections
+            # Avoid premature disconnections
             proxy_read_timeout 86400s;
             proxy_send_timeout 86400s;
         }

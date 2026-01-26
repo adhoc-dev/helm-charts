@@ -522,6 +522,34 @@ questions:
     required: false
     default: 1
     show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.botBlock.enabled
+    group: "Ingress"
+    label: "Enable bot blocking"
+    description: "Bloquea requests por User-Agent usando la lista 'Blocked User-Agents'"
+    type: "boolean"
+    required: false
+    default: true
+    show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.botBlock.blockedUserAgents
+    group: "Ingress"
+    label: "Blocked User-Agents"
+    description: "Lista de patrones (regex) para bloquear por User-Agent (se unen con '|')"
+    type: "listofstrings"
+    required: false
+    default:
+      - GPTBot
+      - ChatGPT-User
+      - CCBot
+      - anthropic-ai
+      - Claude
+      - Bytespider
+      - Barkrowler
+      - SemrushBot
+      - Thinkbot
+      - bingbot
+      - PetalBot
+      - Baiduspider
+    show_if: "ingress.reverseProxy.enabled=true"
   - variable: ingress.reverseProxy.rateLimit.enabled
     group: "Ingress"
     label: "Enable Rate Limiting"
