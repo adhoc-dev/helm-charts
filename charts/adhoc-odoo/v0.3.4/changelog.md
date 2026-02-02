@@ -12,6 +12,7 @@ Features:
     - Default blocked bots list includes common AI, crawler and scraping agents (GPTBot, Claude, Bytespider, SemrushBot, Baiduspider, etc.)
   - Helm questions added to manage blocked User-Agents without modifying templates
   - Unified behavior across Odoo versions (18.x and 19.x)
+  - Maintenance mode
 
 BugFixes:
 

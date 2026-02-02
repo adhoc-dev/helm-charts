@@ -136,6 +136,9 @@ ingress:
       # ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter
       logRepository: dockerhub.adhoc.inc/adhoc/ops-tools
       logTag: "prometheus-nginxlog-exporter-20251216"
+    inactive:
+      mode: "" # empty for no action
+      eta: 0 # unix timestamp
 
 resources:
   limits:

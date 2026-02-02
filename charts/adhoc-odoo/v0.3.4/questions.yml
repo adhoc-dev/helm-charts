@@ -598,6 +598,27 @@ questions:
     required: false
     default: false
     show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.inactive.mode
+    group: "Ingress"
+    label: "Enable maintenance mode"
+    description: "Enable maintenance mode (manual or upgrade)"
+    type: "enum"
+    required: false
+    default: ""
+    options:
+      - ""
+      - manual
+      - upgrade
+    show_if: "ingress.reverseProxy.enabled=true"
+  - variable: ingress.reverseProxy.inactive.eta
+    group: "Ingress"
+    label: "Enable maintenance eta"
+    description: "Enable maintenance eta (unix timestamp, only for upgrade mode)"
+    type: "int"
+    required: false
+    default: 0
+    show_if: "ingress.reverseProxy.enabled=true and ingress.reverseProxy.inactive.mode!=''"
+
 
 # Autoscaling
   - variable: autoscaling.hpa.enabled

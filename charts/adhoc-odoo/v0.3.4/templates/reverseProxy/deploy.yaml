@@ -86,6 +86,10 @@ spec:
         - name: nginx-logs
           mountPath: /var/log/nginx
         {{- end }}
+        {{- if .Values.ingress.reverseProxy.inactive.mode }}
+        - mountPath: /usr/share/nginx/html
+          name: nginx-index
+        {{- end }}
       {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
       - name: nginx-exporter
         image: "{{ .Values.ingress.reverseProxy.monitoring.exporterRepository }}:{{ .Values.ingress.reverseProxy.monitoring.exporterTag }}"
@@ -109,6 +113,11 @@ spec:
             readOnly: true
       {{- end }}
       volumes:
+        {{- if .Values.ingress.reverseProxy.inactive.mode }}
+        - name: nginx-index
+          configMap:
+            name: {{ include "adhoc-odoo.fullname" . }}-index
+        {{- end }}
         {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
         - name: nginx-logs
           emptyDir: {}
