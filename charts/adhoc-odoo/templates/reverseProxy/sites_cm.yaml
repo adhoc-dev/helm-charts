@@ -1,0 +1,11 @@
+{{- if .Values.ingress.reverseProxy.inactive.mode }}
+{{- $inactiveMode := default "index" .Values.ingress.reverseProxy.inactive.mode -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-index
+data:
+  index.html: {{ print "|-" }}
+{{ tpl (.Files.Get (print "aux/" $inactiveMode ".html")) . | indent 4 }}
+
+{{ end }}

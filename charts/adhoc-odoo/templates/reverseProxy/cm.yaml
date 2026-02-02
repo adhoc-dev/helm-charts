@@ -265,6 +265,49 @@ data:
           return 403;
         }
 
+        {{- if .Values.ingress.reverseProxy.inactive.mode }}
+        # Trap maintenance mode >> {{ .Values.ingress.reverseProxy.inactive.mode }} <<
+
+        # On maintenance mode, all health check requests return success
+        location /web/health {
+            add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
+            add_header Pragma "no-cache" always;
+            add_header Expires "0" always;
+            add_header Content-Type "application/json" always;
+            return 200 "{\"status\": \"pass\"}";
+        }
+
+        # All other requests return maintenance page
+        {{- $etaUnix := (.Values.ingress.reverseProxy.inactive.eta | default 0 | int) -}}
+        {{- $nowUnix := (now | unixEpoch | int) -}}
+        {{- $retryAfterSeconds := 300 -}}
+        {{- if gt $etaUnix 0 -}}
+        {{- $retryAfterSeconds = (sub $etaUnix $nowUnix) -}}
+        {{- if lt $retryAfterSeconds 0 -}}
+        {{- $retryAfterSeconds = 0 -}}
+        {{- end -}}
+        {{- end -}}
+        default_type text/html;
+        # Avoid caching maintenance page in browsers/proxies/CDNs
+        # add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
+        add_header Cache-Control "public, max-age=30, s-maxage=30" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+        add_header Retry-After "{{ $retryAfterSeconds }}" always;
+        # return 503 "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Maintenance</title></head><body><div id='m' style='font-family: sans-serif; padding: 16px;'><h1 style='margin:0 0 8px 0;'>Mantenimiento</h1><p style='margin:0 0 8px 0;'>Servicio temporalmente no disponible.</p><p id='eta' style='margin:0;'></p></div><script>(function(){var eta={{ $etaUnix }};var end=(eta&&eta>0)?(eta*1000):(Date.now()+({{ $retryAfterSeconds }}*1000));var el=document.getElementById('eta');function tick(){var ms=end-Date.now();if(ms<0)ms=0;var t=Math.ceil(ms/1000);var m=Math.floor(t/60);var r=t%60;el.textContent=(t>0)?('Reintentar en ~'+m+'m '+String(r).padStart(2,'0')+'s'):'Podés reintentar ahora';if(t>0)setTimeout(tick,1000);}tick();})();</script></body></html>";
+        # Serve a static maintenance page but keep HTTP 503
+        error_page 503 =503 /index.html;
+        location = /index.html {
+            root /usr/share/nginx/html;
+            internal;
+        }
+
+        # Catch-all: everything except exact /web/health returns 503
+        location ^~ / {
+            return 503;
+        }
+        {{- else }}
+
         # Defines a timeout for reading a response from the proxied server.
         # The timeout is set only between two successive read operations, not for the transmission of the whole response.
         # If the proxied server does not transmit anything within this time, the connection is closed.
@@ -554,6 +597,8 @@ data:
             # debugging
             # add_header X-Served-By "nginx-filestore";
         }
+
+        {{- end }}
       }
     }
 
