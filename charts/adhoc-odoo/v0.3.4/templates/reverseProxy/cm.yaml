@@ -266,7 +266,7 @@ data:
         }
 
         {{- if .Values.ingress.reverseProxy.inactive.mode }}
-        # Trap maintenance mode
+        # Trap maintenance mode >> {{ .Values.ingress.reverseProxy.inactive.mode }} <<
 
         # On maintenance mode, all health check requests return success
         location /web/health {
