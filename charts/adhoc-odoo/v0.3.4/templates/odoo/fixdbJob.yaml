@@ -1,4 +1,6 @@
 {{- if .Values.odoo.jobs.fixdb }}
+{{ $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $odooImage := include "odoo.image" . -}}
 apiVersion: batch/v1
 kind: Job
