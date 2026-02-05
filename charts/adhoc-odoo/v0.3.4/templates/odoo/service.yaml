@@ -1,4 +1,4 @@
-{{- if or (.Values.replicaCount | int > 0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
+{{- if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
