@@ -104,16 +104,23 @@ data:
       proxy_redirect off;
 
       upstream odoo {
+        {{- if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
         server {{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80;
         keepalive 32;  # Mejora rendimiento para conexiones persistentes
-
+        {{- else }}
+        server localhost:1;  # Dummy server (maintenance mode)
+        {{- end }}
       }
 
       {{- $usewebsocket  := .Values.odoo.performance.workers | toString | int -}}
       {{- if gt $usewebsocket 0 }}
       upstream odoochat {
+        {{- if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
         server {{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket:80;
         keepalive 32;  # Mejora rendimiento para conexiones persistentes
+        {{- else }}
+        server localhost:1;  # Dummy server (maintenance mode)
+        {{- end }}
       }
       {{- end }}
 
