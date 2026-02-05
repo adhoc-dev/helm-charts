@@ -1,0 +1,81 @@
+{{- if .Values.odoo.jobs.fixdb }}
+{{- $odooImage := include "odoo.image" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-fixdb
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "odoo-fixdb"
+      annotations:
+        {{- if eq .Values.storage.location "fuse" }}
+        gke-gcsfuse/volumes: "true"
+        gke-gcsfuse/cpu-limit: "100m"
+        gke-gcsfuse/memory-limit: 2Gi
+        gke-gcsfuse/ephemeral-storage-limit: 5Gi
+        gke-gcsfuse/cpu-request: 5m
+        gke-gcsfuse/memory-request: 25Mi
+        gke-gcsfuse/ephemeral-storage-request: 100Mi
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      {{- if .Values.cloudNativePG.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
+          command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
+      {{- end }}
+      containers:
+        - name: fixdb
+          image: {{ $odooImage | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["bash", "-c", "odoo fixdb --workers=0 --no-xmlrpc"]
+          envFrom:
+          - configMapRef:
+              name: {{ include "adhoc-odoo.fullname" . }}-common-envs
+          volumeMounts:
+          {{- if eq .Values.storage.location "fuse" }}
+          {{- $fusePath := printf "/home/odoo/data/filestore/%s" (ternary "odoo" .Release.Name .Values.cloudNativePG.enabled) }}
+          - name: gcs-fuse-csi-ephemeral
+            readOnly: false
+            mountPath: {{ $fusePath }}
+          - name: gcs-fuse-csi-ephemeral-skip
+            readOnly: false
+            mountPath: {{ printf "%s/%s" $fusePath "checklist" }}
+          {{- end }}
+      nodeSelector:
+        {{- if eq .Values.storage.location "fuse" }}
+        iam.gke.io/gke-metadata-server-enabled: "true"
+        {{- end }}
+      volumes:
+        {{- if eq .Values.storage.location "fuse" }}
+      - name: gcs-fuse-csi-ephemeral
+        csi:
+          driver: gcsfuse.csi.ofek.dev
+          readOnly: false
+          volumeAttributes:
+            bucketName: {{ .Values.storage.aws_bucketname | quote }}
+            disableMetrics: "true"
+            skipCSIBucketAccessCheck: "true"
+            gcsfuseLoggingSeverity: warning
+            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,write:enable-streaming-writes:false,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
+            fileCacheCapacity: "200Mi"
+        {{- end }}
+      affinity:
+        {{- if .Values.nodeTag }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.nodeTag }}
+                operator: In
+                values:
+                - "true"
+        {{- end }}
+
+{{- end }}
