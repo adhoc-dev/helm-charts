@@ -25,6 +25,7 @@ spec:
     spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       restartPolicy: Never
+      ttlSecondsAfterFinished: 30
       {{- if .Values.cloudNativePG.enabled }}
       initContainers:
         - name: wait-for-postgres
@@ -33,6 +34,19 @@ spec:
       {{- end }}
       containers:
         - name: fixdb
+          securityContext:
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            {{- if and (gt $minorVersion 20250806) (gt $odooVersion 150) }}
+            runAsNonRoot: true
+            {{- else }}
+            runAsNonRoot: false
+            {{- end }}
+            seccompProfile:
+              type: RuntimeDefault
           image: {{ $odooImage | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["bash", "-c", "odoo fixdb --workers=0 --no-xmlrpc"]
@@ -49,24 +63,6 @@ spec:
             readOnly: false
             mountPath: {{ printf "%s/%s" $fusePath "checklist" }}
           {{- end }}
-      nodeSelector:
-        {{- if eq .Values.storage.location "fuse" }}
-        iam.gke.io/gke-metadata-server-enabled: "true"
-        {{- end }}
-      volumes:
-        {{- if eq .Values.storage.location "fuse" }}
-      - name: gcs-fuse-csi-ephemeral
-        csi:
-          driver: gcsfuse.csi.ofek.dev
-          readOnly: false
-          volumeAttributes:
-            bucketName: {{ .Values.storage.aws_bucketname | quote }}
-            disableMetrics: "true"
-            skipCSIBucketAccessCheck: "true"
-            gcsfuseLoggingSeverity: warning
-            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,write:enable-streaming-writes:false,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
-            fileCacheCapacity: "200Mi"
-        {{- end }}
       affinity:
         {{- if .Values.nodeTag }}
         nodeAffinity:
@@ -77,6 +73,10 @@ spec:
                 operator: In
                 values:
                 - "true"
+        {{- end }}
+      nodeSelector:
+        {{- if eq .Values.storage.location "fuse" }}
+        iam.gke.io/gke-metadata-server-enabled: "true"
         {{- end }}
       volumes:
       {{- if eq .Values.storage.location "fuse" }}
