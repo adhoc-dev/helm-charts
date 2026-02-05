@@ -223,6 +223,8 @@ odoo:
   monitoring:
     enabled: false
 
+  jobs:
+    fixdb: false
 
 # Redis Config
 redis:
@@ -315,11 +317,21 @@ cloudNativePG:
     # wal_receiver_timeout = '5s'
 
   backup:
-    schedule: "0 0 0 * * *" # Daily at UTC midnight
+    # schedule: "0 0 0 * * *" # Daily at UTC midnight
     volumeSnapshot:
       enabled: true
       # We want to keep the snapshots as backups.
       volumeSnapshotClass: gcp-r # gcp
+    barman:
+      enabled: false
+      # S3 compatible storage configuration
+      s3Endpoint: "https://storage.googleapis.com"
+      s3BucketName: "acp-us-east1-test"
+      s3Region: "US-EAST1"
+      s3AccessKeyId: "keyId"
+      s3SecretAccessKey: "secret"
+      # Backup retention in days
+      retentionDays: 7
   restore:
     # From cnpg volume snapshot backup
     fromSnapshot: ""
