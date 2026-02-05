@@ -171,6 +171,10 @@ spec:
             subPath: odoo-extra.conf
             readOnly: true
           {{- end }}
+          # Prevent session creations on FS (We only use redis or db_session) TA #63659
+          - name: session-folder-ro
+            mountPath: /home/odoo/data/sessions
+            readOnly: true
       affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -278,3 +282,5 @@ spec:
       - name: gcs-fuse-csi-ephemeral-skip
         emptyDir: {}
       {{- end }}
+      - name: session-folder-ro
+        emptyDir: {}
