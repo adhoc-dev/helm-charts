@@ -24,6 +24,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
+      restartPolicy: Never
       {{- if .Values.cloudNativePG.enabled }}
       initContainers:
         - name: wait-for-postgres
