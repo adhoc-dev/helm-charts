@@ -9,6 +9,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       labels:
@@ -27,7 +28,6 @@ spec:
     spec:
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       restartPolicy: Never
-      ttlSecondsAfterFinished: 30
       {{- if .Values.cloudNativePG.enabled }}
       initContainers:
         - name: wait-for-postgres
@@ -55,6 +55,8 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ include "adhoc-odoo.fullname" . }}-common-envs
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
           {{- if eq .Values.storage.location "fuse" }}
           {{- $fusePath := printf "/home/odoo/data/filestore/%s" (ternary "odoo" .Release.Name .Values.cloudNativePG.enabled) }}
@@ -76,10 +78,10 @@ spec:
                 values:
                 - "true"
         {{- end }}
+      {{- if eq .Values.storage.location "fuse" }}
       nodeSelector:
-        {{- if eq .Values.storage.location "fuse" }}
         iam.gke.io/gke-metadata-server-enabled: "true"
-        {{- end }}
+      {{- end }}
       volumes:
       {{- if eq .Values.storage.location "fuse" }}
       - name: gcs-fuse-csi-ephemeral
