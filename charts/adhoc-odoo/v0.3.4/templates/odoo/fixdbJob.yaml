@@ -77,5 +77,21 @@ spec:
                 values:
                 - "true"
         {{- end }}
+      volumes:
+      {{- if eq .Values.storage.location "fuse" }}
+      - name: gcs-fuse-csi-ephemeral
+        csi:
+          driver: gcsfuse.csi.storage.gke.io
+          readOnly: false
+          volumeAttributes:
+            bucketName: {{ .Values.storage.aws_bucketname | quote }}
+            disableMetrics: "true"
+            skipCSIBucketAccessCheck: "true"
+            gcsfuseLoggingSeverity: warning
+            mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,write:enable-streaming-writes:false,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
+            fileCacheCapacity: "200Mi"
+      - name: gcs-fuse-csi-ephemeral-skip
+        emptyDir: {}
+      {{- end }}
 
 {{- end }}
