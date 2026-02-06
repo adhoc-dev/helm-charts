@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "app-instance.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "kwkhtmltopdf"
+  template:
+    metadata:
+      labels:
+        {{- include "app-instance.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "kwkhtmltopdf"
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
