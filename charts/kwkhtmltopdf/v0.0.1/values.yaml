@@ -1,0 +1,6 @@
+resources: {}
+image:
+  repository: "ghcr.io/acsone/kwkhtmltopdf"
+  tag: "0.12.6.1-latest"
+  pullPolicy: IfNotPresent
+replicaCount: 1

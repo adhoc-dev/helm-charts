@@ -34,6 +34,8 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
   ttlSecondsAfterFinished: 30
+  activeDeadlineSeconds: 3600
+  backoffLimit: 0
   template:
     metadata:
       labels:
