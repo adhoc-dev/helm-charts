@@ -109,12 +109,12 @@ spec:
           value: "1"
         {{- end }}
         - name: BOT_BLOCK_LIST
-          {{- if .Values.ingress.reverseProxy.botBlock.enabled -}}
-          {{- $blockedUserAgents := .Values.ingress.reverseProxy.botBlock.blockedUserAgents | default (list "GPTBot" "ChatGPT-User" "CCBot" "anthropic-ai" "Claude" "Bytespider" "Baiduspider" "Barkrowler" "SemrushBot" "Thinkbot" "bingbot" "PetalBot") }}
+        {{- if .Values.ingress.reverseProxy.botBlock.enabled }}
+        {{- $blockedUserAgents := .Values.ingress.reverseProxy.botBlock.blockedUserAgents }}
           value: {{ join "|" $blockedUserAgents }}
-          {{- else }}
+        {{- else }}
           value: ""
-          {{- end }}
+        {{- end }}
         - name: COUNTRY_BLOCK_LIST
           value: {{ .Values.ingress.reverseProxy.blockedCountries | join "|" | quote }}
         - name: IP_BLOCK_LIST
