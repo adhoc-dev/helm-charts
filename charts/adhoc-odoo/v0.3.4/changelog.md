@@ -10,9 +10,12 @@ Features:
     - Enable / disable switch (`ingress.reverseProxy.botBlock.enabled`)
     - 403 response for matching bots at reverse proxy level
     - Default blocked bots list includes common AI, crawler and scraping agents (GPTBot, Claude, Bytespider, SemrushBot, Baiduspider, etc.)
+  - Global IP, Country blocking
   - Helm questions added to manage blocked User-Agents without modifying templates
   - Unified behavior across Odoo versions (18.x and 19.x)
   - Maintenance mode
+  - New personalized image
+  - New personalized error pages
 
 BugFixes:
 
