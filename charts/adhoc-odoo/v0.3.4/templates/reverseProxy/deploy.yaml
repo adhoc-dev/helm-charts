@@ -110,8 +110,7 @@ spec:
         {{- end }}
         - name: BOT_BLOCK_LIST
         {{- if .Values.ingress.reverseProxy.botBlock.enabled }}
-        {{- $blockedUserAgents := .Values.ingress.reverseProxy.botBlock.blockedUserAgents }}
-          value: {{ join "|" $blockedUserAgents }}
+          value: {{ .Values.ingress.reverseProxy.botBlock.blockedUserAgents | join "|" | quote }}
         {{- else }}
           value: ""
         {{- end }}
