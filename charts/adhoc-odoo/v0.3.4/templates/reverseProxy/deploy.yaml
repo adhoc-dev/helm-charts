@@ -109,11 +109,11 @@ spec:
           value: "1"
         {{- end }}
         - name: BOT_BLOCK_LIST
-        {{- if .Values.ingress.reverseProxy.botBlock.enabled }}
+{{- if .Values.ingress.reverseProxy.botBlock.enabled }}
           value: {{ .Values.ingress.reverseProxy.botBlock.blockedUserAgents | join "|" | quote }}
-        {{- else }}
+{{- else }}
           value: ""
-        {{- end }}
+{{- end }}
         - name: COUNTRY_BLOCK_LIST
           value: {{ .Values.ingress.reverseProxy.blockedCountries | join "|" | quote }}
         - name: IP_BLOCK_LIST
