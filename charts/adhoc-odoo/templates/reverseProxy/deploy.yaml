@@ -22,7 +22,6 @@ spec:
   template:
     metadata:
       annotations:
-        rollme: {{ include "adhoc-odoo.releaseDigest" . }}{{ include "adhoc-odoo.nginx.releaseDigest" .}} # Force redeploy on change
         {{- if eq .Values.storage.location "fuse" }}
         gke-gcsfuse/volumes: "true"
         # https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver?hl=es-419
@@ -64,10 +63,59 @@ spec:
           requests:
             cpu: 10m
             memory: 50Mi
-          # limits:
-          #   cpu: 300m
-          #   memory: 515Mi
+          limits:
+            cpu: 300m
+            memory: 515Mi
         {{- end }}
+        env:
+        - name: WORKER_PROCESSES
+          value: "{{ default 0 .Values.odoo.performance.workers | toString | int }}"
+        {{ if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+        - name: ODOO_SERVER
+          value: "{{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80"
+        - name: ODOO_WS_SERVER
+          value: "{{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket:80"
+        {{ end }}
+        {{ if .Values.ingress.reverseProxy.rateLimit.enabled }}
+        - name: RATE_LIMIT_ENABLED
+          value: {{ .Values.ingress.reverseProxy.rateLimit.enabled | quote }}
+        - name: RATE_LIMIT_STATIC
+          value: {{ .Values.ingress.reverseProxy.rateLimit.static | quote }}
+        - name: RATE_LIMIT_ACCESS
+          value: {{ .Values.ingress.reverseProxy.rateLimit.access | quote }}
+        - name: RATE_LIMIT_GENERIC
+          value: {{ .Values.ingress.reverseProxy.rateLimit.generic | quote }}
+        - name: RATE_LIMIT_RPC
+          value: {{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
+        - name: INTERNAL_CLUSTER_CIDR
+          value: {{ .Values.ingress.reverseProxy.internalClusterCIDR | quote }}
+        {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+        - name: RATE_LIMIT_DEBUG
+          value: "1"
+        {{- end }}
+        {{- end }}
+        - name: LOAD_BALANCER_CIDR
+          value: {{ .Values.ingress.reverseProxy.loadBalancerCIDR | quote }}
+        - name: INACTIVE_MODE
+          value: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
+        - name: INACTIVE_ETA
+          value: {{ .Values.ingress.reverseProxy.inactive.eta | quote }}
+        {{ if .Values.ingress.reverseProxy.imageCacheEnabled }}
+        - name: IMAGE_CACHE_ENABLED
+          value: "{{ .Values.ingress.reverseProxy.imageCacheEnabled | quote }}"
+        {{- end }}
+        {{ if .Values.ingress.reverseProxy.monitoring.enabled }}
+        - name: MONITORING_ENABLED
+          value: "1"
+        {{- end }}
+        {{- if .Values.ingress.reverseProxy.botBlock.enabled }}
+        - name: BOT_BLOCK_LIST
+          value: {{ .Values.ingress.reverseProxy.botBlock.blockedUserAgents | join "|" | quote }}
+        {{- end }}
+        - name: COUNTRY_BLOCK_LIST
+          value: {{ .Values.ingress.reverseProxy.blockedCountries | join "|" | quote }}
+        - name: IP_BLOCK_LIST
+          value: {{ .Values.ingress.reverseProxy.blockedIps | join "," | quote }}
         volumeMounts:
         {{- if eq .Values.storage.location "fuse" }}
         - name: gcs-fuse-csi-ephemeral
@@ -78,17 +126,9 @@ spec:
           {{- end }}
           readOnly: true
         {{- end }}
-        - mountPath: /etc/nginx/nginx.conf
-          name: nginx-config
-          subPath: nginx.conf
-          readOnly: true
         {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
         - name: nginx-logs
           mountPath: /var/log/nginx
-        {{- end }}
-        {{- if .Values.ingress.reverseProxy.inactive.mode }}
-        - mountPath: /usr/share/nginx/html
-          name: nginx-index
         {{- end }}
       {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
       - name: nginx-exporter
@@ -113,11 +153,6 @@ spec:
             readOnly: true
       {{- end }}
       volumes:
-        {{- if .Values.ingress.reverseProxy.inactive.mode }}
-        - name: nginx-index
-          configMap:
-            name: {{ include "adhoc-odoo.fullname" . }}-index
-        {{- end }}
         {{- if .Values.ingress.reverseProxy.monitoring.enabled }}
         - name: nginx-logs
           emptyDir: {}

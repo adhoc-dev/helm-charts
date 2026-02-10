@@ -75,13 +75,13 @@ data:
   {{- end }}
   LIMIT_TIME_REAL: {{ .Values.odoo.performance.maxTimeReal | quote }}
   LIMIT_TIME_REAL_CRON: {{ .Values.odoo.performance.maxTimeCron | quote }}
-  {{- /*
+  {{- if (lt $odooVersion 150) }}
   FILESTORE_COPY_HARD_LINK: "true"
   FILESTORE_OPERATIONS_THREADS: "3"
   {{- if .Values.odoo.performance.maxHttpTh }}
   ODOO_MAX_HTTP_THREADS: {{ .Values.odoo.performance.maxHttpTh | quote }}
   {{- end }}
-  */}}
+  {{- end }}
   {{- /* SaaS Config */}}
   {{- if .Values.odoo.saas.mode }}
   SERVER_MODE: {{ .Values.odoo.saas.mode | quote }}
@@ -176,22 +176,4 @@ data:
   {{- range $key, $value := .Values.odoo.extraEnvVars }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-envs
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-data:
-  PLACEHOLDER_ENV: "value"
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-secrets
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-type: Opaque
-data:
-  PLACEHOLDER_SEC: {{ "value" | b64enc }}
+

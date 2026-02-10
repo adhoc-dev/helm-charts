@@ -24,10 +24,3 @@ add_header X-Cache-Status $upstream_cache_status;
 # https://www.odoo.com/documentation/18.0/administration/on_premise/deploy.html?highlight=nginx#serving-static-files
 add_header Content-Security-Policy $content_type_csp;
 {{- end }}
-
-{{- /*
-Create a sha256sum of the certain values. Is used to force a redeploy only when if needed.
-*/}}
-{{- define "adhoc-odoo.nginx.releaseDigest" -}}
-{{- printf "%s" (include (print $.Template.BasePath "/reverseProxy/cm.yaml") . | sha256sum) }}
-{{- end }}
