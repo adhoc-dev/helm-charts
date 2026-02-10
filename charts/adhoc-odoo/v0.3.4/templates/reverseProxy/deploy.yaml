@@ -76,7 +76,7 @@ spec:
         - name: ODOO_WS_SERVER
           value: "{{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket:80"
         {{ end }}
-        {{- if .Values.ingress.reverseProxy.rateLimit.enabled -}}
+        {{ if .Values.ingress.reverseProxy.rateLimit.enabled }}
         - name: RATE_LIMIT_ENABLED
           value: {{ .Values.ingress.reverseProxy.rateLimit.enabled | quote }}
         - name: RATE_LIMIT_STATIC
@@ -89,7 +89,7 @@ spec:
           value: {{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
         - name: INTERNAL_CLUSTER_CIDR
           value: {{ .Values.ingress.reverseProxy.internalClusterCIDR | quote }}
-        {{- if .Values.ingress.reverseProxy.rateLimit.debugHeaders -}}
+        {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
         - name: RATE_LIMIT_DEBUG
           value: "1"
         {{- end }}
@@ -100,15 +100,15 @@ spec:
           value: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
         - name: INACTIVE_ETA
           value: {{ .Values.ingress.reverseProxy.inactive.eta | quote }}
-        {{- if .Values.ingress.reverseProxy.imageCacheEnabled -}}
+        {{ if .Values.ingress.reverseProxy.imageCacheEnabled }}
         - name: IMAGE_CACHE_ENABLED
           value: "{{ .Values.ingress.reverseProxy.imageCacheEnabled | quote }}"
         {{- end }}
-        {{- if .Values.ingress.reverseProxy.monitoring.enabled -}}
+        {{ if .Values.ingress.reverseProxy.monitoring.enabled }}
         - name: MONITORING_ENABLED
           value: "1"
         {{- end }}
-        {{- if .Values.ingress.reverseProxy.botBlock.enabled -}}
+        {{- if .Values.ingress.reverseProxy.botBlock.enabled }}
         - name: BOT_BLOCK_LIST
           value: {{ .Values.ingress.reverseProxy.botBlock.blockedUserAgents | join "|" | quote }}
         {{- end }}
