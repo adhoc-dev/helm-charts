@@ -203,7 +203,7 @@ ingress:
     image:
       # repository: nginx
       repository: dockerhub.adhoc.inc/adhoc/ops-tools
-      tag: "odooEdgeProxy-1.4"
+      tag: "odooEdgeProxy-1.5"
     loadBalancerCIDR: 10.0.0.0/8
     internalClusterCIDR: 10.0.0.0/8
     # Monitoring
@@ -300,6 +300,8 @@ odoo:
     # example2: "no"
   monitoring:
     enabled: false
+
+  kwkhtmltopdfServerUrl: "http://kwkhtmltopdf.kwkhtmltopdf"
 
   jobs:
     fixdb: false
