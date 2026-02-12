@@ -9,5 +9,5 @@ data:
   odoo-send-file.conf: |
     [options]
       x_sendfile = True
-      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
+      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx.{{ .Release.Namespace }}.svc.cluster.local
 {{- end }}

@@ -173,7 +173,7 @@ data:
   ODOO_SESSION_REDIS_SSL: "0"
   LITELLM_LOG: "CRITICAL"
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus_client"
+  KWKHTMLTOPDF_SERVER_URL: {{ .Values.kwkhtmltopdfServerUrl | quote }}
   {{- range $key, $value := .Values.odoo.extraEnvVars }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
-

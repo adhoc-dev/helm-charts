@@ -10,4 +10,7 @@ data:
   odoo-extra.conf: |
     [options]
       log_handler = :INFO,odoo.addons.rpc.controllers.jsonrpc:ERROR
+{{- if not .Values.ingress.reverseProxy.enabled }}
+      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-http.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
 {{- end }}
