@@ -1,6 +1,12 @@
-resources: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
 image:
   repository: "ghcr.io/acsone/kwkhtmltopdf"
   tag: "0.12.6.1-latest"
   pullPolicy: IfNotPresent
-replicaCount: 1
+replicaCount: 2
