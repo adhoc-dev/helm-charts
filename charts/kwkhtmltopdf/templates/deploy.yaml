@@ -24,5 +24,25 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # Check if the pod is halted and need to be restarted
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 8 # 2 min
+            successThreshold: 1
+          # Check if the pod is ready to receive traffic from the service
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3 # 30 sec
+            successThreshold: 1
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
