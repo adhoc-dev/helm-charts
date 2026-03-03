@@ -152,6 +152,7 @@ ingress:
       - 185.191.171.11/32
       - 43.166.130.123/32
     blockedCountries:
+      - "CN"
       - "IR"
       - "CU"
       - "SY"
