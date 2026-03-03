@@ -176,7 +176,7 @@ ingress:
       - "JP"
       - "SC"
       - "SA"
-      - "SY"
+      - "KP"
     botBlock:
       enabled: true
       blockedUserAgents:
