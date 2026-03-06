@@ -11,8 +11,6 @@ metadata:
 data:
   fixdb.sh: |
     #!/bin/bash
-    set -e
-
     function notify_error {
         local msg="$1"
         curl -X POST -H "Content-Type: application/json" -H "Saas-Provider-Token: $SAAS_PROVIDER_TOKEN" -d "{\"database\": \"$ADHOC_DATABASE\", \"message\": \"$msg\", \"stdout\": \"\", \"stderr\": \"\", \"level\": \"info\"}" "${SAAS_PROVIDER_URL}/saas_database/info_from_client"
