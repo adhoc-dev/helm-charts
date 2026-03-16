@@ -20,7 +20,7 @@ spec:
     # odoo scale scale max 10 + 3 ( nx + pg + job )
     count/pods: {{ add (max .Values.autoscaling.maxReplicas 10) 4 }}
     # 2 for Odoo (http + ws) + 1 for Reverse Proxy + 1 for PG RW + 1 for PG RO if enabled
-    count/services: 5
+    count/services: 10
     # By default we create 2 ingresses if KEDA is enabled (and other for cert renewal)
     count/ingresses.networking.k8s.io: {{ ternary 3 2 .Values.autoscaling.keda.enabled }}
     # Don't allow load balancers by default, Only if external read-only is enabled
