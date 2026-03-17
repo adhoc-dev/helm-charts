@@ -156,7 +156,7 @@ spec:
             subPath: hosts
             readOnly: true
           {{- end }}
-          {{- if .Values.ingress.reverseProxy.enabled }}
+          {{- if and .Values.ingress.reverseProxy.enabled (ge $odooVersion 180) }}
           - name: odoo-sendfile-conf
             mountPath: /home/odoo/.resources/conf.d/99-odoo-send-file.conf
             subPath: odoo-send-file.conf
