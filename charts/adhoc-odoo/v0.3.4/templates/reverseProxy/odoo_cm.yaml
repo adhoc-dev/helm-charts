@@ -1,4 +1,5 @@
-{{- if .Values.ingress.reverseProxy.enabled }}
+{{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- if and .Values.ingress.reverseProxy.enabled (ge $odooVersion 180) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
