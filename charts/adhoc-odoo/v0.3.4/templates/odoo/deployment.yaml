@@ -36,6 +36,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if .Values.ingress.istio.enabled }}
+        sidecar.istio.io/inject: "true"
+        {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
