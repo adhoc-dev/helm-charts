@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled }}
+{{- if and .Values.ingress.enabled (eq .Values.ingress.class "nginx") }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -21,4 +21,22 @@ spec:
                 name: {{ include "registry-cache.fullname" . }}
                 port:
                   number: 5000
+{{- end }}
+{{- if and .Values.ingress.enabled (eq .Values.ingress.class "istio") }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name:  {{ include "registry-cache.fullname" . }}-vs
+spec:
+  hosts:
+    - {{ .Values.ingress.host | quote }}
+  gateways:
+    # Reuse the baseline gateway created by the Istio Pulumi component.
+    - istio-system/istio-external-ingressgateway
+  http:
+    - route:
+        - destination:
+            host: {{ include "registry-cache.fullname" . }}
+            port:
+              number: 5000
 {{- end }}
