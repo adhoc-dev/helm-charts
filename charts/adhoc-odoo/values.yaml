@@ -85,7 +85,7 @@ ingress:
   istio:
     enabled: false
 
-    issuer: istio-letsencrypt-prod
+    issuer: istio-http-cluster-issuer
     cloudMainDomain: shared.dev-adhoc.com
     altHosts: ""
 

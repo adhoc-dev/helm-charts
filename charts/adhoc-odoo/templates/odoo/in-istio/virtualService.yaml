@@ -22,7 +22,8 @@ spec:
   hosts:
     - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
   gateways:
-    - istio-system/istio-ingress-gateway
+    - istio-system/istio-external-ingressgateway
+    - istio-system/istio-internal-ingressgateway
   http:
     - match:
         - uri:
@@ -57,45 +58,14 @@ spec:
 
 {{- if .Values.ingress.istio.altHosts -}}
 {{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1}}
-apiVersion: networking.istio.io/v1beta1
-kind: Gateway
-metadata:
-  name: {{ printf "%s-gateway" .Values.odoo.pg.db | quote }}
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-    - port:
-        number: 80
-        name: http
-        protocol: HTTP
-      hosts:
-        {{- range $hosts }}
-        - {{ . | quote }}
-        {{- end }}
-    - port:
-        number: 443
-        name: https
-        protocol: HTTPS
-      tls:
-        mode: SIMPLE
-        # Nombre del secreto TLS creado por cert-manager
-        credentialName: {{ printf "%s-custom-tls" .Values.odoo.pg.db | quote }}
-      hosts:
-        {{- range $hosts }}
-        - {{ . | quote }}
-        {{- end }}
----
+{{- $secretName := printf "%s-custom-tls" .Values.odoo.pg.db | quote -}}
+{{- $gwName := printf "%s-gateway" .Values.odoo.pg.db | quote -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ printf "%s-custom" .Values.odoo.pg.db | quote }}
-  namespace: istio-system
 spec:
-  secretName: {{ printf "%s-custom-tls" .Values.odoo.pg.db | quote }}
-  duration: 2160h # 90 días
-  renewBefore: 360h # 15 días
-  commonName: {{ index $hosts 0 | quote }}
+  secretName: {{ $secretName }}
   dnsNames:
     {{- range $hosts }}
     - {{ . | quote }}
@@ -107,6 +77,27 @@ spec:
     rotationPolicy: Always
 ---
 apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ $gwName }}
+spec:
+  selector:
+    istio: external-ingressgateway
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        # Nombre del secreto TLS creado por cert-manager
+        credentialName: {{ $secretName }}
+      hosts:
+        {{- range $hosts }}
+        - {{ . | quote }}
+        {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: {{ printf "%s-custom" .Values.odoo.pg.db | quote }}
@@ -116,7 +107,7 @@ spec:
     - {{ . | quote }}
     {{- end }}
   gateways:
-    - {{ printf "%s-gateway" .Values.odoo.pg.db | quote }}
+    - {{ $gwName }}
   http:
     - match:
         - uri:
