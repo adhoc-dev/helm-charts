@@ -13,6 +13,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "registry-cache.name" . }}
         adhoc.ar/app-name: "registry-cache"
+      {{- if and .Values.ingress.enabled (eq .Values.ingress.class "istio") }}
+      annotations:
+        sidecar.istio.io/inject: "true"
+      {{- end }}
     spec:
       priorityClassName: registry-cache-priority
       nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
