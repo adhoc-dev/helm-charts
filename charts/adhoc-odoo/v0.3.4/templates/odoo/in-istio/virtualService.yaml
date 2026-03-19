@@ -22,7 +22,8 @@ spec:
   hosts:
     - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
   gateways:
-    - istio-system/istio-ingress-gateway
+    - istio-system/istio-external-ingressgateway
+    - istio-system/istio-internal-ingressgateway
   http:
     - match:
         - uri:
