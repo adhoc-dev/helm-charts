@@ -48,6 +48,7 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
     cnpg.io/hibernation: "off"
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     {{- /*
     # For manual intervention
     # cnpg.io/reconciliationLoop: "disabled"
@@ -69,6 +70,8 @@ spec:
   {{- /* The instances' log level, one of the following values: error, warning, info (default), debug, trace: */}}
   logLevel: info
   inheritedMetadata:
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     labels:
       {{- include "adhoc-odoo.labels" . | nindent 6 }}
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
@@ -278,7 +281,9 @@ spec:
             {{- end }}
             {{- if .Values.cloudNativePG.services.externalService.sourceRanges }}
             loadBalancerSourceRanges:
-              {{- toYaml .Values.cloudNativePG.services.externalService.sourceRanges | nindent 14 }}
+            {{- range $value := .Values.cloudNativePG.services.externalService.sourceRanges }}
+            - {{ $value | quote }}
+            {{- end }}
             {{- end }}
           metadata:
             name: {{ include "cnpg.sanitizedPgName" . }}-lb

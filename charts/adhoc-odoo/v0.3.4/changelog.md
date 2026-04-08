@@ -16,6 +16,8 @@ Features:
   - Maintenance mode
   - New personalized image
   - New personalized error pages
+- CNPG:
+ - Add safe-to-evict
 
 BugFixes:
 
