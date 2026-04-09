@@ -31,7 +31,10 @@ spec:
       route:
         - destination:
             {{- if .Values.autoscaling.keda.enabled }}
-            host: keda-add-ons-http-interceptor-proxy.keda
+            # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
+            # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
+            # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
+            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
             port:
               number: 8080
             {{- else }}
@@ -115,7 +118,10 @@ spec:
       route:
         - destination:
             {{- if .Values.autoscaling.keda.enabled }}
-            host: keda-add-ons-http-interceptor-proxy.keda
+            # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
+            # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
+            # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
+            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
             port:
               number: 8080
             {{- else }}
