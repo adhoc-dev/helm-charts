@@ -91,7 +91,7 @@ questions:
     description: "Postgres Host"
     type: "string"
     required: true
-    default: "adhoc-pg.adhoc-pg.svc.cluster.local"
+    default: "adhoc-pg.adhoc-pg"
     show_if: "cloudNativePG.enabled=false"
   - variable: odoo.pg.port
     group: "Database"

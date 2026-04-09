@@ -250,7 +250,7 @@ odoo:
   pg:
     user: ""
     pass: ""
-    host: "adhoc-pg.adhoc-pg.svc.cluster.local"
+    host: "adhoc-pg.adhoc-pg"
     port: 5432
     db: "adhoc-pg"
   # Base Config
