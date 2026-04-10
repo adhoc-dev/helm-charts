@@ -150,7 +150,7 @@ spec:
             {{- if .Values.autoscaling.keda.enabled }}
             httpGet:
               # Para aprovechar el autoescalado basado en métricas de tráfico de KEDA, la sonda de readiness debe
-              {{- if ge $odooVersion 180) }}
+              {{- if ge $odooVersion 180 }}
               path: /saas_client/healthz
               {{- else }}
               path: /web/health
