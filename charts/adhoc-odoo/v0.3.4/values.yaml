@@ -27,42 +27,6 @@ serviceAccount:
 
 podAnnotations: {}
 
-# https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-# Waits the pod to be ready on startup, important during modules installation or running "fixdb"
-startupProbe:
-  # httpGet:
-  #   path: /web/login
-  #   port: 8069
-  tcpSocket:
-    port: 8069
-  initialDelaySeconds: 1
-  failureThreshold: 900 # 15 min
-  periodSeconds: 1
-# Check if the pod is halted and need to be restarted
-livenessProbe:
-  # httpGet:
-  #   path: /web/login
-  #   port: 8069
-  tcpSocket:
-    port: 8069
-  initialDelaySeconds: 2
-  periodSeconds: 15
-  timeoutSeconds: 5
-  failureThreshold: 8 # 1 min
-  successThreshold: 1
-# Check if the pod is ready to receive traffic from the service
-readinessProbe:
-  # httpGet:
-  #   path: /saas_client/healthz
-  #   port: 8069
-  tcpSocket:
-    port: 8069
-  initialDelaySeconds: 2
-  periodSeconds: 10
-  timeoutSeconds: 10
-  failureThreshold: 3 # 30 sec
-  successThreshold: 1
-
 service:
   type: ClusterIP
   port: 80

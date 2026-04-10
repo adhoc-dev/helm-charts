@@ -1,3 +1,4 @@
+{{- if or (eq .Values.adhoc.appType "prod") .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -20,3 +21,4 @@ spec:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
       adhoc.ar/app-name: "odoo"
+{{- end }}
