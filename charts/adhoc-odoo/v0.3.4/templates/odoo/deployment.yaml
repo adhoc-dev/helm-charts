@@ -14,7 +14,7 @@ metadata:
     "adhoc.ar/dev-name": "" # Used to identify the developer that deployed the app
     "adhoc.ar/dev-r2cmd": "" # Used to store the r2cmd command to redeploy the app
 spec:
-  {{- if not (or .Values.autoscaling.hpa.enabled (include "adhoc-odoo.keda.enabled" . | fromYaml)) }}
+  {{- if not (or .Values.autoscaling.hpa.enabled (include "keda.enabled" . | fromYaml)) }}
   replicas: {{ .Values.replicaCount | int }}
   {{- end }}
   selector:
@@ -23,7 +23,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      {{- if or .Values.autoscaling.hpa.enabled (include "adhoc-odoo.keda.enabled" . | fromYaml) }}
+      {{- if or .Values.autoscaling.hpa.enabled (include "keda.enabled" . | fromYaml) }}
       maxSurge: 25%
       maxUnavailable: 25%
       {{- else }}
@@ -145,7 +145,7 @@ spec:
             # httpGet:
             #   path: /web/login
             #   port: 8069
-            {{- if (include "adhoc-odoo.keda.enabled" . | fromYaml) }}
+            {{- if (include "keda.enabled" . | fromYaml) }}
             httpGet:
               {{- if ge $odooVersion 180 }}
               path: /saas_client/healthz
@@ -174,7 +174,7 @@ spec:
             successThreshold: 1
           # Check if the pod is ready to receive traffic from the service
           readinessProbe:
-            {{- if (include "adhoc-odoo.keda.enabled" . | fromYaml) }}
+            {{- if (include "keda.enabled" . | fromYaml) }}
             httpGet:
               # Para aprovechar el autoescalado basado en métricas de tráfico de KEDA, la sonda de readiness debe
               {{- if ge $odooVersion 180 }}
