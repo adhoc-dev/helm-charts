@@ -513,6 +513,13 @@ questions:
     type: "listofstrings"
     default: []
     required: false
+  - variable: ingress.istio.logAll
+    group: "Ingress"
+    label: "Log All Istio Ingress Traffic"
+    description: "Enable logging for all Istio Ingress traffic"
+    type: "boolean"
+    required: false
+    default: false
 
 # Reverse Proxy
   - variable: ingress.reverseProxy.enabled
