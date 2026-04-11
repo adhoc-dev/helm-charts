@@ -14,7 +14,7 @@ metadata:
     "adhoc.ar/dev-name": "" # Used to identify the developer that deployed the app
     "adhoc.ar/dev-r2cmd": "" # Used to store the r2cmd command to redeploy the app
 spec:
-  {{- if not (or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled) }}
+  {{- if not (or .Values.autoscaling.hpa.enabled (include "keda.enabled" . | fromYaml)) }}
   replicas: {{ .Values.replicaCount | int }}
   {{- end }}
   selector:
@@ -23,7 +23,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+      {{- if or .Values.autoscaling.hpa.enabled (include "keda.enabled" . | fromYaml) }}
       maxSurge: 25%
       maxUnavailable: 25%
       {{- else }}
@@ -78,6 +78,33 @@ spec:
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
           command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
       {{- end }}
+      {{- if .Values.adhoc.devMode }}
+        - name: seed-vscode-server
+          image: adhoc/ops-tools:vscode-sidecar-latest
+          imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              mkdir -p /work/.vscode-server/bin
+              for d in $ODOO_HOME/.vscode-server/bin/*; do
+                name="$(basename "$d")"
+                if [ ! -e "/work/.vscode-server/bin/$name" ]; then
+                  cp -a "$d" "/work/.vscode-server/bin/$name"
+                  echo "Copied $d to /work/.vscode-server/bin/$name"
+                fi
+              done
+          volumeMounts:
+            - name: vscode-server
+              mountPath: /work/.vscode-server
+      {{ end }}
       {{- if eq .Values.adhoc.appType "prod" }}
       priorityClassName: prod-priority
       {{- end }}
@@ -118,7 +145,7 @@ spec:
             # httpGet:
             #   path: /web/login
             #   port: 8069
-            {{- if .Values.autoscaling.keda.enabled }}
+            {{- if (include "keda.enabled" . | fromYaml) }}
             httpGet:
               {{- if ge $odooVersion 180 }}
               path: /saas_client/healthz
@@ -147,7 +174,7 @@ spec:
             successThreshold: 1
           # Check if the pod is ready to receive traffic from the service
           readinessProbe:
-            {{- if .Values.autoscaling.keda.enabled }}
+            {{- if (include "keda.enabled" . | fromYaml) }}
             httpGet:
               # Para aprovechar el autoescalado basado en métricas de tráfico de KEDA, la sonda de readiness debe
               {{- if ge $odooVersion 180 }}
@@ -216,6 +243,11 @@ spec:
             mountPath: /home/odoo/.resources/conf.d/99-odoo-extra.conf
             subPath: odoo-extra.conf
             readOnly: true
+          {{- end }}
+          {{- if .Values.adhoc.devMode }}
+          - name: vscode-server
+            mountPath: /home/odoo/.vscode-server
+            readOnly: false
           {{- end }}
           # Prevent session creations on FS (We only use redis or db_session) TA #63659
           - name: session-folder-ro
@@ -326,6 +358,10 @@ spec:
             mountOptions: "uid=1000,gid=1000,file-mode=600,dir-mode=700,implicit-dirs=true,o=rw,write:enable-streaming-writes:false,file-cache:enable-parallel-downloads:true,file-cache:parallel-downloads-per-file:4,file-cache:max-parallel-downloads:-1,file-cache:download-chunk-size-mb:3,file-cache:max-size-mb:200,metadata-cache:ttl-secs:-1"
             fileCacheCapacity: "200Mi"
       - name: gcs-fuse-csi-ephemeral-skip
+        emptyDir: {}
+      {{- end }}
+      {{- if .Values.adhoc.devMode }}
+      - name: vscode-server
         emptyDir: {}
       {{- end }}
       - name: session-folder-ro
