@@ -1,4 +1,4 @@
-{{- if .Values.autoscaling.keda.enabled }}
+{{- if (include "adhoc-odoo.keda.enabled" . | fromYaml)  }}
 #  kubectl explain  --api-version=http.keda.sh/v1alpha1 httpscaledobject.spec
 apiVersion: http.keda.sh/v1alpha1
 kind: HTTPScaledObject

@@ -22,7 +22,7 @@ spec:
     # 2 for Odoo (http + ws) + 1 for Reverse Proxy + 1 for PG RW + 1 for PG RO if enabled
     count/services: 10
     # By default we create 2 ingresses if KEDA is enabled (and other for cert renewal)
-    count/ingresses.networking.k8s.io: {{ ternary 3 2 .Values.autoscaling.keda.enabled }}
+    count/ingresses.networking.k8s.io: {{ ternary 3 2 (include "adhoc-odoo.keda.enabled" . | fromYaml) }}
     # Don't allow load balancers by default, Only if external read-only is enabled
     count/services.loadbalancers: {{ ternary 1 0 .Values.cloudNativePG.services.externalService.enabled }}
     # By default we create 1 PVC for PG

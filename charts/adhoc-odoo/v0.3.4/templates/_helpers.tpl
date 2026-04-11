@@ -196,3 +196,15 @@ Check if the database is set
 {{- end -}}
 
 {{- end -}}
+
+
+{{- /*
+Check if keda can be enable.
+*/}}
+{{- define "keda.enabled" -}}
+{{- and
+    (.Values.autoscaling.keda.enabled | default false)
+    (not .Values.adhoc.devMode)
+    (eq .Values.ingress.reverseProxy.inactive.mode "")
+-}}
+{{- end -}}

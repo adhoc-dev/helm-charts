@@ -30,7 +30,7 @@ spec:
             prefix: /
       route:
         - destination:
-            {{- if .Values.autoscaling.keda.enabled }}
+            {{- if (include "adhoc-odoo.keda.enabled" . | fromYaml)  }}
             # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
             # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
             # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
