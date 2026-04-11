@@ -58,6 +58,7 @@ ingress:
     allowedHosts: []
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
+    logAll: false
 
   # Reverse proxy cache
   reverseProxy:

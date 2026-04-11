@@ -200,6 +200,9 @@ Check if the database is set
 
 {{- /*
 Check if keda can be enable.
+
+DevMode is incompatible with KEDA (in dev mode, we always want one replica).
+The inactive mode of reverseProxy is incompatible (the Odoo deployment is disabled in this mode, so scaling it is pointless).
 */}}
 {{- define "keda.enabled" -}}
 {{- and
