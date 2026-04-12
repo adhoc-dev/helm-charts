@@ -1,4 +1,5 @@
-{{- if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
+{{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
+{{- if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled $isKedaEnabled -}}
 apiVersion: v1
 kind: Service
 metadata:

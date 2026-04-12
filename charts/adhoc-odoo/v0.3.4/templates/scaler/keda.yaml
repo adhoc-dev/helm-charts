@@ -1,4 +1,4 @@
-{{- if (include "keda.enabled" . | fromYaml)  }}
+{{- if eq (include "keda.enabled" . | trim) "true" }}
 #  kubectl explain  --api-version=http.keda.sh/v1alpha1 httpscaledobject.spec
 apiVersion: http.keda.sh/v1alpha1
 kind: HTTPScaledObject
