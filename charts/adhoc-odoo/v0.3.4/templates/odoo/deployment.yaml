@@ -64,6 +64,9 @@ spec:
         {{- end }}
         {{- end }}
         rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
+        {{- if ne .Values.adhoc.appType "prod" }}
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        {{- end }}
       labels:
         {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
