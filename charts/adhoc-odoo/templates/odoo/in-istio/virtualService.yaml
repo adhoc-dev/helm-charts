@@ -7,6 +7,7 @@
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $srvHttp := printf "%s-http" $fullName }}
 {{- $srvWs := printf "%s-websocket" $fullName }}
+{{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
 {{- if .Values.ingress.reverseProxy.enabled }}
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
@@ -30,7 +31,7 @@ spec:
             prefix: /
       route:
         - destination:
-            {{- if (include "keda.enabled" . | fromYaml)  }}
+            {{- if $isKedaEnabled }}
             # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
             # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
             # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
@@ -117,7 +118,7 @@ spec:
             prefix: /
       route:
         - destination:
-            {{- if .Values.autoscaling.keda.enabled }}
+            {{- if $isKedaEnabled }}
             # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
             # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
             # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio

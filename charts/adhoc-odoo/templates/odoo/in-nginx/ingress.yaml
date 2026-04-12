@@ -9,7 +9,7 @@
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- end }}
-{{- $isKedaEnabled := (include "keda.enabled" . | fromYaml) }}
+{{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" }}
 
 # kubectl explain  --api-version=networking.k8s.io/v1 Ingress.spec
 {{- if $isKedaEnabled }}

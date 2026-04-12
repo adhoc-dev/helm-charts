@@ -1,4 +1,5 @@
-{{- if or (eq .Values.adhoc.appType "prod") .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+{{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
+{{- if or (eq .Values.adhoc.appType "prod") .Values.autoscaling.hpa.enabled $isKedaEnabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -6,7 +7,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
-  {{- if or .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+  {{- if or .Values.autoscaling.hpa.enabled $isKedaEnabled }}
   maxUnavailable: 25%
   {{- else }}
   # Prevent disruptions in maintenance windows

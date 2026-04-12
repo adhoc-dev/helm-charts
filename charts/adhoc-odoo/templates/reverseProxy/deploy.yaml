@@ -73,7 +73,7 @@ spec:
         env:
         - name: WORKER_PROCESSES
           value: "{{ default 0 .Values.odoo.performance.workers | toString | int }}"
-        {{ if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled }}
+        {{ if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled (eq (include "keda.enabled" . | trim) "true") }}
         - name: ODOO_SERVER
           value: "{{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80"
         - name: ODOO_WS_SERVER
