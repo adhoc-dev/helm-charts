@@ -203,11 +203,13 @@ Check if keda can be enable.
 
 DevMode is incompatible with KEDA (in dev mode, we always want one replica).
 The inactive mode of reverseProxy is incompatible (the Odoo deployment is disabled in this mode, so scaling it is pointless).
+Restoring the database we need to scale down to 0, so if replicaCount is set to 0, we assume that the user wants to be able to scale down to 0, so we enable KEDA even if it's not explicitly enabled.
 */}}
 {{- define "keda.enabled" -}}
 {{- and
     (.Values.autoscaling.keda.enabled | default false)
     (not .Values.adhoc.devMode)
     (eq .Values.ingress.reverseProxy.inactive.mode "")
+    (ne .Values.replicaCount 0)
 -}}
 {{- end -}}
