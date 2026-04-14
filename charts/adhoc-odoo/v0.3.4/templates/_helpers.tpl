@@ -210,6 +210,6 @@ Restoring the database we need to scale down to 0, so if replicaCount is set to 
     (.Values.autoscaling.keda.enabled | default false)
     (not .Values.adhoc.devMode)
     (eq .Values.ingress.reverseProxy.inactive.mode "")
-    (ne .Values.replicaCount 0)
+    (ne (.Values.replicaCount | int) 0)
 -}}
 {{- end -}}
