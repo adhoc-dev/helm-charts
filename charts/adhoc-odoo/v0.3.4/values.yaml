@@ -168,7 +168,7 @@ ingress:
     image:
       # repository: nginx
       repository: dockerhub.adhoc.inc/adhoc/ops-tools
-      tag: "odooEdgeProxy-1.7"
+      tag: "odooEdgeProxy-2026.04.14"
     loadBalancerCIDR: 10.0.0.0/8
     internalClusterCIDR: 10.0.0.0/8
     # Monitoring
