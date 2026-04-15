@@ -146,21 +146,18 @@ spec:
           # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
           # Waits the pod to be ready on startup, important during modules installation or running "fixdb"
           startupProbe:
+            # - if $isKedaEnabled
             # httpGet:
-            #   path: /web/login
+            #   {{- if ge $odooVersion 180 }}
+            #   path: /saas_client/healthz
+            #   {{- else }}
+            #   path: /web/health
+            #   {{- end }}
             #   port: 8069
-            {{- if $isKedaEnabled }}
-            httpGet:
-              {{- if ge $odooVersion 180 }}
-              path: /saas_client/healthz
-              {{- else }}
-              path: /web/health
-              {{- end }}
-              port: 8069
-            {{- else }}
+            # - else
             tcpSocket:
               port: 8069
-            {{- end }}
+            # - end
             initialDelaySeconds: 1
             failureThreshold: 900 # 15 min
             periodSeconds: 1
@@ -178,21 +175,21 @@ spec:
             successThreshold: 1
           # Check if the pod is ready to receive traffic from the service
           readinessProbe:
-            {{- if $isKedaEnabled }}
-            httpGet:
-              # Para aprovechar el autoescalado basado en métricas de tráfico de KEDA, la sonda de readiness debe
-              {{- if ge $odooVersion 180 }}
-              path: /saas_client/healthz
-              {{- else }}
-              path: /web/health
-              {{- end }}
-              port: 8069
-            initialDelaySeconds: 2
-            periodSeconds: 10
-            timeoutSeconds: 10
-            failureThreshold: 3 # 30 sec
-            successThreshold: 1
-            {{- else }}
+            # - if $isKedaEnabled
+            # httpGet:
+            #   # Para aprovechar el autoescalado basado en métricas de tráfico de KEDA, la sonda de readiness debe
+            #   {{- if ge $odooVersion 180 }}
+            #   path: /saas_client/healthz
+            #   {{- else }}
+            #   path: /web/health
+            #   {{- end }}
+            #   port: 8069
+            # initialDelaySeconds: 2
+            # periodSeconds: 10
+            # timeoutSeconds: 10
+            # failureThreshold: 3 # 30 sec
+            # successThreshold: 1
+            # - else
             tcpSocket:
               port: 8069
             initialDelaySeconds: 2
@@ -200,7 +197,7 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3 # 30 sec
             successThreshold: 1
-            {{- end }}
+            # - end
           {{- end }}
           envFrom:
           - configMapRef:
