@@ -43,7 +43,7 @@ spec:
             port:
               number: 80
             {{- end }}
-    {{- if gt $usewebsocket 0 }}
+      {{- if gt $usewebsocket 0 }}
     - match:
         - uri:
             {{- if le $odooVersion 150 }}
@@ -56,12 +56,11 @@ spec:
             host: {{ $srvWs }}
             port:
               number: 80
-    {{- end }}
+      {{- end }}
+{{ if .Values.ingress.istio.altHosts }}
 ---
-# Custom
 
-{{- if .Values.ingress.istio.altHosts -}}
-{{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1}}
+{{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1 }}
 {{- $secretName := printf "%s-custom-tls" .Values.odoo.pg.db | quote -}}
 {{- $gwName := printf "%s-gateway" .Values.odoo.pg.db | quote -}}
 apiVersion: cert-manager.io/v1
@@ -134,7 +133,7 @@ spec:
         attempts: 10
         perTryTimeout: 5s
         retryOn: gateway-error,connect-failure,refused-stream
-    {{- if gt $usewebsocket 0 }}
+      {{- if gt $usewebsocket 0 }}
     - match:
         - uri:
             {{- if le $odooVersion 150 }}
@@ -147,9 +146,7 @@ spec:
             host: {{ $srvWs }}
             port:
               number: 80
-    {{- end }}
-
----
+      {{- end }}
 
 {{- end }}
 {{- end }}
