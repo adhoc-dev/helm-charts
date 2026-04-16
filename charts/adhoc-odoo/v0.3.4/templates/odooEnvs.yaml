@@ -1,5 +1,6 @@
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $workers := .Values.odoo.performance.workers | toString | int -}}
+{{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -174,6 +175,9 @@ data:
   LITELLM_LOG: "CRITICAL"
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus_client"
   KWKHTMLTOPDF_SERVER_URL: {{ .Values.odoo.kwkhtmltopdfServerUrl | quote }}
+  {{- if $isKedaEnabled }}
+  ADHOC_TRUST_ON_IP_HEADER: HTTP_X_ENVOY_EXTERNAL_ADDRESS
+  {{- end }}
   {{- range $key, $value := .Values.odoo.extraEnvVars }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
