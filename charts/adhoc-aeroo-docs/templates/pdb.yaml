@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "adhoc-aeroo.fullname" . }}
+  labels:
+    {{- include "adhoc-aeroo.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "adhoc-aeroo.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "aeroo"
