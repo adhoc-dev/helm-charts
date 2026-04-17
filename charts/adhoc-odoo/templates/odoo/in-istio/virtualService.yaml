@@ -67,6 +67,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ printf "%s-custom" .Values.odoo.pg.db | quote }}
+  namespace: istio-system
 spec:
   secretName: {{ $secretName }}
   dnsNames:
