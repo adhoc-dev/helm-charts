@@ -1,0 +1,33 @@
+{{- /*
+Validaciones de valores: este archivo se renderiza (a diferencia de _helpers.tpl),
+por lo que los `fail` sí se ejecutan durante `helm template/install/upgrade`.
+*/ -}}
+
+{{- /*
+No permitir a la vez Ingress NGINX y recursos Istio.
+Si se habilitan ambos, cert-manager (ingress-shim) puede crear Certificates extra.
+*/ -}}
+{{- if and .Values.ingress.enabled .Values.ingress.istio.enabled -}}
+{{- fail "You can't enable both: ingress.enabled and ingress.istio.enabled at the same time. Please enable only one." -}}
+{{- end -}}
+
+{{- /*
+No permitir HPA y KEDA simultáneamente.
+*/ -}}
+{{- if and .Values.autoscaling.hpa.enabled .Values.autoscaling.keda.enabled -}}
+{{- fail "You can't enable both: autoscaling.hpa.enabled and autoscaling.keda.enabled at the same time. Please enable only one." -}}
+{{- end -}}
+
+{{- /*
+Si HPA está habilitado, minReplicas debe ser > 0.
+*/ -}}
+{{- if and .Values.autoscaling.hpa.enabled (not .Values.autoscaling.minReplicas) -}}
+{{- fail "You must set autoscaling.minReplicas to a value higher than 0 when autoscaling.hpa.enabled is true." -}}
+{{- end -}}
+
+{{- /*
+Debe existir nombre de base de datos.
+*/ -}}
+{{- if not .Values.odoo.pg.db -}}
+{{- fail "You must set .Values.odoo.pg.db to a valid database name." -}}
+{{- end -}}
