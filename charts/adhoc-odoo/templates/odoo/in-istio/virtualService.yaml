@@ -63,6 +63,7 @@ spec:
 {{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1 }}
 {{- $secretName := printf "%s-custom-tls" .Values.odoo.pg.db | quote -}}
 {{- $gwName := printf "%s-gateway" .Values.odoo.pg.db | quote -}}
+{{ if .Values.ingress.istio.createCertificate }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -80,6 +81,7 @@ spec:
   privateKey:
     rotationPolicy: Always
 ---
+{{ end }}
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:

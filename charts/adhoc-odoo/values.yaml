@@ -52,6 +52,7 @@ ingress:
     issuer: istio-http-cluster-issuer
     cloudMainDomain: shared.dev-adhoc.com
     altHosts: ""
+    createCertificate: true
 
     blockOutboundTraffic: false
     # Extra hosts to allow egress traffic from Knative
