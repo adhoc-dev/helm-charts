@@ -19,11 +19,11 @@ spec:
     {{- end }}
     {{- if .Values.ingress.enabled }}
     - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.cloudMainDomain | quote }}
-    {{- end }}
     {{- if .Values.ingress.hosts -}}
     {{- $hosts :=  regexSplit "," .Values.ingress.hosts -1}}
     {{- range $hosts }}
     - {{ . | quote }}
+    {{- end }}
     {{- end }}
     {{- end }}
 
