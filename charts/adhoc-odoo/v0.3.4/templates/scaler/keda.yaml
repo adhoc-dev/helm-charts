@@ -39,8 +39,14 @@ spec:
     min: {{ .Values.autoscaling.minReplicas | toString | int }}
     max: {{ .Values.autoscaling.maxReplicas | toString | int }}
   scaleTargetRef:
+    # Name of the deployment to scale
     name: {{ include "adhoc-odoo.fullname" . }}
+    # Name of the Service to route to. The Service must be in the same namespace as the HTTPScaledObject.
+    {{- if .Values.ingress.reverseProxy.enabled }}
+    service: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
+    {{- else }}
     service: {{ include "adhoc-odoo.serviceNameSuffix" . }}-http
+    {{- end }}
     port: 80
   scaledownPeriod: 900 # Tiempo en segundos para escalar hacia abajo
   scalingMetric:
