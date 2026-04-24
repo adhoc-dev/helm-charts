@@ -140,6 +140,13 @@ spec:
     storageClass: {{ .Values.cloudNativePG.persistence.storageClass }}
     {{- end }}
   {{- end }}
+  probes:
+    liveness:
+      timeoutSeconds: 10
+      failureThreshold: 6
+      isolationCheck:
+        connectionTimeout: 5000
+        requestTimeout: 5000
   resources:
     requests:
       memory: {{ .Values.cloudNativePG.resources.requests.memory | quote }}
