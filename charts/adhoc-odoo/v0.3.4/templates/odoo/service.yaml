@@ -15,7 +15,6 @@ spec:
       name: http
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
-    adhoc.ar/app-name: "odoo"
 ---
 {{- $usewebsocket  := .Values.odoo.performance.workers | toString | int -}}
 {{- if gt $usewebsocket 0 }}
@@ -34,6 +33,5 @@ spec:
       name: websocket
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
-    adhoc.ar/app-name: "odoo"
 {{- end }}
 {{- end }}
