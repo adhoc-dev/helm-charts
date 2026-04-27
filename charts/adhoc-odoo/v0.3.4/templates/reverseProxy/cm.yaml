@@ -1,0 +1,38 @@
+{{- if .Values.ingress.reverseProxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-oep-config
+data:
+  # Simple key=value file. Updating this ConfigMap triggers sidecar re-render + nginx reload.
+  env: |
+    WORKER_PROCESSES={{ default 0 .Values.odoo.performance.workers | toString | int }}
+    {{ if or (gt (.Values.replicaCount | int)  0) .Values.autoscaling.hpa.enabled (eq (include "keda.enabled" . | trim) "true") }}
+    ODOO_SERVER={{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80
+    ODOO_WS_SERVER={{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket:80
+    {{ end }}
+    {{ if .Values.ingress.reverseProxy.rateLimit.enabled }}
+    RATE_LIMIT_ENABLED={{ .Values.ingress.reverseProxy.rateLimit.enabled | quote }}
+    RATE_LIMIT_STATIC={{ .Values.ingress.reverseProxy.rateLimit.static | quote }}
+    RATE_LIMIT_ACCESS={{ .Values.ingress.reverseProxy.rateLimit.access | quote }}
+    RATE_LIMIT_GENERIC={{ .Values.ingress.reverseProxy.rateLimit.generic | quote }}
+    RATE_LIMIT_RPC={{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
+    INTERNAL_CLUSTER_CIDR={{ .Values.ingress.reverseProxy.internalClusterCIDR | quote }}
+    {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
+    RATE_LIMIT_DEBUG=1
+    {{- end }}
+    {{- end }}
+    INACTIVE_MODE={{ .Values.ingress.reverseProxy.inactive.mode | quote }}
+    INACTIVE_ETA={{ .Values.ingress.reverseProxy.inactive.eta | quote }}
+    {{ if .Values.ingress.reverseProxy.imageCacheEnabled }}
+    IMAGE_CACHE_ENABLED={{ .Values.ingress.reverseProxy.imageCacheEnabled | quote }}
+    {{- end }}
+    {{ if .Values.ingress.reverseProxy.monitoring.enabled }}
+    MONITORING_ENABLED=1
+    {{- end }}
+    {{ if .Values.ingress.reverseProxy.botBlock.enabled }}
+    BOT_BLOCK_LIST={{ .Values.ingress.reverseProxy.botBlock.blockedUserAgents | join "|" | quote }}
+    {{- end }}
+    COUNTRY_BLOCK_LIST={{ .Values.ingress.reverseProxy.blockedCountries | join "|" | quote }}
+    IP_BLOCK_LIST={{ .Values.ingress.reverseProxy.blockedIps | join "," | quote }}
+{{- end }}
