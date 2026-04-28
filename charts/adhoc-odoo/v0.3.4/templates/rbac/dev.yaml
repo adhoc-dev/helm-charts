@@ -55,7 +55,7 @@ rules:
     resources: ["events"]
     verbs: ["get", "list"]
   - apiGroups: ["http.keda.sh"]
-    resources: ["HTTPScaledObjects"]
+    resources: ["httpscaledobjects"]
     verbs: ["get", "list"]
   # Allow viewing services
   # - apiGroups: [""]
