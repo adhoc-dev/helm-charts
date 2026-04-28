@@ -9,7 +9,12 @@ metadata:
   annotations:
     certmanager.k8s.io/disable-auto-restart: "true"
 spec:
+  {{- if and (ne .Values.ingress.reverseProxy.inactive.mode "") .Values.ingress.istio.enabled }}
+  # if maintenance mode is active and we are using Istio, scale to 0 to avoid routing traffic to the app (instead of routing to a maintenance page)
+  replicas: 0
+  {{- else }}
   replicas: {{ .Values.ingress.reverseProxy.scale }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}

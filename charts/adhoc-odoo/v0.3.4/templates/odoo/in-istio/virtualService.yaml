@@ -7,10 +7,23 @@
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- $srvHttp := printf "%s-http" $fullName }}
 {{- $srvWs := printf "%s-websocket" $fullName }}
+{{- $srvPort := 80 }}
 {{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
 {{- if .Values.ingress.reverseProxy.enabled }}
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
+{{- end }}
+{{- if $isKedaEnabled }}
+# Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
+# Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
+# Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
+{{- $srvHttp = "keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local" }}
+{{- $srvWs = "keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local" }}
+{{- $srvPort = 8080 }}
+{{- end }}
+{{- if ne .Values.ingress.reverseProxy.inactive.mode "" }}
+# If maintenance mode is active, route to a maintenance page instead of the app
+{{- $srvHttp = "default-http-server.istio-system.svc.cluster.local" }}
 {{- end }}
 
 # Shared
@@ -29,20 +42,19 @@ spec:
     - match:
         - uri:
             prefix: /
+      headers:
+        request:
+          set:
+            {{- if ne .Values.ingress.reverseProxy.inactive.mode "" }}
+            x-maintenance-mode: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
+            x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
+            {{- end }}
+            x-adhoc-odoo-instance:  {{ .Values.odoo.pg.db  | quote }}
       route:
         - destination:
-            {{- if $isKedaEnabled }}
-            # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
-            # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
-            # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
-            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
-            port:
-              number: 8080
-            {{- else }}
             host: {{ $srvHttp }}
             port:
-              number: 80
-            {{- end }}
+              number: {{ $srvPort }}
       {{- if gt $usewebsocket 0 }}
     - match:
         - uri:
@@ -59,7 +71,6 @@ spec:
       {{- end }}
 {{ if .Values.ingress.istio.altHosts }}
 ---
-
 {{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1 }}
 {{- $secretName := printf "%s-custom-tls" .Values.odoo.pg.db | quote -}}
 {{- $gwName := printf "%s-gateway" .Values.odoo.pg.db | quote -}}
@@ -118,20 +129,19 @@ spec:
     - match:
         - uri:
             prefix: /
+      headers:
+        request:
+          set:
+            {{- if ne .Values.ingress.reverseProxy.inactive.mode "" }}
+            x-maintenance-mode: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
+            x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
+            {{- end }}
+            x-adhoc-odoo-instance:  {{ .Values.odoo.pg.db  | quote }}
       route:
         - destination:
-            {{- if $isKedaEnabled }}
-            # Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
-            # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
-            # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
-            host: keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local
-            port:
-              number: 8080
-            {{- else }}
             host: {{ $srvHttp }}
             port:
-              number: 80
-            {{- end }}
+              number: {{ $srvPort }}
       retries:
         attempts: 10
         perTryTimeout: 5s
