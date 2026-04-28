@@ -54,9 +54,11 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "list"]
+{{- if .Values.autoscaling.keda.enabled }}
   - apiGroups: ["http.keda.sh"]
     resources: ["httpscaledobjects"]
     verbs: ["get", "list"]
+{{- end }}
   # Allow viewing services
   # - apiGroups: [""]
   #   resources: ["services"]
