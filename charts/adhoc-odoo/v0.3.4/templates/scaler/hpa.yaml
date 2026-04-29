@@ -2,7 +2,7 @@
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}
+  name: {{ .Release.Name }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:

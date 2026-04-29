@@ -56,7 +56,10 @@ rules:
     verbs: ["get", "list"]
 {{- if .Values.autoscaling.keda.enabled }}
   - apiGroups: ["http.keda.sh"]
-    resources: ["httpscaledobjects"]
+    resources: ["httpscaledobjects", "interceptorroute"]
+    verbs: ["get", "list"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
     verbs: ["get", "list"]
 {{- end }}
   # Allow viewing services

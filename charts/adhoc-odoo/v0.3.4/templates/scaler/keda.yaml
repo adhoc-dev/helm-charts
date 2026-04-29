@@ -1,4 +1,7 @@
 {{- if eq (include "keda.enabled" . | trim) "true" }}
+# TODO: Delete this HTTPScaledObject in a couple months once we are sure that KEDA is working correctly and the HPA is not being used anymore.
+# We need to keep it for now to avoid downtime during the transition, but it will be orphaned and won't have any effect once the InterceptorRoute is working.
+# Like Jun 2026
 #  kubectl explain  --api-version=http.keda.sh/v1alpha1 httpscaledobject.spec
 apiVersion: http.keda.sh/v1alpha1
 kind: HTTPScaledObject
@@ -6,6 +9,8 @@ metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    httpscaledobject.keda.sh/orphan-scaledobject: "true"
 spec:
   hosts:
     {{- if .Values.ingress.istio.enabled }}
@@ -64,5 +69,77 @@ spec:
       window: 10s # Window for request rate scaling (Don't use more than 10s, otherwise it will problematic for the HPA)
   # Scaling based on pending requests for a given target
   # targetPendingRequests: 1 # DEPRECATED
-{{- end }}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: default-http-server
+# spec:
+#   type: ExternalName
+#   # TODO: Create a custom maintenance page
+#   externalName: default-http-server.istio-system.svc.cluster.local
+#   ports:
+#     - port: 80
+#       targetPort: 80
+---
+apiVersion: http.keda.sh/v1beta1
+kind: InterceptorRoute
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  target:
+    {{- if .Values.ingress.reverseProxy.enabled }}
+    service: {{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx
+    {{- else }}
+    service: {{ include "adhoc-odoo.serviceNameSuffix" . }}-http
+    {{- end }}
+    port: 80
+  # There is a bug in KEDA type discrepancy (CRD/admission accept string, but controller try to read a ServiceRef)
+  # coldStart:
+  #   fallback:
+  #     service:
+  #       name: default-http-server
+  #     port: 80
+  rules:
+    - hosts:
+      {{- if .Values.ingress.istio.enabled }}
+      - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
+      {{- if .Values.ingress.istio.altHosts -}}
+      {{- $hosts :=  regexSplit ',' .Values.ingress.istio.altHosts -1 }}
+      {{- range $hosts }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+  scalingMetric:
+    # Scaling based on concurrent requests for a given target
+    # Si los recursos son estables, es mejor usar concurrency ¿con workers?
+    # concurrency:
+    #   targetValue: 10 #  Target value for rate scaling
 
+    # Scaling based on request rate for a given target
+    # Util cuando las peticiones son cortas y queremos reaccionar a picos de tráfico. ¿website/sin workers?
+    requestRate:
+      granularity: 5s # Granularity for request rate scaling
+      targetValue: 100 # Target value for request rate scaling
+      window: 10s # Window for request rate scaling (Don't use more than 10s, otherwise it will problematic for the HPA)
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}
+spec:
+  scaleTargetRef:
+    name: {{ include "adhoc-odoo.fullname" . }}
+    kind: Deployment
+    apiVersion: apps/v1
+  minReplicaCount: {{ .Values.autoscaling.minReplicas | toString | int }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas | toString | int }}
+  initialCooldownPeriod: 900 # Initial period before scaling 15 min
+  cooldownPeriod: 900
+  triggers:
+    - type: external-push
+      metadata:
+        scalerAddress: "keda-add-ons-http-external-scaler.keda:9090"
+        interceptorRoute: {{ .Release.Name }}
+{{- end }}
