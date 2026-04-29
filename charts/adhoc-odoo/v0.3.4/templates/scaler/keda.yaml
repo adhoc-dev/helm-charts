@@ -22,7 +22,7 @@ spec:
       {{- if .Values.ingress.istio.enabled }}
       - {{ printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain | quote }}
       {{- if .Values.ingress.istio.altHosts -}}
-      {{- $hosts :=  regexSplit ',' .Values.ingress.istio.altHosts -1 }}
+      {{- $hosts :=  regexSplit "," .Values.ingress.istio.altHosts -1 }}
       {{- range $hosts }}
       - {{ . | quote }}
       {{- end }}
