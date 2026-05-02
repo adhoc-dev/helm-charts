@@ -30,6 +30,8 @@ RUN apt-get update \
         gpg \
         gnupg2 \
         jq \
+        yamllint \
+        yq \
     # Helm
     && curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null \
     && apt-get install --no-install-recommends apt-transport-https --yes \
@@ -48,6 +50,8 @@ RUN apt-get update \
     && apt-get install --no-install-recommends kubectl \
     && kubectl completion bash > /etc/bash_completion.d/kubectl \
     && chmod a+r /etc/bash_completion.d/kubectl \
+    # GCP
+    && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && apt-get update -y && apt-get install google-cloud-cli google-cloud-sdk-gke-gcloud-auth-plugin -y \
     # Clean
     && rm -rf /var/lib/apt/lists/*
 

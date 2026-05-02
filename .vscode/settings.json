@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "**/charts/**/templates/**/*.yaml": "helm",
+    "**/charts/**/templates/**/*.yml": "helm",
+    "**/charts/**/templates/**/*.tpl": "helm"
+  }
+}

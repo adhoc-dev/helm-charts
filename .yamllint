@@ -1,0 +1,16 @@
+extends: default
+
+ignore: |
+  charts/**/templates/**
+  charts/**/charts/**
+  dest/**
+  tmp/**
+
+rules:
+  document-start: disable
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+  line-length:
+    max: 160
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true

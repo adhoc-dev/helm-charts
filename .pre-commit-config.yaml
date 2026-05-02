@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint"]
+
+  - repo: local
+    hooks:
+      - id: helm-validate-charts
+        name: helm validate charts (lint + template)
+        entry: bash scripts/helm-validate-charts.sh
+        language: system
+        files: ^charts/
+        pass_filenames: true

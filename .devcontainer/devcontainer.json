@@ -5,25 +5,36 @@
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind,consistency=delegated",
   "workspaceFolder": "/workdir",
+  "mounts": [
+    "source=${localEnv:HOME}/.config/gcloud,target=/home/appuser/.config/gcloud,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.kube,target=/home/appuser/.kube,type=bind,consistency=cached"
+    // "source=${localEnv:HOME}/.ssh,target=/home/appuser/.ssh,type=bind,consistency=cached",
+    // "source=${localEnv:HOME}/.gitconfig,target=/home/appuser/.gitconfig,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "KUBECONFIG": "/home/appuser/.kube/config"
+  },
   "customizations": {
     "vscode": {
       "settings": {
         "cSpell.language": "en,es",
         "files.exclude": {
-          ".devcontainer": true
+          ".devcontainer": false
         },
         "search.exclude": {
-          ".devcontainer": true
+          ".devcontainer": false
         }
       },
       "extensions": [
         "eamodio.gitlens",
         "shardulm94.trailing-spaces",
         "Tim-Koehler.helm-intellisense",
-        "technosophos.vscode-helm",
+        "redhat.vscode-yaml",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
         "wayou.vscode-todo-highlight",
         "streetsidesoftware.code-spell-checker",
-        "streetsidesoftware.code-spell-checker-spanish"
+        "streetsidesoftware.code-spell-checker-spanish",
+        "jinliming2.vscode-go-template"
       ]
     }
   },

@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "tim-koehler.helm-intellisense",
+    "redhat.vscode-yaml"
+  ]
+}

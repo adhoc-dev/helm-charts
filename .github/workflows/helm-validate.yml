@@ -1,0 +1,87 @@
+name: Validate Helm Charts
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - '.yamllint'
+      - '.pre-commit-config.yaml'
+      - 'scripts/**'
+      - '.github/workflows/helm-validate.yml'
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'charts/**'
+      - '.yamllint'
+      - '.pre-commit-config.yaml'
+      - 'scripts/**'
+      - '.github/workflows/helm-validate.yml'
+
+jobs:
+  lint-and-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          event_name="${{ github.event_name }}"
+          base=""
+          head="${{ github.sha }}"
+
+          if [[ "$event_name" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+          fi
+
+          # If it's the first push of a branch, GitHub may send a base SHA of 0...0
+          if [[ -z "$base" ]] || [[ "$base" =~ ^0+$ ]]; then
+            echo "base_empty=true" >> "$GITHUB_OUTPUT"
+            echo "changed_count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git diff --name-only "$base" "$head" > changed_files.txt || true
+          echo "base_empty=false" >> "$GITHUB_OUTPUT"
+          echo "changed_count=$(wc -l < changed_files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: YAML lint
+        run: yamllint -c .yamllint .
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Helm validate (lint + template)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.changes.outputs.base_empty }}" == "true" ]]; then
+            bash scripts/helm-validate-charts.sh
+            exit 0
+          fi
+
+          mapfile -t files < changed_files.txt
+          if [[ "${#files[@]}" -eq 0 ]]; then
+            echo "No changes detected for validation." >&2
+            exit 0
+          fi
+
+          bash scripts/helm-validate-charts.sh "${files[@]}"
