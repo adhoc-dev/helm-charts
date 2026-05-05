@@ -67,8 +67,8 @@ affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
-      - matchExpressions:
-        - key: "Prod"
-          operator: In
-          values:
-          - "true"
+        - matchExpressions:
+            - key: "Prod"
+              operator: In
+              values:
+                - "true"
