@@ -2,7 +2,10 @@ annotations:
   category: DevOps
 apiVersion: v2
 name: adhoc-defaultbackend
-description: El "backend predeterminado" es un servicio que maneja todas las rutas URL y aloja el controlador Ingress-NGINX que no comprende (es decir, todas las solicitudes que no están asignadas con un Ingress).
+description: >
+  El "backend predeterminado" es un servicio que maneja todas las rutas URL y
+  aloja el controlador Ingress-NGINX que no comprende (es decir, todas las
+  solicitudes que no están asignadas con un Ingress).
 
 type: application
 

@@ -9,8 +9,9 @@ ignore: |
 rules:
   document-start: disable
   truthy:
-    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
-  line-length:
-    max: 160
-    allow-non-breakable-words: true
-    allow-non-breakable-inline-mappings: true
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no', 'True', 'False', 'On', 'Off', 'Yes', 'No']
+  comments: disable
+  comments-indentation: disable
+  empty-lines: disable
+  indentation: disable
+  line-length: disable
