@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "app-instance.selectorLabels" . | nindent 8 }}

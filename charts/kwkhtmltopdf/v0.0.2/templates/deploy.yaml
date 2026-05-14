@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    {{- include "app-instance.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "app-instance.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "kwkhtmltopdf"
+  template:
+    metadata:
+      labels:
+        {{- include "app-instance.selectorLabels" . | nindent 8 }}
+        adhoc.ar/app-name: "kwkhtmltopdf"
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ printf "%s:%s" .Values.image.repository (.Values.image.tag | default "latest") | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: false
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          # Check if the pod is halted and need to be restarted
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 8 # 2 min
+            successThreshold: 1
+          # Check if the pod is ready to receive traffic from the service
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3 # 30 sec
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

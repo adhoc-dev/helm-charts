@@ -1,0 +1,17 @@
+{{- $monitoring := .Values.monitoring | default dict }}
+{{- if $monitoring.enabled | default true }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "app-instance.fullname" . }}
+  labels:
+    release: prom
+spec:
+  selector:
+    matchLabels:
+      {{- include "app-instance.selectorLabels" . | nindent 8 }}
+  podMetricsEndpoints:
+  - port: http
+    path: /metrics
+    interval: 60s
+{{- end }}
