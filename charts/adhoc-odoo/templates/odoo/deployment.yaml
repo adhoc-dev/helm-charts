@@ -76,8 +76,8 @@ spec:
       terminationGracePeriodSeconds: {{ ternary 120 60 (eq .Values.adhoc.appType "prod") }}
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
-      {{- if .Values.cloudNativePG.enabled }}
       initContainers:
+      {{- if .Values.cloudNativePG.enabled }}
         - name: wait-for-postgres
           image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
           command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
@@ -251,6 +251,7 @@ spec:
             readOnly: false
           {{- end }}
           # Prevent session creations on FS (We only use redis or db_session) TA #63659
+          # TODO: Only when version is lower than 16 (not including 16, because in 16 they moved the session folder to /home/odoo/data/sessions and we can mount it read-only, preventing any session to be created on FS, but in 15 and lower, the session folder is inside the odoo source code and we can't mount it read-only without breaking the app)
           - name: session-folder-ro
             mountPath: /home/odoo/data/sessions
             readOnly: true
