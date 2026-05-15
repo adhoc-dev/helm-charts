@@ -37,9 +37,6 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.ingress.istio.enabled }}
-        sidecar.istio.io/inject: "true"
-        {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -68,6 +65,9 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         {{- end }}
       labels:
+        {{- if .Values.ingress.istio.enabled }}
+        istio.io/rev: {{ .Values.ingress.istio.revision | default "default" | quote }}
+        {{- end }}
         {{- include "adhoc-odoo.selectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
         adhoc.ar/app-name: "odoo"

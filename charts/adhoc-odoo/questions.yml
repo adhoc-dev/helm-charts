@@ -478,6 +478,14 @@ questions:
     type: "boolean"
     required: false
     default: false
+  - variable: ingress.istio.revision
+    group: "Ingress"
+    label: "Istio Revision"
+    description: "Istio revision or revision tag used for sidecar injection"
+    type: "string"
+    required: false
+    default: "default"
+    show_if: "ingress.istio.enabled=true"
   # - variable: ingress.istio.issuer
   #   group: "Ingress"
   #   label: "Istio Let's Encrypt Issuer"
