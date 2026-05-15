@@ -27,9 +27,6 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.ingress.istio.enabled }}
-        sidecar.istio.io/inject: "true"
-        {{- end }}
         {{- if eq .Values.storage.location "fuse" }}
         gke-gcsfuse/volumes: "true"
         # https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver?hl=es-419
@@ -51,6 +48,9 @@ spec:
         {{- end }}
         {{- end }}
       labels:
+        {{- if .Values.ingress.istio.enabled }}
+        istio.io/rev: {{ .Values.ingress.istio.revision | default "default" | quote }}
+        {{- end }}
         {{- include "adhoc-odoo.nxselectorLabels" . | nindent 8 }}
         {{- include "adhoc-odoo.adhocLabels" . | nindent 8 }}
         adhoc.ar/app-name: "nginx"
