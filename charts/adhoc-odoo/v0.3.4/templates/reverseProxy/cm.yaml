@@ -18,6 +18,7 @@ data:
     RATE_LIMIT_GENERIC={{ .Values.ingress.reverseProxy.rateLimit.generic | quote }}
     RATE_LIMIT_RPC={{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
     INTERNAL_CLUSTER_CIDR={{ .Values.ingress.reverseProxy.internalClusterCIDR | quote }}
+    LOAD_BALANCER_CIDR={{ .Values.ingress.reverseProxy.loadBalancerCIDR | quote }}
     {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
     RATE_LIMIT_DEBUG=1
     {{- end }}
