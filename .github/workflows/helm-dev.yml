@@ -1,0 +1,66 @@
+name: Release Dev Helm Charts
+
+concurrency: release-helm
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'charts/**'
+      - '.github/workflows/helm-dev.yml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'src'
+          ref: 'dev'
+          fetch-depth: 0
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'dest'
+          ref: 'gh-pages'
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Publish Helm Charts
+        shell: bash
+        working-directory: src
+        run: |
+          for app in "./charts/"*; do
+              if [[ -d $app ]]; then
+                if ! grep -q '^version:' "$app/Chart.yaml"; then
+                    echo "No se pudo obtener la versión de $app, omitiendo."
+                    continue
+                fi
+                helm package "$app" -d ../dest/dev/
+                echo "Creado paquete para $app"
+              fi
+          done
+          helm repo index ../dest/dev/ --url https://adhoc-dev.github.io/helm-charts/dev/ --merge ../dest/dev/index.yaml
+
+      - name: Push New Files
+        shell: bash
+        working-directory: dest
+        run: |
+          git config user.name "helm"
+          git config user.email "bot@adhoc.inc"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No hay cambios para pushear."
+          else
+            git commit -m "Updated from ref: $GITHUB_SHA"
+            git push
+          fi
