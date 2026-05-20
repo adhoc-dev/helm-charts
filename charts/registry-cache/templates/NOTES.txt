@@ -7,12 +7,12 @@ Usá referencias así (Docker Hub):
 
 {{- else }}
 Endpoint interno (ClusterIP):
-  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000
+  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}:5000
 
 Usá referencias así (Docker Hub):
-  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000/library/redis:7
+  {{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}:5000/library/redis:7
 
 Recordá reescribir en tus charts:
-  image.registry: "{{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
+  image.registry: "{{ include "registry-cache.fullname" . }}.{{ .Release.Namespace }}:5000"
 
 {{- end }}
