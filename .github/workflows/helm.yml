@@ -2,6 +2,9 @@ name: Release Helm Charts
 
 concurrency: release-helm
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -9,20 +12,21 @@ on:
       - main
     paths:
       - 'charts/**'
+      - '.github/workflows/helm.yml'
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: 'src'
           ref: 'main'
           fetch-depth: 0
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: 'dest'
           ref: 'gh-pages'
@@ -37,8 +41,7 @@ jobs:
         run: |
           for app in "./charts/"*; do
               if [[ -d $app ]]; then
-                VERSION="v"$(grep '^version:' "$app/Chart.yaml" | awk '{print $2}')
-                if [[ -z "$VERSION" ]]; then
+                if ! grep -q '^version:' "$app/Chart.yaml"; then
                     echo "No se pudo obtener la versión de $app, omitiendo."
                     continue
                 fi

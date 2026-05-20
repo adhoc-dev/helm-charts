@@ -1,5 +1,8 @@
 name: Validate Helm Charts
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
@@ -7,7 +10,7 @@ on:
       - '.yamllint'
       - '.pre-commit-config.yaml'
       - 'scripts/**'
-      - '.github/workflows/helm-validate.yml'
+      - '.github/workflows/**'
   push:
     branches:
       - main
@@ -17,7 +20,7 @@ on:
       - '.yamllint'
       - '.pre-commit-config.yaml'
       - 'scripts/**'
-      - '.github/workflows/helm-validate.yml'
+      - '.github/workflows/**'
 
 jobs:
   lint-and-template:
