@@ -207,6 +207,7 @@ autoscaling:
   # KEDA
   keda:
     enabled: false
+    rpsThreshold: 2
 
 nodeSelector: {}
 tolerations: {}
