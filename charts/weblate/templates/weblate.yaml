@@ -61,9 +61,12 @@ spec:
           envFrom:
           - secretRef:
               name: {{ include "app-instance.fullname" . }}
-          env:
-          - name: GITHUB_TOKEN
-            value: {{ .Values.githubToken | quote }}
+          # env:
+          # - name: GITHUB_TOKEN
+            #   value: "<github-token>"
+          # Used for massive authentication to avoid hitting rate limits.
+          # - name: AUTH_LOCK_ATTEMPTS
+          #   value: "2000"
           command:
           - sh
           - -c

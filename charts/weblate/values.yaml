@@ -46,6 +46,7 @@ weblateGenerator:
 
 storage:
   size: "10Gi"
+  storageClassName: ""
 
 # This is used to search for repositories.
 runbot:
