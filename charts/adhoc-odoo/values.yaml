@@ -146,18 +146,50 @@ ingress:
     botBlock:
       enabled: true
       blockedUserAgents:
+        # AI / LLM training crawlers
         - GPTBot
         - ChatGPT-User
+        - OAI-SearchBot
         - CCBot
         - anthropic-ai
+        - ClaudeBot
         - Claude
+        - Google-Extended
+        - PerplexityBot
+        - Applebot-Extended
+        - Meta-ExternalAgent
+        - FacebookBot
+        - cohere-ai
+        - Diffbot
+        - YouBot
+        - Amazonbot
+        - Timpibot
+        - img2dataset
+        # AI search / otros LLMs
         - Bytespider
-        - Barkrowler
-        - SemrushBot
-        - Thinkbot
-        - bingbot
         - PetalBot
+        - Thinkbot
+        # SEO crawlers agresivos
+        - AhrefsBot
+        - SemrushBot
+        - DotBot
+        - MJ12bot
+        - BLEXBot
+        - DataForSeoBot
+        - serpstatbot
+        - SEOkicks
+        - rogerbot
+        - Barkrowler
+        # Motores con comportamiento agresivo o bloqueados por política
+        - bingbot
+        - msnbot
+        - adidxbot
         - Baiduspider
+        - YandexBot
+        - Exabot
+        # Scrapers / otros
+        - MegaIndex
+        - linkdexbot
     rateLimit:
       enabled: false
       static: 1000r/m
