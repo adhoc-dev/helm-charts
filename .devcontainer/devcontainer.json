@@ -43,5 +43,6 @@
     "--env-file",
     ".devcontainer/.env"
   ],
-  "initializeCommand": "touch -a .devcontainer/.env"
+  "initializeCommand": "touch -a .devcontainer/.env",
+  "postCreateCommand": "pre-commit install --install-hooks"
 }

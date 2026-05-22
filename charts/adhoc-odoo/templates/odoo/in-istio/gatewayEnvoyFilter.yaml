@@ -1,0 +1,56 @@
+{{- $http10 := default dict .Values.ingress.istio.http10 -}}
+{{- if and .Values.ingress.istio.enabled (get $http10 "enabled") -}}
+{{- $sharedHost := printf "%s.%s" .Values.odoo.pg.db .Values.ingress.istio.cloudMainDomain -}}
+{{- $sharedSni := printf "*.%s" .Values.ingress.istio.cloudMainDomain -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ printf "%s-http10" .Values.odoo.pg.db | quote }}
+  namespace: "istio-system"
+spec:
+  workloadSelector:
+    labels:
+      istio: external-ingressgateway
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          portNumber: 443
+          filterChain:
+            sni: {{ $sharedSni | quote }}
+      filter:
+        name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            http_protocol_options:
+              accept_http_10: true
+              default_host_for_http_10: {{ $sharedHost | quote }}
+{{- if .Values.ingress.istio.altHosts }}
+{{- range $host := regexSplit "\\s*,\\s*" .Values.ingress.istio.altHosts -1 }}
+{{- $customHost := trim $host -}}
+{{- if $customHost }}
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          portNumber: 443
+          filterChain:
+            sni: {{ $customHost | quote }}
+      filter:
+        name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            http_protocol_options:
+              accept_http_10: true
+              default_host_for_http_10: {{ $customHost | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

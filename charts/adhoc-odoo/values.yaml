@@ -61,6 +61,8 @@ ingress:
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
     logAll: false
+    http10:
+      enabled: false
 
   # Reverse proxy cache
   reverseProxy:
@@ -463,4 +465,3 @@ limitRange:
   min:
     cpu: "20m"
     memory: "20Mi"
-

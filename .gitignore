@@ -25,3 +25,5 @@ configs/*
 tmp/*
 test/*
 dest
+
+*.log

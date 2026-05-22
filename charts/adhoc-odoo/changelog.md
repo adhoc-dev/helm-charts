@@ -31,6 +31,8 @@ Improvements:
 - Reverse Proxy:
   - Reduced configuration drift by moving bot blocking logic from hardcoded templates to values-driven configuration
   - Safer upgrades and rollbacks using Helm-managed values
+- Istio:
+  - new config to allow legacy http01 requests (`ingress.istio.http10.enabled`)
 
 ## *0.3.3*
 
