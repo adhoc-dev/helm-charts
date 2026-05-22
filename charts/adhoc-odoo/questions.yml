@@ -528,6 +528,14 @@ questions:
     type: "boolean"
     required: false
     default: false
+  - variable: ingress.istio.http10.enabled
+    group: "Ingress"
+    label: "Allow HTTP/1.0 in Istio"
+    description: "Allow HTTP/1.0 requests on the external Istio gateway for this Odoo release"
+    type: "boolean"
+    required: false
+    default: false
+    show_if: "ingress.istio.enabled=true"
 
 # Reverse Proxy
   - variable: ingress.reverseProxy.enabled
