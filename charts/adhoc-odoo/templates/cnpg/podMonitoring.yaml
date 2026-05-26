@@ -13,4 +13,12 @@ spec:
   - port: metrics
     path: /metrics
     interval: 120s
+    # https://cloudnative-pg.io/docs/1.27/monitoring/#predefined-set-of-metrics
+    # cnpg_pg_settings_setting expone valores estaticos de Postgres por
+    # release; con ~125 clusters aporta >30K series sin uso como TS.
+    # Ver devops-cloud-infra/doc/observability/cardinality-budget.md.
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      action: drop
+      regex: 'cnpg_pg_settings_setting'
 {{- end }}
