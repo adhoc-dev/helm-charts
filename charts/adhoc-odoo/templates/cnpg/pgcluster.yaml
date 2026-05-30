@@ -79,6 +79,9 @@ spec:
   {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
   enablePDB: false
   {{- end }}
+  nodeMaintenanceWindow:
+    inProgress: {{ .Values.cloudNativePG.nodeMaintenanceWindow.inProgress | default false }}
+    reusePVC: true
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
   {{- if .Values.cloudNativePG.topologySpreadConstraints.enabled }}
   {{- /* Enhance the probabilities to re colocate pods in the same node after failure/redeploy. With this we try to minimize the disruption reattaching pvc */}}
