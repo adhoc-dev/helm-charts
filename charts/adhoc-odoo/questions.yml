@@ -794,10 +794,3 @@ questions:
     required: true
     default: false
     show_if: "cloudNativePG.enabled=true"
-  - variable: cloudNativePG.nodeMaintenanceWindow.inProgress
-    group: "CloudNativePG"
-    label: "Node Maintenance Window In Progress"
-    type: "boolean"
-    required: true
-    default: false
-    show_if: "cloudNativePG.enabled=true"

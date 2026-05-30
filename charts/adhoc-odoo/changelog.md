@@ -19,7 +19,7 @@ Features:
 - CNPG:
   - Add safe-to-evict
   - PodMonitor `metricRelabelings` drop  `cnpg_pg_settings_setting` (static value). see `devops-cloud-infra/doc/observability/cardinality-budget.md`.
-  - Add nodeMaintenanceWindow (`cloudNativePG.nodeMaintenanceWindow.inProgress`)
+  - Add nodeMaintenanceWindow for non-prod loads
 
 BugFixes:
 
