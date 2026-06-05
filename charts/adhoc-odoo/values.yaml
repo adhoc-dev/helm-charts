@@ -68,6 +68,19 @@ ingress:
   reverseProxy:
     enabled: false
     scale: 1
+    whitelistedIps:
+      # NATs Cell00 / legacy
+      - 34.139.108.233/32
+      # NATs Cell01
+      - 34.139.101.254/32
+      # NATs Cell02
+      - 35.196.146.209/32
+      # LB IPs Cell00 / legacy
+      - 35.190.190.203/32
+      # LB IPs Cell01
+      - 34.24.129.8/32
+      # LB IPs Cell02
+      - 34.148.114.169/32
     blockedIps:
       - 103.138.125.192/32
       - 52.184.192.24/32

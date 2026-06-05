@@ -6,9 +6,9 @@ Features:
 
 - Reverse Proxy:
   - Global bot blocking based on User-Agent (NGINX `map`)
+    - 444 response for matching blocks (Bots, Countries, IP, etc) at reverse proxy level
     - Declarative configuration via Helm values (`ingress.reverseProxy.botBlock.blockedUserAgents`)
     - Enable / disable switch (`ingress.reverseProxy.botBlock.enabled`)
-    - 403 response for matching bots at reverse proxy level
     - Default blocked bots list includes common AI, crawler and scraping agents (GPTBot, Claude, Bytespider, SemrushBot, Baiduspider, etc.)
   - Global IP, Country blocking
   - Helm questions added to manage blocked User-Agents without modifying templates
@@ -16,6 +16,7 @@ Features:
   - Maintenance mode
   - New personalized image
   - New personalized error pages
+  - IP WhiteList for rate limit
 - CNPG:
   - Add safe-to-evict
   - PodMonitor `metricRelabelings` drop  `cnpg_pg_settings_setting` (static value). see `devops-cloud-infra/doc/observability/cardinality-budget.md`.

@@ -19,6 +19,7 @@ data:
     RATE_LIMIT_ACCESS={{ .Values.ingress.reverseProxy.rateLimit.access | quote }}
     RATE_LIMIT_GENERIC={{ .Values.ingress.reverseProxy.rateLimit.generic | quote }}
     RATE_LIMIT_RPC={{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
+    RATE_LIMIT_WHITELIST={{ .Values.ingress.reverseProxy.whitelistedIps | join "," | quote }}
     {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
     RATE_LIMIT_DEBUG=1
     {{- end }}
