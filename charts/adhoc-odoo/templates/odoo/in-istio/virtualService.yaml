@@ -9,12 +9,13 @@
 {{- $srvWs := printf "%s-websocket" $fullName }}
 {{- $srvPort := 80 }}
 {{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
+{{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
 {{- if .Values.ingress.reverseProxy.enabled }}
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- end }}
-{{- if $isKedaEnabled }}
-# Si KEDA está habilitado, enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
+{{- if and $isKedaEnabled (not $isWakeupEnabled) }}
+# Si KEDA está habilitado (sin wakeup controller), enruta a través del interceptor para aprovechar el autoescalado basado en métricas de tráfico
 # Usamos siempre .svc.cluster.local para evitar problemas de resolución de DNS dentro del cluster, especialmente con KEDA
 # Aunque el verdadero sea .svc.cluster01.local por limitaciones de istio
 {{- $srvHttp = "keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local" }}

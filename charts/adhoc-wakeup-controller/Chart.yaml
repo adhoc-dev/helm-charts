@@ -1,0 +1,22 @@
+annotations:
+  category: DevOps
+apiVersion: v2
+name: adhoc-wakeup-controller
+description: >
+  Controlador de wakeup para instancias Odoo con scale-to-zero en Kubernetes.
+  Reemplaza el HTTP interceptor de KEDA como frontend visible al usuario
+  durante cold start. Sirve una página de espera genérica, dispara el escalado
+  0→1 y restaura el ruteo del VirtualService de Istio cuando Odoo está listo.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "odooWakeupController-latest"
+
+home: "https://github.com/adhoc-dev/helm-charts"
+sources:
+  - "https://github.com/adhoc-dev/devops-ops-tools"
+maintainers:
+  - name: azacchino
+    email: az@adhoc.inc

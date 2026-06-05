@@ -3,6 +3,9 @@
 {{- $odooImage := include "odoo.image" . -}}
 {{ $replicaCount := (default 1 .Values.replicaCount) | int }}
 {{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
+{{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
+{{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +17,16 @@ metadata:
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
     "adhoc.ar/dev-name": "" # Used to identify the developer that deployed the app
     "adhoc.ar/dev-r2cmd": "" # Used to store the r2cmd command to redeploy the app
+    {{- if $isWakeupEnabled }}
+    "wakeup.adhoc.inc/managed": "true"
+    "wakeup.adhoc.inc/state": "ready"
+    "wakeup.adhoc.inc/vs-shared": {{ printf "%s-shared" .Values.odoo.pg.db | quote }}
+    "wakeup.adhoc.inc/vs-custom": {{ ternary (printf "%s-custom" .Values.odoo.pg.db) "" (ne .Values.ingress.istio.altHosts "") | quote }}
+    "wakeup.adhoc.inc/svc-host": {{ $svcHost | quote }}
+    "wakeup.adhoc.inc/svc-port": "80"
+    "wakeup.adhoc.inc/ws-host": {{ ternary (printf "%s-websocket" $fullName) "" (gt (.Values.odoo.performance.workers | toString | int) 0) | quote }}
+    "wakeup.adhoc.inc/instance": {{ .Values.odoo.pg.db | quote }}
+    {{- end }}
 spec:
   {{- if not (or .Values.autoscaling.hpa.enabled $isKedaEnabled) }}
   replicas: {{ .Values.replicaCount | int }}

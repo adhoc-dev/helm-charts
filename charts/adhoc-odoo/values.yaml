@@ -216,7 +216,7 @@ ingress:
     image:
       # repository: nginx
       repository: dockerhub.adhoc.inc/adhoc/ops-tools
-      tag: "odooEdgeProxy-2026.05.21.1"
+      tag: "odooEdgeProxy-2026.06.05.13"
     loadBalancerCIDR: 10.0.0.0/8
     internalClusterCIDR: 10.0.0.0/8
     # Monitoring
@@ -255,6 +255,15 @@ autoscaling:
   keda:
     enabled: false
     rpsThreshold: 2
+
+  # Wakeup controller (requiere autoscaling.keda.enabled=true y minReplicas=0)
+  # Reemplaza el HTTP interceptor de KEDA con un servidor de espera propio.
+  wakeupController:
+    enabled: false
+    # FQDN del servicio del controlador (salida del chart adhoc-wakeup-controller).
+    # Ejemplo: adhoc-wakeup-controller.adhoc-wakeup-controller.svc.cluster.local
+    controllerSvc: ""
+    controllerPort: 9080
 
 nodeSelector: {}
 tolerations: {}

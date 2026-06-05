@@ -1,0 +1,43 @@
+image:
+  repository: docker.io/adhoc/ops-tools
+  tag: odooWakeupController-latest
+  pullPolicy: Always
+
+replicaCount: 1
+
+# Kubernetes namespace where the controller is deployed.
+# Odoo instances must be able to reach the controller service from their namespace.
+namespace: adhoc-wakeup-controller
+
+service:
+  port: 9080
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Prometheus endpoint the controller queries for idle detection.
+prometheusUrl: "http://prometheus-operated.monitoring:9090"
+
+# RPS below which an instance is considered idle.
+idleRpsThreshold: "0.1"
+# Number of consecutive 60-second checks below idleRpsThreshold before scale-down.
+idleConsecutiveThreshold: "12"
+# Seconds to wait for Odoo pod to become ready during wakeup (default: 5 min).
+wakeupTimeoutSeconds: "300"
+# Suggested refresh interval for the waiting page (seconds).
+refreshSeconds: "5"
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
