@@ -696,6 +696,14 @@ questions:
     type: "int"
     required: false
     default: 10
+  - variable: autoscaling.wakeupController.enabled
+    group: "Autoscaling"
+    label: "Enable wakeupController Autoscaler"
+    description: "Enable wakeupController Autoscaler for Odoo"
+    type: "boolean"
+    required: false
+    default: false
+    show_if: "autoscaling.keda.enabled=true"
 
   # Adhoc
   - variable: adhoc.serviceLevel

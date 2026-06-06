@@ -1,4 +1,5 @@
 {{- if eq (include "keda.enabled" . | trim) "true" }}
+{{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -13,7 +14,7 @@ spec:
   initialCooldownPeriod: 900 # Initial period before scaling 15 min
   cooldownPeriod: 900
   triggers:
-    {{- if eq (.Values.autoscaling.minReplicas | toString | int) 0 }}
+    {{- if and (eq (.Values.autoscaling.minReplicas | toString | int) 0) (not $isWakeupEnabled) }}
     - type: external-push
       metadata:
         scalerAddress: "keda-add-ons-http-external-scaler.keda:9090"
@@ -26,13 +27,13 @@ spec:
         threshold: {{ .Values.autoscaling.keda.rpsThreshold | default 2 | quote }}
         query: |
           sum(rate(istio_requests_total{
-            destination_workload="{{ include "adhoc-odoo.fullname" . }}",
             destination_workload_namespace="{{ .Release.Namespace }}",
-            reporter="destination"
+            destination_app="adhoc-odoo",
+            reporter="source"
           }[2m]))
     {{- end }}
 
-{{- if eq (.Values.autoscaling.minReplicas | toString | int) 0 }}
+{{- if and (eq (.Values.autoscaling.minReplicas | toString | int) 0) (not $isWakeupEnabled) }}
 ---
 apiVersion: http.keda.sh/v1beta1
 kind: InterceptorRoute

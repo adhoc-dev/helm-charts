@@ -1,0 +1,12 @@
+Adhoc Wakeup Controller deployed.
+
+Controller service FQDN (use as wakeupController.controllerSvc in adhoc-odoo):
+  {{ include "adhoc-wakeup-controller.serviceFQDN" . }}
+
+To enable the wakeup controller for an Odoo instance, set in adhoc-odoo values:
+  autoscaling:
+    keda:
+      enabled: true
+    wakeupController:
+      enabled: true
+      controllerSvc: {{ include "adhoc-wakeup-controller.serviceFQDN" . }}

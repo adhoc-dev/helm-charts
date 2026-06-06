@@ -1,0 +1,82 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: wakeupinstances.wakeup.adhoc.inc
+  annotations:
+    # Prevent helm uninstall from deleting the CRD (and all WakeupInstance objects).
+    # The CRD must be removed manually when the controller is decommissioned.
+    helm.sh/resource-policy: keep
+  labels:
+    {{- include "adhoc-wakeup-controller.labels" . | nindent 4 }}
+spec:
+  group: wakeup.adhoc.inc
+  names:
+    kind: WakeupInstance
+    plural: wakeupinstances
+    singular: wakeupinstance
+    shortNames:
+      - wi
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required:
+                - deploymentName
+                - vsShared
+                - svcHost
+                - instance
+              properties:
+                deploymentName:
+                  type: string
+                  minLength: 1
+                  description: Name of the Odoo Deployment to scale up/down.
+                vsShared:
+                  type: string
+                  minLength: 1
+                  description: Name of the primary (shared) VirtualService.
+                vsCustom:
+                  type: string
+                  description: Name of the altHosts VirtualService (optional).
+                svcHost:
+                  type: string
+                  minLength: 1
+                  description: Real Odoo service hostname to restore routing to.
+                svcPort:
+                  type: integer
+                  default: 80
+                  minimum: 1
+                  maximum: 65535
+                  description: Real Odoo service port.
+                wsHost:
+                  type: string
+                  description: Websocket service hostname (optional, for workers).
+                instance:
+                  type: string
+                  minLength: 1
+                  description: Odoo database/instance name (used for Prometheus query and wakeup lookup).
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: State
+          type: string
+          jsonPath: .status.state
+        - name: Idle-Checks
+          type: integer
+          jsonPath: .status.idleConsecutiveChecks
+        - name: Last-Wakeup
+          type: date
+          jsonPath: .status.lastWakeup
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

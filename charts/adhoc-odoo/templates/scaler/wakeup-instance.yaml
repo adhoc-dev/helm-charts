@@ -1,0 +1,20 @@
+{{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
+{{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
+{{- if and $isWakeupEnabled (.Capabilities.APIVersions.Has "wakeup.adhoc.inc/v1") }}
+apiVersion: wakeup.adhoc.inc/v1
+kind: WakeupInstance
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  deploymentName: {{ include "adhoc-odoo.fullname" . }}
+  vsShared: {{ printf "%s-shared" .Values.odoo.pg.db | quote }}
+  vsCustom: {{ ternary (printf "%s-custom" .Values.odoo.pg.db) "" (ne .Values.ingress.istio.altHosts "") | quote }}
+  svcHost: {{ $svcHost | quote }}
+  svcPort: 80
+  wsHost: {{ ternary (printf "%s-websocket" $fullName) "" (gt (.Values.odoo.performance.workers | toString | int) 0) | quote }}
+  instance: {{ .Values.odoo.pg.db | quote }}
+{{- end }}

@@ -3,12 +3,18 @@
 {{- $odooImage := include "odoo.image" . -}}
 {{ $replicaCount := (default 1 .Values.replicaCount) | int }}
 {{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
+{{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
+{{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
+{{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
+    {{- if $isWakeupEnabled }}
+    "wakeup.adhoc.inc/managed": "true"
+    {{- end }}
   annotations:
     certmanager.k8s.io/disable-auto-restart: "true"
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}

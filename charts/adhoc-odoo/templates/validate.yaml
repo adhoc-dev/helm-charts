@@ -31,3 +31,18 @@ Debe existir nombre de base de datos.
 {{- if not .Values.odoo.pg.db -}}
 {{- fail "You must set .Values.odoo.pg.db to a valid database name." -}}
 {{- end -}}
+
+{{- /*
+wakeupController requiere controllerSvc y minReplicas=0.
+*/ -}}
+{{- if .Values.autoscaling.wakeupController.enabled -}}
+{{- if eq (.Values.autoscaling.wakeupController.controllerSvc | default "") "" -}}
+{{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.wakeupController.controllerSvc to be set (use the FQDN from the adhoc-wakeup-controller chart NOTES)." -}}
+{{- end -}}
+{{- if ne (.Values.autoscaling.minReplicas | int) 0 -}}
+{{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.minReplicas=0 (scale-to-zero mode)." -}}
+{{- end -}}
+{{- if not .Values.autoscaling.keda.enabled -}}
+{{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.keda.enabled=true." -}}
+{{- end -}}
+{{- end -}}
