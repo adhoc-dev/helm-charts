@@ -1,7 +1,7 @@
 {{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
 {{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
 {{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
-{{- if $isWakeupEnabled }}
+{{- if and $isWakeupEnabled (.Capabilities.APIVersions.Has "wakeup.adhoc.inc/v1") }}
 apiVersion: wakeup.adhoc.inc/v1
 kind: WakeupInstance
 metadata:

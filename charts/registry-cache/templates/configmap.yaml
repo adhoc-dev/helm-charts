@@ -24,6 +24,8 @@ data:
           dryrun: false
         readonly:
           enabled: false
+      delete:
+        enabled: true
     proxy:
       remoteurl: {{ .Values.proxy.remoteurl | quote }}
       # Mark cached content as stale after 60 days
