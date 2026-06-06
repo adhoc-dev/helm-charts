@@ -46,3 +46,11 @@ rules:
   - apiGroups: ["keda.sh"]
     resources: ["scaledobjects"]
     verbs: ["get", "list", "update"]
+  # WakeupInstance CRD: full lifecycle — the controller owns this resource.
+  # "update" is needed for replace_namespaced_custom_object (PUT) used by kopf.
+  - apiGroups: ["wakeup.adhoc.inc"]
+    resources: ["wakeupinstances"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["wakeup.adhoc.inc"]
+    resources: ["wakeupinstances/status"]
+    verbs: ["get", "update", "patch"]

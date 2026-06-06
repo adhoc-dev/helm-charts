@@ -12,21 +12,14 @@ metadata:
   name: {{ include "adhoc-odoo.fullname" . }}
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
+    {{- if $isWakeupEnabled }}
+    "wakeup.adhoc.inc/managed": "true"
+    {{- end }}
   annotations:
     certmanager.k8s.io/disable-auto-restart: "true"
     "kubernetes.io/change-cause": {{ .Values.changeCause | quote }}
     "adhoc.ar/dev-name": "" # Used to identify the developer that deployed the app
     "adhoc.ar/dev-r2cmd": "" # Used to store the r2cmd command to redeploy the app
-    {{- if $isWakeupEnabled }}
-    "wakeup.adhoc.inc/managed": "true"
-    "wakeup.adhoc.inc/state": "ready"
-    "wakeup.adhoc.inc/vs-shared": {{ printf "%s-shared" .Values.odoo.pg.db | quote }}
-    "wakeup.adhoc.inc/vs-custom": {{ ternary (printf "%s-custom" .Values.odoo.pg.db) "" (ne .Values.ingress.istio.altHosts "") | quote }}
-    "wakeup.adhoc.inc/svc-host": {{ $svcHost | quote }}
-    "wakeup.adhoc.inc/svc-port": "80"
-    "wakeup.adhoc.inc/ws-host": {{ ternary (printf "%s-websocket" $fullName) "" (gt (.Values.odoo.performance.workers | toString | int) 0) | quote }}
-    "wakeup.adhoc.inc/instance": {{ .Values.odoo.pg.db | quote }}
-    {{- end }}
 spec:
   {{- if not (or .Values.autoscaling.hpa.enabled $isKedaEnabled) }}
   replicas: {{ .Values.replicaCount | int }}
