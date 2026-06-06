@@ -1,0 +1,48 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "adhoc-wakeup-controller.fullname" . }}
+  labels:
+    {{- include "adhoc-wakeup-controller.labels" . | nindent 4 }}
+rules:
+  # Read & patch Deployments (scale to 1, update annotations)
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "patch"]
+  # Scale subresource (replica count)
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "patch"]
+  # Read pods to detect readiness
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Read services (resolve service names)
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "endpointslices"]
+    verbs: ["get", "list"]
+  # Update Istio VirtualServices
+  # "update" = PUT (replace_namespaced_custom_object), "patch" = PATCH (no longer used
+  # but kept for compatibility). Both verbs are needed for full VS management.
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  # Emit Kubernetes events for observability
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  # kopf requires access to its own CRD status storage
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # kopf watches namespaces to discover new ones in clusterwide mode.
+  # Without this, kopf falls back to a degraded mode that may cause startup errors.
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  # KEDA ScaledObjects: pause/unpause during wakeup to prevent KEDA from
+  # immediately scaling back to 0 before Prometheus reflects real traffic.
+  # "update" covers replace_namespaced_custom_object (PUT).
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "update"]

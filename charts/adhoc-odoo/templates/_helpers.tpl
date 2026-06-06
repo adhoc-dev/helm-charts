@@ -185,3 +185,16 @@ Restoring the database we need to scale down to 0, so if replicaCount is set to 
     (ne (.Values.replicaCount | int) 0)
 -}}
 {{- end -}}
+
+{{/*
+wakeupController.enabled — true when KEDA + wakeup controller are both active
+and minReplicas is 0 (scale-to-zero mode).
+*/}}
+{{- define "wakeupController.enabled" -}}
+{{- and
+    (eq (include "keda.enabled" . | trim) "true")
+    (.Values.autoscaling.wakeupController.enabled | default false)
+    (eq (.Values.autoscaling.minReplicas | int) 0)
+    (ne (.Values.autoscaling.wakeupController.controllerSvc | default "") "")
+-}}
+{{- end -}}
