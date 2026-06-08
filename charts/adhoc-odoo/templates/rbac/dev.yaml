@@ -59,7 +59,7 @@ rules:
     resources: ["httpscaledobjects", "interceptorroutes"]
     verbs: ["get", "list"]
   - apiGroups: ["keda.sh"]
-    resources: ["ScaledObject"]
+    resources: ["scaledobjects"]
     verbs: ["get", "list"]
 {{- end }}
   # Allow viewing services
