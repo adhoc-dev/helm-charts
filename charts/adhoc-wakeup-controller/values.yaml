@@ -1,6 +1,6 @@
 image:
   repository: docker.io/adhoc/ops-tools
-  tag: odooWakeupController-latest
+  tag: odooWakeupController-2026.06.08.3
   pullPolicy: Always
 
 replicaCount: 1
@@ -24,9 +24,9 @@ resources:
 prometheusUrl: "http://prometheus-operated.monitoring:9090"
 
 # RPS below which an instance is considered idle.
-idleRpsThreshold: "0.1"
+idleRpsThreshold: "0.01"
 # Number of consecutive 60-second checks below idleRpsThreshold before scale-down.
-idleConsecutiveThreshold: "12"
+idleConsecutiveThreshold: "14"
 # Seconds to wait for Odoo pod to become ready during wakeup (default: 5 min).
 wakeupTimeoutSeconds: "300"
 # Suggested refresh interval for the waiting page (seconds).
