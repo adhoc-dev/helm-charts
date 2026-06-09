@@ -12,9 +12,14 @@ spec:
     - Ingress
   ingress:
     - from:
-        # Allow all traffic from the same namespace
-        - podSelector: {}
-            # matchLabels:
-            #     adhoc.ar/app-name: "odoo"
+        - podSelector:
+            matchLabels:
+              adhoc.ar/app-name: "odoo"
+        - podSelector:
+            matchLabels:
+              adhoc.ar/app-name: "odoo-fixdb"
+        - podSelector:
+            matchLabels:
+              adhoc.ar/app-name: "odoo-wait-pg"
 
 {{- end }}
