@@ -27,3 +27,6 @@ test/*
 dest
 
 *.log
+
+.claude/*
+!.claude/settings.json
