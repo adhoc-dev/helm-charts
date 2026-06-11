@@ -1,6 +1,6 @@
 image:
   repository: docker.io/adhoc/ops-tools
-  tag: odooWakeupController-2026.06.11.10
+  tag: odooWakeupController-2026.06.11.11
   # digest: set to pin to an exact image (overrides tag). Format: sha256:<hash>
   digest: ""
   pullPolicy: Always
@@ -28,9 +28,18 @@ prometheusUrl: "http://prometheus-operated.monitoring:9090"
 # RPS below which an instance is considered idle.
 idleRpsThreshold: "0.01"
 # Number of consecutive 60-second checks below idleRpsThreshold before scale-down.
-idleConsecutiveThreshold: "14"
-# Seconds to wait for Odoo pod to become ready during wakeup (default: 5 min).
-wakeupTimeoutSeconds: "300"
+# 60 × 60s = 1h of inactivity before sleeping. Keeping instances warm longer
+# reduces how often they scale to zero, which in turn reduces simultaneous
+# cold-start image-pull storms (the root cause of the 2026-06-11 wakeup timeouts).
+# Safe above KEDA cooldownPeriod/60: while awake the controller holds
+# minReplicaCount=1 so KEDA never scales to 0 on its own, and on_replicas_change
+# switches the VS to the waiting page if a 0-replica state is ever observed.
+idleConsecutiveThreshold: "60"
+# Seconds to wait for Odoo pod to become ready during wakeup (10 min).
+# Raised from 5m to absorb image-pull queue contention under wakeup bursts:
+# containerd serializes ~1GB Odoo image pulls per node, so a pull that
+# takes <1s can sit queued several minutes behind other concurrent wakeups.
+wakeupTimeoutSeconds: "600"
 # Suggested refresh interval for the waiting page (seconds).
 refreshSeconds: "10"
 

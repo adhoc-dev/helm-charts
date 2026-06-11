@@ -11,8 +11,13 @@ spec:
     apiVersion: apps/v1
   minReplicaCount: {{ .Values.autoscaling.minReplicas | toString | int }}
   maxReplicaCount: {{ .Values.autoscaling.maxReplicas | toString | int }}
-  initialCooldownPeriod: 900 # Initial period before scaling 15 min
-  cooldownPeriod: 900
+  # Aligned with the wakeup controller's idle window (60 × 60s = 1h). The
+  # controller — not KEDA — owns the 1→0 transition (it holds minReplicaCount=1
+  # while awake), so this only governs N→1 scale-down of burst replicas. Kept
+  # ≥ the idle window to preserve the documented "controller switches VS before
+  # any scale-to-0" invariant.
+  initialCooldownPeriod: 3600 # Initial period before scaling 1h
+  cooldownPeriod: 3600
   triggers:
     {{- if and (eq (.Values.autoscaling.minReplicas | toString | int) 0) (not $isWakeupEnabled) }}
     - type: external-push
