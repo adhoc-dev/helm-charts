@@ -11,6 +11,9 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
+    metadata:
+      labels:
+        adhoc.ar/app-name: "odoo-wait-pg"
     spec:
       restartPolicy: Never
       {{- if eq .Values.adhoc.appType "prod" }}
