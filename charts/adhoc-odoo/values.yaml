@@ -326,9 +326,6 @@ odoo:
 
   kwkhtmltopdfServerUrl: "http://kwkhtmltopdf.kwkhtmltopdf"
 
-  jobs:
-    fixdb: false
-
 # Redis Config
 redis:
   enabled: false
