@@ -372,6 +372,11 @@ cloudNativePG:
   checkCRD: false
   enabled: false
   version: "15.0"
+  # Declarative CNPG hibernation. "off" keeps the cluster running; "on"
+  # shuts down the PostgreSQL pods while keeping the PVCs. The SaaS provider
+  # sets this to "on" when a database is inactivated (see saas_k8s
+  # _k8s_inactivate) and back to "off" on reactivation. See cnpg/pgcluster.yaml.
+  hibernation: "off"
   superUserPassword: Rgd20sGT5JKUheTbRM5VWW4sDSLHJjzh6P3JwAqtRrsnURCKzPbX4FNJ5fGWwgh8
   resources:
     requests:

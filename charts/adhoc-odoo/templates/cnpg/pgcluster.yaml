@@ -47,7 +47,7 @@ metadata:
     app.kubernetes.io/name: {{ include "cnpg.sanitizedPgName" . }}-pg
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
-    cnpg.io/hibernation: "off"
+    cnpg.io/hibernation: {{ .Values.cloudNativePG.hibernation | default "off" | quote }}
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     {{- /*
     # For manual intervention
