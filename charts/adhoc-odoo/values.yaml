@@ -304,8 +304,8 @@ odoo:
     maxTimeCron: 6000
     maxHttpTh: 8
   entrypoint:
-    fixdbs: false
-    fixdbsAdhoc: true
+    # fixdb corre siempre como Job standalone (saas_k8s), nunca por el entrypoint.
+    # FIXDBS / FIXDBS_ADHOC quedan apagados de forma permanente en odooEnvs.yaml.
     # Dynamic Entrypoint
     repos: ""
     custom: ""

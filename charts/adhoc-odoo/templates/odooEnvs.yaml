@@ -102,12 +102,11 @@ data:
   {{- /* Entrypoint */}}
   {{- /* El entrypoint espera a PostgreSQL (reemplaza al init container wait-for-postgres) */}}
   WAIT_PG: "true"
-  {{- if .Values.odoo.entrypoint.fixdbs }}
-  FIXDBS: {{ .Values.odoo.entrypoint.fixdbs | quote }}
-  {{- end }}
-  {{- if .Values.odoo.entrypoint.fixdbsAdhoc }}
-  FIXDBS_ADHOC: {{ .Values.odoo.entrypoint.fixdbsAdhoc | quote }}
-  {{- end }}
+  {{- /* fixdb nunca corre por el entrypoint: siempre corre como Job standalone
+         lanzado por el pipeline de saas_k8s (tarea 69411). Se deja apagado de
+         forma permanente vía env. */}}
+  FIXDBS: "false"
+  FIXDBS_ADHOC: "false"
   FIX_DB_WEB_DISABLED: "true"
   {{- /* Dynamic Entrypoint */}}
   {{- if .Values.odoo.entrypoint.repos }}

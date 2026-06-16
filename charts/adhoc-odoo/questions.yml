@@ -297,20 +297,6 @@ questions:
     required: false
     default: "template0"
 # Entrypoint Odoo-SaaS
-  - variable: odoo.entrypoint.fixdbs
-    group: "Entrypoint"
-    label: "FIX DBS (click-odoo-update)"
-    description: "Try to fix database before starting odoo."
-    type: "boolean"
-    default: false
-    required: false
-  - variable: odoo.entrypoint.fixdbsAdhoc
-    group: "Entrypoint"
-    label: "FIX DBS AdHoc"
-    description: "Try to fix database before starting odoo."
-    type: "boolean"
-    default: true
-    required: false
   - variable: odoo.entrypoint.repos
     group: "Entrypoint"
     label: "Git Aggregator repos.yml"
