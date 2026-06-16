@@ -100,7 +100,8 @@ data:
   DISABLE_SESSION_GC: "true"
   */}}
   {{- /* Entrypoint */}}
-  WAIT_PG: "false"
+  {{- /* El entrypoint espera a PostgreSQL (reemplaza al init container wait-for-postgres) */}}
+  WAIT_PG: "true"
   {{- if .Values.odoo.entrypoint.fixdbs }}
   FIXDBS: {{ .Values.odoo.entrypoint.fixdbs | quote }}
   {{- end }}

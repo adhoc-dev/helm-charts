@@ -82,13 +82,9 @@ spec:
       terminationGracePeriodSeconds: {{ ternary 120 60 (eq .Values.adhoc.appType "prod") }}
       {{- end }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
-      initContainers:
-      {{- if .Values.cloudNativePG.enabled }}
-        - name: wait-for-postgres
-          image: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
-          command: ['sh', '-c', 'until pg_isready -h {{ include "cnpg.sanitizedPgName" . }}-pg-rw -p {{ .Values.odoo.pg.port | default 5432 }}; do echo "Esperando a que PostgreSQL esté listo..."; sleep 2; done']
-      {{- end }}
+      {{- /* La espera de PostgreSQL la maneja el entrypoint (WAIT_PG=true); ya no hay init container wait-for-postgres */}}
       {{- if .Values.adhoc.devMode }}
+      initContainers:
         - name: seed-vscode-server
           image: adhoc/ops-tools:vscode-sidecar-latest
           imagePullPolicy: Always
