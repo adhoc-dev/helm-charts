@@ -1,4 +1,4 @@
-{{- if .Values.cloudNativePG.enabled }}
+{{- if and .Values.cloudNativePG.enabled (eq (.Values.cloudNativePG.hibernation | default "off") "off") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
