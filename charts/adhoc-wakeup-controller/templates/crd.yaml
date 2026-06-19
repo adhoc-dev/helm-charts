@@ -62,6 +62,13 @@ spec:
                   type: string
                   minLength: 1
                   description: Odoo database/instance name (used for Prometheus query and wakeup lookup).
+                hibernateCnpg:
+                  type: boolean
+                  default: false
+                  description: Whether to hibernate the backing CNPG cluster when the instance sleeps (opt-in).
+                cnpgCluster:
+                  type: string
+                  description: Name of the CNPG Cluster CR to hibernate/resume (same namespace). Required when hibernateCnpg is true.
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true

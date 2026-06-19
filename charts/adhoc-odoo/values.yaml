@@ -264,6 +264,11 @@ autoscaling:
     # Ejemplo: adhoc-wakeup-controller.platform.svc
     controllerSvc: "adhoc-wakeup-controller.platform.svc"
     controllerPort: 9080
+    # Opt-in: hibernar el cluster CNPG asociado cuando la instancia duerme.
+    # Solo aplica si cloudNativePG.enabled=true. Ahorra el pod de PostgreSQL
+    # mientras la base está dormida, a costa de un wakeup más lento (resume de
+    # PostgreSQL antes de levantar Odoo).
+    hibernateCnpg: false
 
 nodeSelector: {}
 tolerations: {}
