@@ -33,16 +33,16 @@ Debe existir nombre de base de datos.
 {{- end -}}
 
 {{- /*
-wakeupController requiere controllerSvc y minReplicas=0.
+wakeupController: keda es prerrequisito, pero no es un error tenerlo apagado.
+Si keda está desactivado, el wakeup controller queda deshabilitado
+automáticamente (lo resuelve el helper "wakeupController.enabled"), así que su
+configuración solo se valida cuando keda está efectivamente activo.
 */ -}}
-{{- if .Values.autoscaling.wakeupController.enabled -}}
+{{- if and .Values.autoscaling.wakeupController.enabled (eq (include "keda.enabled" . | trim) "true") -}}
 {{- if eq (.Values.autoscaling.wakeupController.controllerSvc | default "") "" -}}
 {{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.wakeupController.controllerSvc to be set (use the FQDN from the adhoc-wakeup-controller chart NOTES)." -}}
 {{- end -}}
 {{- if ne (.Values.autoscaling.minReplicas | int) 0 -}}
 {{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.minReplicas=0 (scale-to-zero mode)." -}}
-{{- end -}}
-{{- if not .Values.autoscaling.keda.enabled -}}
-{{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.keda.enabled=true." -}}
 {{- end -}}
 {{- end -}}

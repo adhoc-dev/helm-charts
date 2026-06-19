@@ -36,6 +36,8 @@ Improvements:
   - Safer upgrades and rollbacks using Helm-managed values
 - Istio:
   - new config to allow legacy http01 requests (`ingress.istio.http10.enabled`)
+- Autoscaling (OWC):
+  - keda is a prerequisite for the wakeup controller: disabling keda now disables OWC automatically instead of failing the render (the `wakeupController.enabled` helper already gated on keda; removed the hard `fail` in `validate.yaml`)
 
 ## *0.3.3*
 
