@@ -7,6 +7,19 @@ image:
 
 replicaCount: 1
 
+# Identity / scoping of this controller. Defaults are the canonical "stable"
+# identity. To run a parallel "canary" controller in the SAME cluster (e.g. to
+# test a new OWC build against a few instances without touching the stable one),
+# install a second release overriding `domain` (and `finalizer`) and point the
+# test instances at it via adhoc-odoo's `wakeupController.domain`. The two
+# controllers then watch disjoint CRD groups + managed labels and never collide.
+# See doc/canary-testing.md.
+#
+# domain drives both the CRD group (wakeupinstances.<domain>) and the
+# managed-label prefix (<domain>/managed) the controller watches.
+domain: "wakeup.adhoc.inc"
+finalizer: "wakeup-controller.adhoc.inc/finalizer"
+
 # Kubernetes namespace where the controller is deployed.
 # Odoo instances must be able to reach the controller service from their namespace.
 namespace: adhoc-wakeup-controller

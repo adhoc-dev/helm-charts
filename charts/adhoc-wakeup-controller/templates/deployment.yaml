@@ -34,6 +34,10 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            - name: WAKEUP_DOMAIN
+              value: {{ .Values.domain | quote }}
+            - name: WAKEUP_FINALIZER
+              value: {{ .Values.finalizer | quote }}
             - name: PROMETHEUS_URL
               value: {{ .Values.prometheusUrl | quote }}
             - name: CONTROLLER_SVC
