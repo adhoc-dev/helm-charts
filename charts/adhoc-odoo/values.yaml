@@ -264,6 +264,12 @@ autoscaling:
     # Ejemplo: adhoc-wakeup-controller.platform.svc
     controllerSvc: "adhoc-wakeup-controller.platform.svc"
     controllerPort: 9080
+    # CRD group / managed-label prefix del controller al que se engancha esta
+    # instancia. Default = el controller "stable". Para shadow-testear un build
+    # nuevo de OWC, apuntá la instancia a un controller "canary" seteando esto al
+    # mismo dominio del install canary (ej. "wakeup-canary.adhoc.inc") y
+    # controllerSvc al Service del canary. Ver OWC doc/canary-testing.md.
+    domain: "wakeup.adhoc.inc"
     # Opt-in: hibernar el cluster CNPG asociado cuando la instancia duerme.
     # Solo aplica si cloudNativePG.enabled=true. Ahorra el pod de PostgreSQL
     # mientras la base está dormida, a costa de un wakeup más lento (resume de

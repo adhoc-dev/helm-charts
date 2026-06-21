@@ -47,11 +47,13 @@ rules:
     resources: ["scaledobjects"]
     verbs: ["get", "list", "update"]
   # WakeupInstance CRD: full lifecycle — the controller owns this resource.
+  # apiGroup is the configurable domain so a canary release (distinct domain)
+  # gets RBAC on its own CRD group; default keeps the stable identity.
   # "update" is needed for replace_namespaced_custom_object (PUT) used by kopf.
-  - apiGroups: ["wakeup.adhoc.inc"]
+  - apiGroups: [{{ .Values.domain | quote }}]
     resources: ["wakeupinstances"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: ["wakeup.adhoc.inc"]
+  - apiGroups: [{{ .Values.domain | quote }}]
     resources: ["wakeupinstances/status"]
     verbs: ["get", "update", "patch"]
   # CNPG Clusters: hibernate/resume the PostgreSQL cluster backing a sleeping

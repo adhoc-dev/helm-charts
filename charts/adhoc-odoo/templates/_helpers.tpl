@@ -198,3 +198,13 @@ and minReplicas is 0 (scale-to-zero mode).
     (ne (.Values.autoscaling.wakeupController.controllerSvc | default "") "")
 -}}
 {{- end -}}
+
+{{/*
+wakeupController.domain — CRD group / managed-label prefix of the controller this
+instance is attached to. Default "wakeup.adhoc.inc" (stable). Set to a canary
+domain (e.g. "wakeup-canary.adhoc.inc") together with a matching canary install of
+adhoc-wakeup-controller to shadow-test a new OWC build. See OWC doc/canary-testing.md.
+*/}}
+{{- define "wakeupController.domain" -}}
+{{- .Values.autoscaling.wakeupController.domain | default "wakeup.adhoc.inc" -}}
+{{- end -}}

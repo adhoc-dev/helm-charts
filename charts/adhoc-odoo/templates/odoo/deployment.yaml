@@ -13,7 +13,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
     {{- if $isWakeupEnabled }}
-    "wakeup.adhoc.inc/managed": "true"
+    {{ printf "%s/managed" (include "wakeupController.domain" .) | quote }}: "true"
     {{- end }}
   annotations:
     certmanager.k8s.io/disable-auto-restart: "true"
