@@ -18,4 +18,8 @@ spec:
   svcPort: 80
   wsHost: {{ ternary (printf "%s-websocket" $fullName) "" (gt (.Values.odoo.performance.workers | toString | int) 0) | quote }}
   instance: {{ .Values.odoo.pg.db | quote }}
+  {{- if and .Values.cloudNativePG.enabled (.Values.autoscaling.wakeupController.hibernateCnpg | default false) }}
+  hibernateCnpg: true
+  cnpgCluster: {{ printf "%s-pg" (include "cnpg.sanitizedPgName" .) | quote }}
+  {{- end }}
 {{- end }}

@@ -270,6 +270,11 @@ autoscaling:
     # mismo dominio del install canary (ej. "wakeup-canary.adhoc.inc") y
     # controllerSvc al Service del canary. Ver OWC doc/canary-testing.md.
     domain: "wakeup.adhoc.inc"
+    # Opt-in: hibernar el cluster CNPG asociado cuando la instancia duerme.
+    # Solo aplica si cloudNativePG.enabled=true. Ahorra el pod de PostgreSQL
+    # mientras la base está dormida, a costa de un wakeup más lento (resume de
+    # PostgreSQL antes de levantar Odoo).
+    hibernateCnpg: false
 
 nodeSelector: {}
 tolerations: {}
