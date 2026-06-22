@@ -2,6 +2,15 @@
 
 ## *0.3.4*
 
+Fixes:
+
+- OWC (wakeup controller): los helpers `wakeupController.domain` y
+  `wakeupController.enabled` ahora toleran que el sub-map
+  `autoscaling.wakeupController` venga nil/ausente (caso típico: `helm upgrade
+  --reuse-values` sobre una instancia legacy anterior a #74). Antes el render
+  fallaba con `nil pointer evaluating interface {}.domain`. Regresión cubierta
+  por el fixture `ci/legacy-no-wakeupcontroller-values.yaml`.
+
 Features:
 
 - Reverse Proxy:

@@ -1,0 +1,10 @@
+# Regresión OWC (#74): instancia legacy cuyos values reusados (helm upgrade
+# --reuse-values desde un release pre-wakeupController) NO traen el sub-map
+# autoscaling.wakeupController. Antes del fix, los helpers wakeupController.*
+# nil-pointeaban al dereferenciar .domain/.enabled sobre un mapa nil.
+# Debe renderizar sin error (wakeup queda deshabilitado, WakeupInstance vacío).
+autoscaling:
+  minReplicas: 1
+  keda:
+    enabled: false
+  wakeupController: null

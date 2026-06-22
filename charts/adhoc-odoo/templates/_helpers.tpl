@@ -191,11 +191,12 @@ wakeupController.enabled — true when KEDA + wakeup controller are both active
 and minReplicas is 0 (scale-to-zero mode).
 */}}
 {{- define "wakeupController.enabled" -}}
+{{- $wc := .Values.autoscaling.wakeupController | default dict -}}
 {{- and
     (eq (include "keda.enabled" . | trim) "true")
-    (.Values.autoscaling.wakeupController.enabled | default false)
+    ($wc.enabled | default false)
     (eq (.Values.autoscaling.minReplicas | int) 0)
-    (ne (.Values.autoscaling.wakeupController.controllerSvc | default "") "")
+    (ne ($wc.controllerSvc | default "") "")
 -}}
 {{- end -}}
 
@@ -206,5 +207,6 @@ domain (e.g. "wakeup-canary.adhoc.inc") together with a matching canary install 
 adhoc-wakeup-controller to shadow-test a new OWC build. See OWC doc/canary-testing.md.
 */}}
 {{- define "wakeupController.domain" -}}
-{{- .Values.autoscaling.wakeupController.domain | default "wakeup.adhoc.inc" -}}
+{{- $wc := .Values.autoscaling.wakeupController | default dict -}}
+{{- $wc.domain | default "wakeup.adhoc.inc" -}}
 {{- end -}}
