@@ -38,8 +38,9 @@ Si keda está desactivado, el wakeup controller queda deshabilitado
 automáticamente (lo resuelve el helper "wakeupController.enabled"), así que su
 configuración solo se valida cuando keda está efectivamente activo.
 */ -}}
-{{- if and .Values.autoscaling.wakeupController.enabled (eq (include "keda.enabled" . | trim) "true") -}}
-{{- if eq (.Values.autoscaling.wakeupController.controllerSvc | default "") "" -}}
+{{- $wc := .Values.autoscaling.wakeupController | default dict -}}
+{{- if and ($wc.enabled | default false) (eq (include "keda.enabled" . | trim) "true") -}}
+{{- if eq ($wc.controllerSvc | default "") "" -}}
 {{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.wakeupController.controllerSvc to be set (use the FQDN from the adhoc-wakeup-controller chart NOTES)." -}}
 {{- end -}}
 {{- if ne (.Values.autoscaling.minReplicas | int) 0 -}}

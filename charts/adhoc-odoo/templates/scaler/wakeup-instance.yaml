@@ -2,6 +2,7 @@
 {{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
 {{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
 {{- $wakeupDomain := include "wakeupController.domain" . -}}
+{{- $wc := .Values.autoscaling.wakeupController | default dict -}}
 {{- if and $isWakeupEnabled (.Capabilities.APIVersions.Has (printf "%s/v1" $wakeupDomain)) }}
 apiVersion: {{ $wakeupDomain }}/v1
 kind: WakeupInstance
@@ -18,7 +19,7 @@ spec:
   svcPort: 80
   wsHost: {{ ternary (printf "%s-websocket" $fullName) "" (gt (.Values.odoo.performance.workers | toString | int) 0) | quote }}
   instance: {{ .Values.odoo.pg.db | quote }}
-  {{- if and .Values.cloudNativePG.enabled (.Values.autoscaling.wakeupController.hibernateCnpg | default false) }}
+  {{- if and .Values.cloudNativePG.enabled ($wc.hibernateCnpg | default false) }}
   hibernateCnpg: true
   cnpgCluster: {{ printf "%s-pg" (include "cnpg.sanitizedPgName" .) | quote }}
   {{- end }}

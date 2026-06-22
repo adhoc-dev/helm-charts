@@ -80,6 +80,18 @@ for chart in "${charts[@]}"; do
   echo "==> helm template ${chart##$repo_root/}" >&2
   helm template "$chart" >/dev/null
 
+  # Fixtures de CI (convención chart-testing): cada ci/*-values.yaml es un set
+  # de values que el chart debe renderizar sin error. Sirven como regresión de
+  # casos que el render con values default no ejercita (ej. sub-maps nil).
+  if [[ -d "$chart/ci" ]]; then
+    shopt -s nullglob
+    for fixture in "$chart"/ci/*-values.yaml; do
+      echo "==> helm template ${chart##$repo_root/} -f ${fixture##$repo_root/}" >&2
+      helm template "$chart" -f "$fixture" >/dev/null
+    done
+    shopt -u nullglob
+  fi
+
 done
 
 echo >&2
