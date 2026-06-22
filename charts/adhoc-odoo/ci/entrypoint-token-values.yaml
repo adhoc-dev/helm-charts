@@ -1,0 +1,16 @@
+# Regresión tarea 69695: con `entrypoint.repos` no vacío, el token del bot CICD
+# (`entrypoint.githubBotToken`) debe renderizarse como GITHUB_BOT_TOKEN en el
+# ConfigMap *-common-envs. El caso "sin repos => sin token" lo cubre el render
+# con values default (repos: "" => GITHUB_BOT_TOKEN ausente).
+# Debe renderizar sin error.
+odoo:
+  entrypoint:
+    repos: |
+      ./odoo/custom/src:
+        ingadhoc/odoo-private:
+          remotes:
+            origin: https://github.com/ingadhoc/odoo-private.git
+          target: origin 19.0
+          merges:
+            - origin 19.0
+    githubBotToken: "ghs-fixture-token-do-not-use"

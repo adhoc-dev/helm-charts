@@ -320,6 +320,8 @@ odoo:
     # Dynamic Entrypoint
     repos: ""
     custom: ""
+    # Token del bot CICD; se inyecta como GITHUB_BOT_TOKEN solo si `repos` no está vacío.
+    githubBotToken: ""
   # SMTP Config
   smtp:
     host: ""

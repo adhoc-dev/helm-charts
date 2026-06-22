@@ -139,8 +139,10 @@ odoo:
   entrypoint:
     fixdbs: false
     fixdbsAdhoc: true
-    repos: ""      # repos adicionales a clonar en el entrypoint
-    custom: ""     # scripts custom del entrypoint
+    repos: ""           # repos adicionales a clonar en el entrypoint
+    custom: ""          # scripts custom del entrypoint
+    githubBotToken: ""  # token del bot CICD; se inyecta como GITHUB_BOT_TOKEN
+                        # solo si `repos` no está vacío
 
   smtp:
     host: ""

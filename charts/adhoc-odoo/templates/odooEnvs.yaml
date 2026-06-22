@@ -111,6 +111,10 @@ data:
   {{- /* Dynamic Entrypoint */}}
   {{- if .Values.odoo.entrypoint.repos }}
   REPOS_YAML: {{ .Values.odoo.entrypoint.repos | quote }}
+  {{- /* Anidado en `if repos` a propósito: sin aggregate no se expone el token. */}}
+  {{- if .Values.odoo.entrypoint.githubBotToken }}
+  GITHUB_BOT_TOKEN: {{ .Values.odoo.entrypoint.githubBotToken | quote }}
+  {{- end }}
   {{- end }}
   {{- if .Values.odoo.entrypoint.custom }}
   CUSTOM_CONFIG: {{ .Values.odoo.entrypoint.custom | quote }}
