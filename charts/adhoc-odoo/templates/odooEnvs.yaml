@@ -177,7 +177,10 @@ data:
   ODOO_MAX_HTTP_THREADS: "8"
   ODOO_SESSION_REDIS_SSL: "0"
   LITELLM_LOG: "CRITICAL"
+  {{- /* multiprocess only makes sense with workers>0; setting it threaded crashes prometheus_client on a missing dir */}}
+  {{- if gt $workers 0 }}
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus_client"
+  {{- end }}
   KWKHTMLTOPDF_SERVER_URL: {{ .Values.odoo.kwkhtmltopdfServerUrl | quote }}
   {{- if $isKedaEnabled }}
   ADHOC_TRUST_ON_IP_HEADER: HTTP_X_ENVOY_EXTERNAL_ADDRESS
