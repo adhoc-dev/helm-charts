@@ -61,6 +61,9 @@ ingress:
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
     logAll: false
+    # Loguea el tráfico de egress (workload como CLIENT) en JSON para descubrir qué
+    # hosts externos usa el namespace, previo a activar blockOutboundTraffic. No bloquea.
+    logEgress: false
     http10:
       enabled: false
 
