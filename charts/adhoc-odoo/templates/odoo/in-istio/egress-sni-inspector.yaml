@@ -1,0 +1,21 @@
+{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.logEgress -}}
+# tls_inspector en virtualOutbound: sin él, el egress TLS en ALLOW_ANY se loguea como TCP
+# y el `sni` queda vacío. Con él, el access log de egress captura el host externo (SNI).
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: egress-sni-inspector
+spec:
+  configPatches:
+    - applyTo: LISTENER_FILTER
+      match:
+        context: SIDECAR_OUTBOUND
+        listener:
+          name: virtualOutbound
+      patch:
+        operation: INSERT_FIRST
+        value:
+          name: envoy.filters.listener.tls_inspector
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+{{- end }}
