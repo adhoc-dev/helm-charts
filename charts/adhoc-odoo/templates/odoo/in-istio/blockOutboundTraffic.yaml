@@ -1,4 +1,11 @@
 {{- if and .Values.ingress.istio.enabled .Values.ingress.istio.blockOutboundTraffic -}}
+# Firewall de egress (modelo default-deny). Requiere el sidecar en REGISTRY_ONLY
+# (ver sidecar.yaml). Dos listas, ambas por SNI sobre el egressgateway:
+#   - Lista blanca (allowedHosts): únicos destinos externos alcanzables.
+#   - Lista negra (bannedHosts): excepción DENY dentro de un wildcard permitido
+#     (ej. allowedHosts: ["*.foo.com"] + bannedHosts: ["bad.foo.com"]). DENY tiene
+#     precedencia sobre ALLOW en Istio. Un host fuera de la lista blanca ya queda
+#     bloqueado por REGISTRY_ONLY, así que la lista negra solo aplica a carve-outs.
 
 {{- range $host := .Values.ingress.istio.allowedHosts }}
 # ServiceEntry: declara que el host externo existe y puede ser alcanzado.
@@ -43,8 +50,8 @@ spec:
 {{- end }}
 
 {{- if .Values.ingress.istio.allowedHosts }}
-# AuthorizationPolicy: controla qué destinos (por SNI/host) puede reenviar el egressgateway.
-# Protege al gateway actuando como firewall de salida.
+# AuthorizationPolicy (ALLOW / lista blanca): el egressgateway solo reenvía a estos
+# hosts (por SNI) cuando el origen es este namespace. Firewall de salida.
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -56,11 +63,13 @@ spec:
       istio: egressgateway
   action: ALLOW
   rules:
+  # Una sola regla: origen (este namespace) Y destino (host permitido) deben matchear.
+  # Si from y to fueran reglas separadas, Istio las OR-ea y el firewall queda abierto.
   - from:
     - source:
         namespaces:
         - "{{ .Release.Namespace }}"
-  - to:
+    to:
     - operation:
         hosts:
         {{- range .Values.ingress.istio.allowedHosts }}
@@ -69,5 +78,31 @@ spec:
 ---
 {{- end }}
 
+{{- if .Values.ingress.istio.bannedHosts }}
+# AuthorizationPolicy (DENY / lista negra): bloquea estos hosts (por SNI) aunque
+# caigan dentro de un wildcard de allowedHosts. DENY > ALLOW en Istio.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-egress-hosts-{{ .Release.Namespace }}
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: egressgateway
+  action: DENY
+  rules:
+  - from:
+    - source:
+        namespaces:
+        - "{{ .Release.Namespace }}"
+    to:
+    - operation:
+        hosts:
+        {{- range .Values.ingress.istio.bannedHosts }}
+        - "{{ . }}"
+        {{- end }}
+---
+{{- end }}
 
 {{- end }}

@@ -499,6 +499,13 @@ questions:
     type: "listofstrings"
     default: []
     required: false
+  - variable: ingress.istio.bannedHosts
+    group: "Ingress"
+    label: "Banned Hosts"
+    description: "Hosts blocked by SNI on egress even if inside an allowedHosts wildcard (DENY over ALLOW). Only applies with blockOutboundTraffic enabled."
+    type: "listofstrings"
+    default: []
+    required: false
   - variable: ingress.istio.logAll
     group: "Ingress"
     label: "Log All Istio Ingress Traffic"

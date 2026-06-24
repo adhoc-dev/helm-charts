@@ -60,6 +60,10 @@ ingress:
     allowedHosts: []
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
+    # Lista negra: hosts bloqueados por SNI aunque caigan dentro de un allowedHosts
+    # wildcard (DENY > ALLOW). Solo aplica con blockOutboundTraffic: true.
+    bannedHosts: []
+      # - "bad.googleapis.com"
     logAll: false
     # Loguea el tráfico de egress (workload como CLIENT) en JSON para descubrir qué
     # hosts externos usa el namespace, previo a activar blockOutboundTraffic. No bloquea.
