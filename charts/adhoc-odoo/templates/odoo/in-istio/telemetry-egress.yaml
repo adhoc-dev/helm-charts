@@ -1,0 +1,27 @@
+{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.logEgress -}}
+# Telemetry de egress: loguea el tráfico saliente del namespace (workload como
+# CLIENT) usando el provider `envoy` (ya configurado a nivel mesh con
+# accessLogEncoding: JSON + el campo `sni`). Objetivo: descubrir qué hosts externos
+# usa el namespace ANTES de activar el firewall de egress (blockOutboundTraffic).
+# NO bloquea nada — la conectividad (ALLOW_ANY) queda intacta.
+#
+# Se separa del Telemetry de `logAll` (que loguea todo el tráfico) para poder
+# prender solo el egress, con menos volumen.
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: access-logging-egress
+spec:
+  accessLogging:
+    - providers:
+        - name: envoy
+      # CLIENT = el workload actuando como cliente → tráfico outbound (egress).
+      # (Telemetry usa CLIENT/SERVER/CLIENT_AND_SERVER; no SIDECAR_OUTBOUND.)
+      match:
+        mode: CLIENT
+      # Sin filtro: capturamos todo el egress del namespace para el inventario.
+      # Para acotar a solo tráfico externo y bajar volumen/costo, se puede sumar
+      # (expresión CEL a validar contra la versión de Istio del cluster):
+      #   filter:
+      #     expression: 'xds.cluster_name == "PassthroughCluster"'
+{{- end }}

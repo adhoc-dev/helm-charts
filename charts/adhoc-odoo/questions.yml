@@ -506,6 +506,13 @@ questions:
     type: "boolean"
     required: false
     default: false
+  - variable: ingress.istio.logEgress
+    group: "Ingress"
+    label: "Log Egress Traffic"
+    description: "Log outbound (egress) traffic in JSON to discover external hosts before enabling blockOutboundTraffic. Does not block."
+    type: "boolean"
+    required: false
+    default: false
   - variable: ingress.istio.http10.enabled
     group: "Ingress"
     label: "Allow HTTP/1.0 in Istio"
