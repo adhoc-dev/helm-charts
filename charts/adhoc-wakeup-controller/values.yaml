@@ -27,6 +27,23 @@ namespace: adhoc-wakeup-controller
 service:
   port: 9080
 
+# Prometheus /metrics endpoint, on a separate port from the waiting page (9080)
+# so it is not reachable via the VirtualService. Scraped by the PodMonitor below.
+metricsPort: 9081
+
+metrics:
+  podMonitor:
+    # Requires the prometheus-operator PodMonitor CRD AND an OWC image that serves
+    # /metrics (feat/owc-metrics onwards). Disabled by default so deploying the
+    # chart with an older image (or on a cluster without the operator) doesn't
+    # create a PodMonitor that scrapes a closed port. Enable for the canary and
+    # once the metrics image is promoted to stable.
+    enabled: false
+    interval: 30s
+    # Extra labels so the cluster's Prometheus selects this PodMonitor (must match
+    # its podMonitorSelector, e.g. {release: kube-prometheus-stack}).
+    additionalLabels: {}
+
 resources:
   requests:
     cpu: 50m
