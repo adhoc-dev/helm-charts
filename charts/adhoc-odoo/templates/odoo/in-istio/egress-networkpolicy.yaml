@@ -1,15 +1,9 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
 {{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
-# NetworkPolicy de egress (enforce): aplica a los pods NO inyectados (sin sidecar) —
-# PostgreSQL/CNPG, jobs. Esos pods de otro modo salen directo por el NAT, esquivando el
-# control de egress. Permite solo destinos privados/in-cluster (RFC1918 + link-local) y
-# DENIEGA el resto (Internet directo). Los pods inyectados (Odoo) NO se seleccionan: su
-# egress lo controla el sidecar (REGISTRY_ONLY + allowedHosts, sale directo a los permitidos).
-#
-# RFC1918 + link-local cubre de una: pods/services (10/8), API server GKE (172.16/12),
-# NodeLocal DNS + metadata server (169.254/16), istio-system, redis/aeroo/kwk, etc.
-# Validado en cluster01 (CNPG sano bajo la policy, sin Internet directo).
+# NetworkPolicy de egress (enforce): cubre los pods NO inyectados (PostgreSQL/CNPG, jobs),
+# que sin sidecar saldrían directo por el NAT. Permite solo privado (RFC1918 + link-local) y
+# deniega el público. Los pods meshed (Odoo) los maneja el sidecar. Ver doc/egress.md.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -17,8 +11,7 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
-  # Solo pods SIN sidecar Istio (el label security.istio.io/tlsMode lo agrega el inyector
-  # a los pods meshed). Los meshed (Odoo) quedan a cargo del sidecar.
+  # Solo pods SIN sidecar: el label security.istio.io/tlsMode lo agrega el inyector a los meshed.
   podSelector:
     matchExpressions:
     - key: security.istio.io/tlsMode

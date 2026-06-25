@@ -1,23 +1,11 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-# Whitelist de egress (modo enforce, default-deny). Con el sidecar en REGISTRY_ONLY
-# (ver sidecar.yaml), SOLO los hosts con ServiceEntry son alcanzables y el sidecar
-# sale DIRECTO a ellos (Model A — sin egress gateway). Un host fuera de la lista queda
-# bloqueado por REGISTRY_ONLY (deny-by-default).
-#
-# El egress a Internet de los pods NO inyectados (PostgreSQL/CNPG, jobs) lo bloquea la
-# NetworkPolicy de egress (ver egress-networkpolicy.yaml) — esos pods no tienen sidecar
-# y de otro modo saldrían directo por el NAT.
-#
-# allowedHosts se puebla desde el inventario de egress (modo observe, spec 0007).
-# repoHosts (github por default) se agregan SOLO cuando el entrypoint clona repos custom
-# (odoo.entrypoint.repos no vacío — addons por PR): el boot los descarga por HTTPS y bajo
-# REGISTRY_ONLY quedarían bloqueados sin ServiceEntry. uniq evita ServiceEntry duplicados.
-# El default github vive en el template (no solo en values.yaml) para que aplique también
-# bajo `helm upgrade --reuse-values`, donde los defaults nuevos de values.yaml no se mergean;
-# si values.yaml trae repoHosts, gana ese (override gitlab/etc.).
+# Whitelist de egress (enforce, deny-by-default): un ServiceEntry 443/HTTPS por host
+# alcanzable bajo REGISTRY_ONLY. repoHosts (default github) se suman SOLO si el entrypoint
+# clona repos custom (odoo.entrypoint.repos). Ver doc/egress.md.
 {{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
 {{- if .Values.odoo.entrypoint.repos }}
+{{- /* default github en el template también, para que aplique bajo --reuse-values */}}
 {{- $repoHosts := (((.Values.ingress.istio.egress | default dict).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
 {{- $hosts = (concat $hosts $repoHosts | uniq) }}
 {{- end }}

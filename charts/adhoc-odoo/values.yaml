@@ -55,39 +55,28 @@ ingress:
     altHosts: ""
     createCertificate: true
 
-    # --- Egress (firewall + logging). Spec devops-project 0007 (logging) + iteración 2. ---
-    # Modo de egress: open | observe | enforce.
-    #   open    = ALLOW_ANY, sin logging ni bloqueo (opt-out explícito).
-    #   observe = ALLOW_ANY + logging de egress con SNI (default con istio.enabled).
-    #   enforce = REGISTRY_ONLY + listas + NetworkPolicy: Istio única salida, no-TLS bloqueado.
-    # Vacío → lo resuelve el chart: con istio.enabled, default "observe".
+    # --- Egress (firewall + logging). Modos y values: ver doc/egress.md ---
+    # Modo: open (ALLOW_ANY) | observe (ALLOW_ANY + logging SNI) | enforce (REGISTRY_ONLY +
+    # listas + NetworkPolicy). Vacío → con istio.enabled, default "observe".
     egress:
       mode: ""
-      # enforce: namespaces de servicios cluster-level que Odoo usa cross-namespace.
-      # Con el sidecar en REGISTRY_ONLY hay que incluirlos en su scope o se bloquean
-      # (validado en cluster01: redis, aeroo y kwkhtmltopdf rompían sin esto).
+      # enforce: namespaces cluster-level que Odoo usa cross-namespace (incluir en el scope
+      # del Sidecar o REGISTRY_ONLY los bloquea).
       meshExternalNamespaces:
         - adhoc-redis
         - adhoc-aeroo-docs
         - kwkhtmltopdf
       networkPolicy:
-        # enforce: CIDRs privados extra permitidos para los pods NO-meshed (PG, jobs),
-        # además de los baked-in RFC1918 + link-local (10/8, 172.16/12, 192.168/16,
-        # 169.254/16) — que ya cubren pods/services, API server GKE, NodeLocal DNS,
-        # metadata server, istio-system, etc. Normalmente vacío.
+        # enforce: CIDRs privados extra para pods NO-meshed, además de los baked-in
+        # (RFC1918 + link-local). Normalmente vacío.
         allow: []
-      # enforce: hosts que el boot necesita para clonar los repos custom del entrypoint
-      # (addons por PR). Se agregan AUTOMÁTICAMENTE a la whitelist cuando
-      # odoo.entrypoint.repos no está vacío — no hay que listarlos a mano. Default: endpoints
-      # de github (clone + tarballs + release assets). Sobreescribir si los repos viven en
-      # otro host (gitlab, etc.).
+      # enforce: hosts para clonar repos custom; se suman a la whitelist SOLO si
+      # odoo.entrypoint.repos no está vacío. Default github; sobreescribir para gitlab/etc.
       repoHosts:
         - "github.com"
         - "codeload.github.com"
         - "objects.githubusercontent.com"
-    # Lista blanca (enforce): hosts externos extra alcanzables, ADEMÁS de los repoHosts
-    # auto-agregados. El sidecar (REGISTRY_ONLY) sale DIRECTO a ellos. Se puebla desde el
-    # inventario de egress (modo observe).
+    # enforce: hosts externos extra (además de repoHosts). Poblar desde el inventario (observe).
     allowedHosts: []
     logAll: false
     # DEPRECADO: usar egress.mode. Compat: logEgress=true → observe.

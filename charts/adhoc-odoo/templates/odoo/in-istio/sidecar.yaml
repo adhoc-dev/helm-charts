@@ -18,9 +18,8 @@ spec:
   - hosts:
     - "{{ .Release.Namespace }}/*"           # servicios en el mismo namespace
     - "istio-system/*"    # servicios del control plane
-    {{- /* En enforce (REGISTRY_ONLY) el scope debe incluir los servicios cluster-level
-       que Odoo usa cross-namespace (redis, aeroo, kwkhtmltopdf); si no, se bloquean.
-       Inocuo en open/observe (ALLOW_ANY igual pasa). Validado en cluster01. */}}
+    {{- /* enforce (REGISTRY_ONLY): el scope debe incluir los servicios cluster-level que
+       Odoo usa cross-namespace o se bloquean. Inocuo en open/observe. Ver doc/egress.md. */}}
     {{- range .Values.ingress.istio.egress.meshExternalNamespaces }}
     - "{{ . }}/*"
     {{- end }}

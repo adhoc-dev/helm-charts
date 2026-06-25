@@ -1,13 +1,8 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
-# Telemetry de egress: loguea el tráfico saliente del namespace (workload como
-# CLIENT) usando el provider `envoy` (ya configurado a nivel mesh con
-# accessLogEncoding: JSON + el campo `sni`). Objetivo: descubrir qué hosts externos
-# usa el namespace. Activo en observe y enforce (en enforce, para ver qué se bloquea).
-# NO bloquea nada — el bloqueo lo hace el modo enforce (sidecar + NetworkPolicy).
-#
-# Se separa del Telemetry de `logAll` (que loguea todo el tráfico) para poder
-# prender solo el egress, con menos volumen.
+# Telemetry de egress: loguea el tráfico saliente (workload como CLIENT) con el provider
+# `envoy` (JSON + sni a nivel mesh). No bloquea. Separado de logAll para acotar volumen.
+# Ver doc/egress.md.
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -16,13 +11,8 @@ spec:
   accessLogging:
     - providers:
         - name: envoy
-      # CLIENT = el workload actuando como cliente → tráfico outbound (egress).
-      # (Telemetry usa CLIENT/SERVER/CLIENT_AND_SERVER; no SIDECAR_OUTBOUND.)
+      # CLIENT = outbound (Telemetry no acepta SIDECAR_OUTBOUND). Sin filtro: todo el egress
+      # del namespace. Para acotar volumen ver doc/egress.md (filtro CEL).
       match:
         mode: CLIENT
-      # Sin filtro: capturamos todo el egress del namespace para el inventario.
-      # Para acotar a solo tráfico externo y bajar volumen/costo, se puede sumar
-      # (expresión CEL a validar contra la versión de Istio del cluster):
-      #   filter:
-      #     expression: 'xds.cluster_name == "PassthroughCluster"'
 {{- end }}

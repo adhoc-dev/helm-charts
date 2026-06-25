@@ -14,6 +14,11 @@ Default: native
 
 ## Notes
 
+### Egress control (Istio)
+
+Control del tráfico saliente por tenant (modos `open`/`observe`/`enforce`, whitelist,
+NetworkPolicy, logging con SNI). Ver [doc/egress.md](doc/egress.md).
+
 ### Fuse
 
 [Options](https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/semantics.md)
