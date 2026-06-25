@@ -76,13 +76,19 @@ ingress:
         # 169.254/16) — que ya cubren pods/services, API server GKE, NodeLocal DNS,
         # metadata server, istio-system, etc. Normalmente vacío.
         allow: []
-    # Lista blanca (enforce): únicos hosts externos alcanzables. El sidecar (REGISTRY_ONLY)
-    # sale DIRECTO a ellos. Se puebla desde el inventario de egress (modo observe).
-    # Incluir github en instancias con addons por PR.
+      # enforce: hosts que el boot necesita para clonar los repos custom del entrypoint
+      # (addons por PR). Se agregan AUTOMÁTICAMENTE a la whitelist cuando
+      # odoo.entrypoint.repos no está vacío — no hay que listarlos a mano. Default: endpoints
+      # de github (clone + tarballs + release assets). Sobreescribir si los repos viven en
+      # otro host (gitlab, etc.).
+      repoHosts:
+        - "github.com"
+        - "codeload.github.com"
+        - "objects.githubusercontent.com"
+    # Lista blanca (enforce): hosts externos extra alcanzables, ADEMÁS de los repoHosts
+    # auto-agregados. El sidecar (REGISTRY_ONLY) sale DIRECTO a ellos. Se puebla desde el
+    # inventario de egress (modo observe).
     allowedHosts: []
-      # - "github.com"
-      # - "codeload.github.com"
-      # - "objects.githubusercontent.com"
     logAll: false
     # DEPRECADO: usar egress.mode. Compat: logEgress=true → observe.
     logEgress: false

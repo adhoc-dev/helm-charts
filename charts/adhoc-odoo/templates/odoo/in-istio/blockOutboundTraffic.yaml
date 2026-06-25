@@ -10,7 +10,18 @@
 # y de otro modo saldrían directo por el NAT.
 #
 # allowedHosts se puebla desde el inventario de egress (modo observe, spec 0007).
-{{- range $host := .Values.ingress.istio.allowedHosts }}
+# repoHosts (github por default) se agregan SOLO cuando el entrypoint clona repos custom
+# (odoo.entrypoint.repos no vacío — addons por PR): el boot los descarga por HTTPS y bajo
+# REGISTRY_ONLY quedarían bloqueados sin ServiceEntry. uniq evita ServiceEntry duplicados.
+# El default github vive en el template (no solo en values.yaml) para que aplique también
+# bajo `helm upgrade --reuse-values`, donde los defaults nuevos de values.yaml no se mergean;
+# si values.yaml trae repoHosts, gana ese (override gitlab/etc.).
+{{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
+{{- if .Values.odoo.entrypoint.repos }}
+{{- $repoHosts := (((.Values.ingress.istio.egress | default dict).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
+{{- $hosts = (concat $hosts $repoHosts | uniq) }}
+{{- end }}
+{{- range $host := $hosts }}
 # ServiceEntry: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
