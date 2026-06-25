@@ -495,9 +495,10 @@ questions:
   - variable: ingress.istio.egress.mode
     group: "Ingress"
     label: "Egress mode"
-    description: "Egress posture: open (no block/log), observe (log egress with SNI; default with istio), enforce (REGISTRY_ONLY + allow/ban lists + NetworkPolicy: Istio is the only exit, non-TLS blocked)."
+    description: "Egress posture: empty (chart decides: observe with istio), open (no block/log), observe (log egress with SNI), enforce (REGISTRY_ONLY + allow/ban lists + NetworkPolicy: Istio is the only exit, non-TLS blocked)."
     type: "enum"
     options:
+      - ""
       - open
       - observe
       - enforce
