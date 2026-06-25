@@ -64,8 +64,11 @@ ingress:
     egress:
       mode: ""
       networkPolicy:
-        # enforce: CIDRs extra permitidos para egress, además de los baked-in
-        # (kube-dns, istio-system, intra-namespace, metadata server 169.254.169.254).
+        # enforce: CIDRs extra permitidos para egress, además de los baked-in (DNS
+        # node-local 169.254.20.10 + kube-dns, istio-system, intra-namespace, metadata
+        # server 169.254.169.254). REQUERIDO acá: el API server del cluster
+        # (ej. cluster01 "172.16.16.2/32") — el instance manager de CNPG lo necesita;
+        # sin él, enforce rompe PostgreSQL.
         allow: []
     # Lista blanca (enforce): únicos hosts externos alcanzables por SNI. Del inventario.
     allowedHosts: []
