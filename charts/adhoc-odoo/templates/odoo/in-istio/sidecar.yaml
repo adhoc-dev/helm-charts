@@ -1,4 +1,5 @@
 {{- if .Values.ingress.istio.enabled -}}
+{{- $mode := include "adhoc-odoo.egressMode" . -}}
 # Usamos el Sidecar de Istio para permitir que Keda acceda a los servicios del namespace
 # y también para permitir que los servicios del namespace accedan a Keda.
 # Esta configuracion se hereda por los envoy de los servicio y evitamos que se traigan copia de las configuraciones de los otros servicios
@@ -17,15 +18,20 @@ spec:
   - hosts:
     - "{{ .Release.Namespace }}/*"           # servicios en el mismo namespace
     - "istio-system/*"    # servicios del control plane
-    # Pero usamos DNS interno de Kubernetes (en lugar de DNS mTLS de Istio)
-    # - "kube-system/kube-dns"
+    {{- /* enforce (REGISTRY_ONLY): el scope debe incluir los servicios cluster-level que
+       Odoo usa cross-namespace o se bloquean. Inocuo en open/observe. Ver doc/adhoc-odoo.md.
+       default en el template (no solo values.yaml) para no romper bajo --reuse-values. */}}
+    {{- range (((.Values.ingress.istio.egress | default dict).meshExternalNamespaces) | default (list "adhoc-redis" "adhoc-aeroo-docs" "kwkhtmltopdf")) }}
+    - "{{ . }}/*"
+    {{- end }}
 
-  {{- if .Values.ingress.istio.blockOutboundTraffic -}}
-  # Bloqueamos el tráfico de salida a internet (que no este registado )
+  {{- if eq $mode "enforce" }}
+  # enforce: bloqueamos el tráfico de salida a internet que no esté registrado
+  # (REGISTRY_ONLY). Aplica a cualquier protocolo, no solo TLS.
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
-  {{- else -}}
-  # Permitimos el tráfico de salida a internet
+  {{- else }}
+  # open / observe: permitimos el tráfico de salida a internet
   outboundTrafficPolicy:
     mode: ALLOW_ANY
   {{- end }}

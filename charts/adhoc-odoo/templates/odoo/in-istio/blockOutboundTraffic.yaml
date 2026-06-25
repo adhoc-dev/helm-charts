@@ -1,8 +1,16 @@
-{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.blockOutboundTraffic -}}
-
-{{- range $host := .Values.ingress.istio.allowedHosts }}
-# ServiceEntry: declara que el host externo existe y puede ser alcanzado.
-# Necesario para que el sidecar con REGISTRY_ONLY no bloquee el tráfico.
+{{- $mode := include "adhoc-odoo.egressMode" . -}}
+{{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
+# Whitelist de egress (enforce, deny-by-default): un ServiceEntry 443/HTTPS por host
+# alcanzable bajo REGISTRY_ONLY. repoHosts (default github) se suman SOLO si el entrypoint
+# clona repos custom (odoo.entrypoint.repos). Ver doc/adhoc-odoo.md.
+{{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
+{{- if .Values.odoo.entrypoint.repos }}
+{{- /* default github en el template también, para que aplique bajo --reuse-values */}}
+{{- $repoHosts := (((.Values.ingress.istio.egress | default dict).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
+{{- $hosts = (concat $hosts $repoHosts | uniq) }}
+{{- end }}
+{{- range $host := $hosts }}
+# ServiceEntry: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -17,57 +25,5 @@ spec:
     protocol: HTTPS
   resolution: DNS
 ---
-# VirtualService: redirige el tráfico saliente para este host al egressgateway.
-# Se aplica en el sidecar del pod origen.
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: route-egress-{{ $host | replace "*" "wildcard" | replace "." "-" }}
-spec:
-  hosts:
-  - "{{ $host }}"
-  gateways:
-  - mesh
-  - istio-system/istio-egressgateway
-  tls:
-  - match:
-    - port: 443
-      sniHosts:
-      - "{{ $host }}"
-    route:
-    - destination:
-        host: "{{ $host }}"
-        port:
-          number: 443
----
 {{- end }}
-
-{{- if .Values.ingress.istio.allowedHosts }}
-# AuthorizationPolicy: controla qué destinos (por SNI/host) puede reenviar el egressgateway.
-# Protege al gateway actuando como firewall de salida.
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-egress-hosts-{{ .Release.Namespace }}
-  namespace: istio-system
-spec:
-  selector:
-    matchLabels:
-      istio: egressgateway
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        namespaces:
-        - "{{ .Release.Namespace }}"
-  - to:
-    - operation:
-        hosts:
-        {{- range .Values.ingress.istio.allowedHosts }}
-        - "{{ . }}"
-        {{- end }}
----
-{{- end }}
-
-
 {{- end }}
