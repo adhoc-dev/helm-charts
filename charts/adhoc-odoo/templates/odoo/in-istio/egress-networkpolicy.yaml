@@ -1,9 +1,14 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-# NetworkPolicy de egress (enforce): deniega la salida directa a Internet desde TODOS los
-# pods del namespace — incluido PG, que no tiene sidecar y esquivaría la malla por el NAT.
-# Permite solo lo esencial de cluster + lo declarado en values; así toda salida a Internet
-# pasa por el egress gateway (istio-system). Defensa en profundidad junto a REGISTRY_ONLY.
+# NetworkPolicy de egress (enforce): aplica a los pods NO inyectados (sin sidecar) —
+# PostgreSQL/CNPG, jobs. Esos pods de otro modo salen directo por el NAT, esquivando el
+# control de egress. Permite solo destinos privados/in-cluster (RFC1918 + link-local) y
+# DENIEGA el resto (Internet directo). Los pods inyectados (Odoo) NO se seleccionan: su
+# egress lo controla el sidecar (REGISTRY_ONLY + allowedHosts, sale directo a los permitidos).
+#
+# RFC1918 + link-local cubre de una: pods/services (10/8), API server GKE (172.16/12),
+# NodeLocal DNS + metadata server (169.254/16), istio-system, redis/aeroo/kwk, etc.
+# Validado en cluster01 (CNPG sano bajo la policy, sin Internet directo).
 {{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -12,45 +17,27 @@ metadata:
   labels:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
 spec:
-  podSelector: {}        # todos los pods del namespace (Odoo, PG, jobs, ...)
+  # Solo pods SIN sidecar Istio (el label security.istio.io/tlsMode lo agrega el inyector
+  # a los pods meshed). Los meshed (Odoo) quedan a cargo del sidecar.
+  podSelector:
+    matchExpressions:
+    - key: security.istio.io/tlsMode
+      operator: DoesNotExist
   policyTypes:
   - Egress
   egress:
-  # DNS: NodeLocal DNSCache (IP link-local en el nodo, GKE) + kube-dns (kube-system).
-  # En GKE el pod resuelve vía 169.254.20.10 (node-local), NO el ClusterIP de kube-dns →
-  # hay que permitir esa IP explícitamente (el namespaceSelector de kube-system no la cubre).
-  # Validado en test: sin esto, enforce rompe TODA resolución DNS del namespace.
   - to:
+    # Privado / in-cluster / infra (todo lo no-público). El resto (Internet) queda denegado.
     - ipBlock:
-        cidr: 169.254.20.10/32
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
-  # Control plane + egress gateway (istio-system): toda salida a Internet sale por acá
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: istio-system
-  # Intra-namespace (PG, servicios locales del release)
-  - to:
-    - podSelector: {}
-  # Metadata server de GKE (Workload Identity / GCS FUSE)
-  - to:
+        cidr: 10.0.0.0/8
     - ipBlock:
-        cidr: 169.254.169.254/32
-  # IMPORTANTE: el API server (control plane GKE) NO es alcanzable por default y el
-  # instance manager de CNPG (pod PostgreSQL) lo necesita — sin él, enforce rompe la DB.
-  # Su IP es por-cluster, así que va en egress.networkPolicy.allow (ej. cluster01:
-  # "172.16.16.2/32"). Obtenerla: kubectl -n default get endpoints kubernetes.
-  {{- range $extra }}
-  # Extra permitido (ingress.istio.egress.networkPolicy.allow)
-  - to:
+        cidr: 172.16.0.0/12
+    - ipBlock:
+        cidr: 192.168.0.0/16
+    - ipBlock:
+        cidr: 169.254.0.0/16
+    {{- range $extra }}
     - ipBlock:
         cidr: {{ . | quote }}
-  {{- end }}
+    {{- end }}
 {{- end }}

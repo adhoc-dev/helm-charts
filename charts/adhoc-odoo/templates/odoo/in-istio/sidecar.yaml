@@ -18,8 +18,12 @@ spec:
   - hosts:
     - "{{ .Release.Namespace }}/*"           # servicios en el mismo namespace
     - "istio-system/*"    # servicios del control plane
-    # Pero usamos DNS interno de Kubernetes (en lugar de DNS mTLS de Istio)
-    # - "kube-system/kube-dns"
+    {{- /* En enforce (REGISTRY_ONLY) el scope debe incluir los servicios cluster-level
+       que Odoo usa cross-namespace (redis, aeroo, kwkhtmltopdf); si no, se bloquean.
+       Inocuo en open/observe (ALLOW_ANY igual pasa). Validado en cluster01. */}}
+    {{- range .Values.ingress.istio.egress.meshExternalNamespaces }}
+    - "{{ . }}/*"
+    {{- end }}
 
   {{- if eq $mode "enforce" }}
   # enforce: bloqueamos el tráfico de salida a internet que no esté registrado

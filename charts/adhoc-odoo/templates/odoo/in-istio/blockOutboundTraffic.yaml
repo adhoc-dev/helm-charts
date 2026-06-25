@@ -1,17 +1,17 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-# Firewall de egress (modo enforce, default-deny). Requiere el sidecar en REGISTRY_ONLY
-# (ver sidecar.yaml) + la NetworkPolicy de egress (ver egress-networkpolicy.yaml para los
-# pods sin sidecar). Dos listas, ambas por SNI sobre el egressgateway:
-#   - Lista blanca (allowedHosts): únicos destinos externos alcanzables.
-#   - Lista negra (bannedHosts): excepción DENY dentro de un wildcard permitido
-#     (ej. allowedHosts: ["*.foo.com"] + bannedHosts: ["bad.foo.com"]). DENY tiene
-#     precedencia sobre ALLOW en Istio. Un host fuera de la lista blanca ya queda
-#     bloqueado por REGISTRY_ONLY, así que la lista negra solo aplica a carve-outs.
-
+# Whitelist de egress (modo enforce, default-deny). Con el sidecar en REGISTRY_ONLY
+# (ver sidecar.yaml), SOLO los hosts con ServiceEntry son alcanzables y el sidecar
+# sale DIRECTO a ellos (Model A — sin egress gateway). Un host fuera de la lista queda
+# bloqueado por REGISTRY_ONLY (deny-by-default).
+#
+# El egress a Internet de los pods NO inyectados (PostgreSQL/CNPG, jobs) lo bloquea la
+# NetworkPolicy de egress (ver egress-networkpolicy.yaml) — esos pods no tienen sidecar
+# y de otro modo saldrían directo por el NAT.
+#
+# allowedHosts se puebla desde el inventario de egress (modo observe, spec 0007).
 {{- range $host := .Values.ingress.istio.allowedHosts }}
-# ServiceEntry: declara que el host externo existe y puede ser alcanzado.
-# Necesario para que el sidecar con REGISTRY_ONLY no bloquee el tráfico.
+# ServiceEntry: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -26,85 +26,5 @@ spec:
     protocol: HTTPS
   resolution: DNS
 ---
-# VirtualService: redirige el tráfico saliente para este host al egressgateway.
-# Se aplica en el sidecar del pod origen.
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: route-egress-{{ $host | replace "*" "wildcard" | replace "." "-" }}
-spec:
-  hosts:
-  - "{{ $host }}"
-  gateways:
-  - mesh
-  - istio-system/istio-egressgateway
-  tls:
-  - match:
-    - port: 443
-      sniHosts:
-      - "{{ $host }}"
-    route:
-    - destination:
-        host: "{{ $host }}"
-        port:
-          number: 443
----
 {{- end }}
-
-{{- if .Values.ingress.istio.allowedHosts }}
-# AuthorizationPolicy (ALLOW / lista blanca): el egressgateway solo reenvía a estos
-# hosts (por SNI) cuando el origen es este namespace. Firewall de salida.
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-egress-hosts-{{ .Release.Namespace }}
-  namespace: istio-system
-spec:
-  selector:
-    matchLabels:
-      istio: egressgateway
-  action: ALLOW
-  rules:
-  # Una sola regla: origen (este namespace) Y destino (host permitido) deben matchear.
-  # Si from y to fueran reglas separadas, Istio las OR-ea y el firewall queda abierto.
-  - from:
-    - source:
-        namespaces:
-        - "{{ .Release.Namespace }}"
-    to:
-    - operation:
-        hosts:
-        {{- range .Values.ingress.istio.allowedHosts }}
-        - "{{ . }}"
-        {{- end }}
----
-{{- end }}
-
-{{- if .Values.ingress.istio.bannedHosts }}
-# AuthorizationPolicy (DENY / lista negra): bloquea estos hosts (por SNI) aunque
-# caigan dentro de un wildcard de allowedHosts. DENY > ALLOW en Istio.
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: deny-egress-hosts-{{ .Release.Namespace }}
-  namespace: istio-system
-spec:
-  selector:
-    matchLabels:
-      istio: egressgateway
-  action: DENY
-  rules:
-  - from:
-    - source:
-        namespaces:
-        - "{{ .Release.Namespace }}"
-    to:
-    - operation:
-        hosts:
-        {{- range .Values.ingress.istio.bannedHosts }}
-        - "{{ . }}"
-        {{- end }}
----
-{{- end }}
-
 {{- end }}

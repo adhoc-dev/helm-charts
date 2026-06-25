@@ -510,13 +510,6 @@ questions:
     type: "listofstrings"
     default: []
     required: false
-  - variable: ingress.istio.bannedHosts
-    group: "Ingress"
-    label: "Banned Hosts (egress blacklist)"
-    description: "enforce: hosts blocked by SNI even inside an allowedHosts wildcard (DENY over ALLOW)."
-    type: "listofstrings"
-    default: []
-    required: false
   - variable: ingress.istio.egress.networkPolicy.allow
     group: "Ingress"
     label: "Egress NetworkPolicy extra CIDRs"
