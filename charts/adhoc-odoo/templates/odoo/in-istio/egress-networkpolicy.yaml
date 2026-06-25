@@ -1,5 +1,6 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
+{{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
 # NetworkPolicy de egress (enforce): aplica a los pods NO inyectados (sin sidecar) —
 # PostgreSQL/CNPG, jobs. Esos pods de otro modo salen directo por el NAT, esquivando el
 # control de egress. Permite solo destinos privados/in-cluster (RFC1918 + link-local) y
@@ -9,7 +10,6 @@
 # RFC1918 + link-local cubre de una: pods/services (10/8), API server GKE (172.16/12),
 # NodeLocal DNS + metadata server (169.254/16), istio-system, redis/aeroo/kwk, etc.
 # Validado en cluster01 (CNPG sano bajo la policy, sin Internet directo).
-{{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
