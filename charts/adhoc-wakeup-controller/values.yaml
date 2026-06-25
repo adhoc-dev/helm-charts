@@ -1,6 +1,6 @@
 image:
   repository: docker.io/adhoc/ops-tools
-  tag: odooWakeupController-2026.06.24.22
+  tag: odooWakeupController-2026.06.25.26
   # digest: set to pin to an exact image (overrides tag). Format: sha256:<hash>
   digest: ""
   pullPolicy: Always
@@ -26,6 +26,18 @@ namespace: adhoc-wakeup-controller
 
 service:
   port: 9080
+
+# /metrics endpoint on a port separate from the waiting page (not exposed via the VS).
+metricsPort: 9081
+
+# Prometheus scraping of /metrics. Requires the PodMonitor CRD (prometheus-operator);
+# additionalLabels must match the cluster Prometheus's podMonitorSelector (e.g.
+# {release: prom}). Enabled per-deployment (e.g. in the Pulumi values).
+metrics:
+  podMonitor:
+    enabled: false
+    interval: 30s
+    additionalLabels: {}
 
 resources:
   requests:
