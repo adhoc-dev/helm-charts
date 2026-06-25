@@ -1,6 +1,8 @@
-{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.logEgress -}}
+{{- $mode := include "adhoc-odoo.egressMode" . -}}
+{{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
 # tls_inspector en virtualOutbound: sin él, el egress TLS en ALLOW_ANY se loguea como TCP
 # y el `sni` queda vacío. Con él, el access log de egress captura el host externo (SNI).
+# Activo en observe y enforce (parte del logging de egress).
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:

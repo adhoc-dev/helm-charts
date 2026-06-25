@@ -1,0 +1,47 @@
+{{- $mode := include "adhoc-odoo.egressMode" . -}}
+{{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
+# NetworkPolicy de egress (enforce): deniega la salida directa a Internet desde TODOS los
+# pods del namespace — incluido PG, que no tiene sidecar y esquivaría la malla por el NAT.
+# Permite solo lo esencial de cluster + lo declarado en values; así toda salida a Internet
+# pasa por el egress gateway (istio-system). Defensa en profundidad junto a REGISTRY_ONLY.
+{{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-egress
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  podSelector: {}        # todos los pods del namespace (Odoo, PG, jobs, ...)
+  policyTypes:
+  - Egress
+  egress:
+  # DNS (kube-dns en kube-system)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Control plane + egress gateway (istio-system): toda salida a Internet sale por acá
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+  # Intra-namespace (PG, servicios locales del release)
+  - to:
+    - podSelector: {}
+  # Metadata server de GKE (Workload Identity / GCS FUSE)
+  - to:
+    - ipBlock:
+        cidr: 169.254.169.254/32
+  {{- range $extra }}
+  # Extra permitido (ingress.istio.egress.networkPolicy.allow)
+  - to:
+    - ipBlock:
+        cidr: {{ . | quote }}
+  {{- end }}
+{{- end }}

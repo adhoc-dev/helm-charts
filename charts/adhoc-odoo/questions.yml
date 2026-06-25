@@ -492,10 +492,35 @@ questions:
     type: "boolean"
     required: false
     default: false
+  - variable: ingress.istio.egress.mode
+    group: "Ingress"
+    label: "Egress mode"
+    description: "Egress posture: open (no block/log), observe (log egress with SNI; default with istio), enforce (REGISTRY_ONLY + allow/ban lists + NetworkPolicy: Istio is the only exit, non-TLS blocked)."
+    type: "enum"
+    options:
+      - open
+      - observe
+      - enforce
+    required: false
+    default: ""
   - variable: ingress.istio.allowedHosts
     group: "Ingress"
-    label: "Allowed Hosts"
-    description: "Allowed hosts for Istio egress (list of strings)"
+    label: "Allowed Hosts (egress whitelist)"
+    description: "enforce: the only external hosts reachable, by SNI (list of strings)."
+    type: "listofstrings"
+    default: []
+    required: false
+  - variable: ingress.istio.bannedHosts
+    group: "Ingress"
+    label: "Banned Hosts (egress blacklist)"
+    description: "enforce: hosts blocked by SNI even inside an allowedHosts wildcard (DENY over ALLOW)."
+    type: "listofstrings"
+    default: []
+    required: false
+  - variable: ingress.istio.egress.networkPolicy.allow
+    group: "Ingress"
+    label: "Egress NetworkPolicy extra CIDRs"
+    description: "enforce: extra CIDRs allowed for egress besides baked-in (kube-dns, istio-system, intra-namespace, metadata server)."
     type: "listofstrings"
     default: []
     required: false
@@ -503,13 +528,6 @@ questions:
     group: "Ingress"
     label: "Log All Istio Ingress Traffic"
     description: "Enable logging for all Istio Ingress traffic"
-    type: "boolean"
-    required: false
-    default: false
-  - variable: ingress.istio.logEgress
-    group: "Ingress"
-    label: "Log Egress Traffic"
-    description: "Log outbound (egress) traffic in JSON to discover external hosts before enabling blockOutboundTraffic. Does not block."
     type: "boolean"
     required: false
     default: false
@@ -726,21 +744,6 @@ questions:
     type: "string"
     required: true
     default: "Unknown"
-  - variable: adhoc.dnsBannedHost
-    group: "Adhoc"
-    label: "no not resolve this host list"
-    type: "listofstrings"
-    default:
-      - api.mercadolibre.com
-      - auth.mercadolibre.com.ar
-      - auth.mercadolibre.com.uy
-      - auth.mercadolibre.cl
-      - auth.mercadolibre.com.mx
-      - api.pagos360.com
-      - apis.andreani.com
-      - api.mercadopago.com
-      - stripe.api.odoo.com
-    required: false
   # Cloud Native Postgres
   - variable: cloudNativePG.enabled
     group: "CloudNativePG"

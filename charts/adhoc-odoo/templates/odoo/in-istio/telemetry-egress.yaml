@@ -1,9 +1,10 @@
-{{- if and .Values.ingress.istio.enabled .Values.ingress.istio.logEgress -}}
+{{- $mode := include "adhoc-odoo.egressMode" . -}}
+{{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
 # Telemetry de egress: loguea el tráfico saliente del namespace (workload como
 # CLIENT) usando el provider `envoy` (ya configurado a nivel mesh con
 # accessLogEncoding: JSON + el campo `sni`). Objetivo: descubrir qué hosts externos
-# usa el namespace ANTES de activar el firewall de egress (blockOutboundTraffic).
-# NO bloquea nada — la conectividad (ALLOW_ANY) queda intacta.
+# usa el namespace. Activo en observe y enforce (en enforce, para ver qué se bloquea).
+# NO bloquea nada — el bloqueo lo hace el modo enforce (sidecar + NetworkPolicy).
 #
 # Se separa del Telemetry de `logAll` (que loguea todo el tráfico) para poder
 # prender solo el egress, con menos volumen.

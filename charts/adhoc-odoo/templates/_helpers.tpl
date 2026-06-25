@@ -210,3 +210,31 @@ adhoc-wakeup-controller to shadow-test a new OWC build. See OWC doc/canary-testi
 {{- $wc := .Values.autoscaling.wakeupController | default dict -}}
 {{- $wc.domain | default "wakeup.adhoc.inc" -}}
 {{- end -}}
+
+{{/*
+adhoc-odoo.egressMode — resuelve el modo de egress efectivo: open | observe | enforce.
+- open: ALLOW_ANY, sin logging ni bloqueo.
+- observe: ALLOW_ANY + logging de egress (tls_inspector + Telemetry).
+- enforce: REGISTRY_ONLY + listas (allow/ban) + NetworkPolicy. Hereda el logging.
+Precedencia: ingress.istio.egress.mode explícito > flags legacy
+(blockOutboundTraffic→enforce, logEgress→observe) > default "observe" con istio.enabled.
+Sin istio.enabled devuelve "open" (los recursos de egress no aplican).
+*/}}
+{{- define "adhoc-odoo.egressMode" -}}
+{{- $istio := .Values.ingress.istio -}}
+{{- if not $istio.enabled -}}
+{{- "open" -}}
+{{- else -}}
+{{- $egress := $istio.egress | default dict -}}
+{{- $mode := $egress.mode | default "" -}}
+{{- if not $mode -}}
+  {{- if $istio.blockOutboundTraffic -}}{{- $mode = "enforce" -}}
+  {{- else if $istio.logEgress -}}{{- $mode = "observe" -}}
+  {{- else -}}{{- $mode = "observe" -}}{{- end -}}
+{{- end -}}
+{{- if not (has $mode (list "open" "observe" "enforce")) -}}
+  {{- fail (printf "ingress.istio.egress.mode inválido: %q (open|observe|enforce)" $mode) -}}
+{{- end -}}
+{{- $mode -}}
+{{- end -}}
+{{- end -}}

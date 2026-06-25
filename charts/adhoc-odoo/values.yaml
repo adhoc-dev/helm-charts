@@ -55,15 +55,31 @@ ingress:
     altHosts: ""
     createCertificate: true
 
-    blockOutboundTraffic: false
-    # Extra hosts to allow egress traffic from Knative
+    # --- Egress (firewall + logging). Spec devops-project 0007 (logging) + iteración 2. ---
+    # Modo de egress: open | observe | enforce.
+    #   open    = ALLOW_ANY, sin logging ni bloqueo (opt-out explícito).
+    #   observe = ALLOW_ANY + logging de egress con SNI (default con istio.enabled).
+    #   enforce = REGISTRY_ONLY + listas + NetworkPolicy: Istio única salida, no-TLS bloqueado.
+    # Vacío → lo resuelve el chart: con istio.enabled, default "observe".
+    egress:
+      mode: ""
+      networkPolicy:
+        # enforce: CIDRs extra permitidos para egress, además de los baked-in
+        # (kube-dns, istio-system, intra-namespace, metadata server 169.254.169.254).
+        allow: []
+    # Lista blanca (enforce): únicos hosts externos alcanzables por SNI. Del inventario.
     allowedHosts: []
       # - "www.googleapis.com"
       # - "api.mercadolibre.com"
+    # Lista negra (enforce): hosts bloqueados por SNI aunque caigan en un allowedHosts
+    # wildcard (DENY > ALLOW).
+    bannedHosts: []
+      # - "bad.googleapis.com"
     logAll: false
-    # Loguea el tráfico de egress (workload como CLIENT) en JSON para descubrir qué
-    # hosts externos usa el namespace, previo a activar blockOutboundTraffic. No bloquea.
+    # DEPRECADO: usar egress.mode. Compat: logEgress=true → observe.
     logEgress: false
+    # DEPRECADO: usar egress.mode. Compat: blockOutboundTraffic=true → enforce.
+    blockOutboundTraffic: false
     http10:
       enabled: false
 
@@ -373,16 +389,8 @@ adhoc:
   appType: prod
   clientAnalyticAccount: "Unknown"
   devMode: false
-  dnsBannedHost:
-    - api.mercadolibre.com
-    - auth.mercadolibre.com.ar
-    - auth.mercadolibre.com.uy
-    - auth.mercadolibre.cl
-    - auth.mercadolibre.com.mx
-    - api.pagos360.com
-    - apis.andreani.com
-    - api.mercadopago.com
-    - stripe.api.odoo.com
+  # (adhoc.dnsBannedHost eliminado: el blacklist de egress ahora es
+  # ingress.istio.bannedHosts vía AuthorizationPolicy DENY de Istio, modo enforce.)
 
 cloudNativePG:
   checkCRD: false
