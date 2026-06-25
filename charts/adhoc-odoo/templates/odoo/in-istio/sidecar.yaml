@@ -19,7 +19,7 @@ spec:
     - "{{ .Release.Namespace }}/*"           # servicios en el mismo namespace
     - "istio-system/*"    # servicios del control plane
     {{- /* enforce (REGISTRY_ONLY): el scope debe incluir los servicios cluster-level que
-       Odoo usa cross-namespace o se bloquean. Inocuo en open/observe. Ver doc/egress.md.
+       Odoo usa cross-namespace o se bloquean. Inocuo en open/observe. Ver doc/adhoc-odoo.md.
        default en el template (no solo values.yaml) para no romper bajo --reuse-values. */}}
     {{- range (((.Values.ingress.istio.egress | default dict).meshExternalNamespaces) | default (list "adhoc-redis" "adhoc-aeroo-docs" "kwkhtmltopdf")) }}
     - "{{ . }}/*"

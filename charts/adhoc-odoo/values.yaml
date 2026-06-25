@@ -55,7 +55,7 @@ ingress:
     altHosts: ""
     createCertificate: true
 
-    # --- Egress (firewall + logging). Modos y values: ver doc/egress.md ---
+    # --- Egress (firewall + logging). Modos y values: ver doc/adhoc-odoo.md ---
     # Modo: open (ALLOW_ANY) | observe (ALLOW_ANY + logging SNI) | enforce (REGISTRY_ONLY +
     # listas + NetworkPolicy). Vacío → con istio.enabled, default "observe".
     egress:

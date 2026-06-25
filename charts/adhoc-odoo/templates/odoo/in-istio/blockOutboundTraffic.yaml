@@ -2,7 +2,7 @@
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
 # Whitelist de egress (enforce, deny-by-default): un ServiceEntry 443/HTTPS por host
 # alcanzable bajo REGISTRY_ONLY. repoHosts (default github) se suman SOLO si el entrypoint
-# clona repos custom (odoo.entrypoint.repos). Ver doc/egress.md.
+# clona repos custom (odoo.entrypoint.repos). Ver doc/adhoc-odoo.md.
 {{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
 {{- if .Values.odoo.entrypoint.repos }}
 {{- /* default github en el template también, para que aplique bajo --reuse-values */}}

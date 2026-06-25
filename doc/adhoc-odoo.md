@@ -51,12 +51,47 @@ ingress:
     cloudMainDomain: shared.dev-adhoc.com
     altHosts: ""
     createCertificate: true
-    blockOutboundTraffic: false
-    allowedHosts: []       # hosts permitidos en egress
+    allowedHosts: []            # enforce: hosts externos extra (whitelist), por SNI
+    egress:
+      mode: ""                  # "" | open | observe | enforce ("" → observe con istio)
+      meshExternalNamespaces:   # enforce: ns cluster-level que Odoo usa cross-namespace
+        - adhoc-redis
+        - adhoc-aeroo-docs
+        - kwkhtmltopdf
+      networkPolicy:
+        allow: []               # enforce: CIDRs privados extra (pods no-meshed)
+      repoHosts:                # enforce: hosts para clonar repos custom (default github);
+        - github.com            #   se suman a la whitelist solo si odoo.entrypoint.repos != ""
+        - codeload.github.com
+        - objects.githubusercontent.com
     logAll: false
     http10:
-      enabled: false       # habilitar para HTTP/1.0 legacy
+      enabled: false            # habilitar para HTTP/1.0 legacy
 ```
+
+`blockOutboundTraffic`/`logEgress` quedan como flags legacy (deprecados): el helper de modo
+los mapea a `enforce`/`observe`. Ver "Egress control" abajo.
+
+### Egress control
+
+Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio habilitado):
+
+| Modo | Sidecar | Logging | Bloqueo |
+| --- | --- | --- | --- |
+| `open` | `ALLOW_ANY` | no | no |
+| `observe` (default con istio) | `ALLOW_ANY` | sí (SNI → Cloud Logging) | no |
+| `enforce` | `REGISTRY_ONLY` | sí (hereda observe) | solo `allowedHosts`+`repoHosts`/443; no-TLS y pods no-meshed bloqueados |
+
+- **enforce** bloquea en dos capas: el sidecar (`REGISTRY_ONLY`) limita a Odoo a los hosts con
+  `ServiceEntry` (`allowedHosts` + `repoHosts`), salida directa; una `NetworkPolicy` cubre los
+  pods no-meshed (PG/CNPG, jobs) permitiendo solo privado (RFC1918 + link-local).
+- **repoHosts** se suman a la whitelist solo si `odoo.entrypoint.repos` no está vacío (default
+  github en el template, vale bajo `--reuse-values`; sobreescribible para gitlab/etc.).
+- `allowedHosts` se puebla desde el inventario del modo `observe`.
+
+Diseño y rationale completos: spec "firewall de egress" (devops-project). Infraestructura del
+cluster que lo sostiene (NodeLocal DNS, istiod, observabilidad): doc de egress en
+devops-cloud-infra.
 
 ### Reverse Proxy (odooEdgeProxy sidecar)
 
@@ -230,10 +265,10 @@ adhoc:
   appType: prod             # test | train | backup | new | old | prod
   clientAnalyticAccount: "Unknown"
   devMode: false
-  dnsBannedHost:            # hosts bloqueados en egress Istio
-    - api.mercadolibre.com
-    - ...
 ```
+
+> `adhoc.dnsBannedHost` (sinkhole `/etc/hosts`) fue removido — el bloqueo de egress se hace
+> con `ingress.istio.egress.mode: enforce` (ver "Egress control").
 
 ## Resources por defecto (Odoo pod)
 

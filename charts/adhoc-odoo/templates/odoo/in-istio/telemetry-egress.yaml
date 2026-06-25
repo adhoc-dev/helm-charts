@@ -2,7 +2,7 @@
 {{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
 # Telemetry de egress: loguea el tráfico saliente (workload como CLIENT) con el provider
 # `envoy` (JSON + sni a nivel mesh). No bloquea. Separado de logAll para acotar volumen.
-# Ver doc/egress.md.
+# Ver doc/adhoc-odoo.md.
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -12,7 +12,7 @@ spec:
     - providers:
         - name: envoy
       # CLIENT = outbound (Telemetry no acepta SIDECAR_OUTBOUND). Sin filtro: todo el egress
-      # del namespace. Para acotar volumen ver doc/egress.md (filtro CEL).
+      # del namespace. Para acotar volumen ver doc/adhoc-odoo.md (filtro CEL).
       match:
         mode: CLIENT
 {{- end }}
