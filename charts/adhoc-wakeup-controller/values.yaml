@@ -1,6 +1,6 @@
 image:
   repository: docker.io/adhoc/ops-tools
-  tag: odooWakeupController-2026.06.24.22
+  tag: odooWakeupController-2026.06.25.26
   # digest: set to pin to an exact image (overrides tag). Format: sha256:<hash>
   digest: ""
   pullPolicy: Always
@@ -27,21 +27,16 @@ namespace: adhoc-wakeup-controller
 service:
   port: 9080
 
-# Prometheus /metrics endpoint, on a separate port from the waiting page (9080)
-# so it is not reachable via the VirtualService. Scraped by the PodMonitor below.
+# /metrics endpoint on a port separate from the waiting page (not exposed via the VS).
 metricsPort: 9081
 
+# Prometheus scraping of /metrics. Requires the PodMonitor CRD (prometheus-operator);
+# additionalLabels must match the cluster Prometheus's podMonitorSelector (e.g.
+# {release: prom}). Enabled per-deployment (e.g. in the Pulumi values).
 metrics:
   podMonitor:
-    # Requires the prometheus-operator PodMonitor CRD AND an OWC image that serves
-    # /metrics (feat/owc-metrics onwards). Disabled by default so deploying the
-    # chart with an older image (or on a cluster without the operator) doesn't
-    # create a PodMonitor that scrapes a closed port. Enable for the canary and
-    # once the metrics image is promoted to stable.
     enabled: false
     interval: 30s
-    # Extra labels so the cluster's Prometheus selects this PodMonitor (must match
-    # its podMonitorSelector, e.g. {release: kube-prometheus-stack}).
     additionalLabels: {}
 
 resources:
