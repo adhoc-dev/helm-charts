@@ -397,8 +397,9 @@ adhoc:
   appType: prod
   clientAnalyticAccount: "Unknown"
   devMode: false
-  # (adhoc.dnsBannedHost eliminado: el blacklist de egress ahora es
-  # ingress.istio.bannedHosts vía AuthorizationPolicy DENY de Istio, modo enforce.)
+  # (adhoc.dnsBannedHost eliminado junto con su ConfigMap /etc/hosts y el mount del
+  # Deployment. En modo enforce el egress queda controlado por el whitelist deny-by-default
+  # — ya no hay sinkhole por /etc/hosts. Blacklist explícito: follow-up por EnvoyFilter.)
 
 cloudNativePG:
   checkCRD: false

@@ -229,12 +229,6 @@ spec:
             readOnly: false
             mountPath: {{ printf "%s/%s" $fusePath "checklist" }}
           {{- end }}
-          {{- if and .Values.adhoc.dnsBannedHost ( ne .Values.adhoc.appType "prod" ) }}
-          - name: hosts
-            mountPath: /etc/hosts
-            subPath: hosts
-            readOnly: true
-          {{- end }}
           {{- if and .Values.ingress.reverseProxy.enabled (ge $odooVersion 180) }}
           - name: odoo-sendfile-conf
             mountPath: /home/odoo/.resources/conf.d/99-odoo-send-file.conf
@@ -321,11 +315,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-      {{- if and .Values.adhoc.dnsBannedHost ( ne .Values.adhoc.appType "prod" ) }}
-      - name: hosts
-        configMap:
-          name: {{ include "adhoc-odoo.fullname" . }}-hosts
-      {{- end }}
       {{- if .Values.ingress.reverseProxy.enabled }}
       - name: odoo-sendfile-conf
         configMap:
