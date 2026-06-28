@@ -76,6 +76,17 @@ ingress:
         - "github.com"
         - "codeload.github.com"
         - "objects.githubusercontent.com"
+      # enforce: destinos por IP/CIDR (TLS/443 SIN SNI; match por IP, no por SNI). Se suman al
+      # baseline baked-in (VIP de Private Google Access 199.36.153.8/30, para GCS). Ver
+      # "Egress control" en doc/adhoc-odoo.md. Normalmente vacío.
+      allowedCidrs: []
+      # enforce: destinos TCP host:puerto (SMTP y otros no-443). Default: relays compartidos
+      # conocidos. El relay propio del tenant se deriva de odoo.smtp (no repetir acá).
+      allowedTcp:
+        - {host: "smtp.mailgun.org", port: 587}
+        - {host: "smtp.mailgun.org", port: 465}
+      # enforce: habilita git por SSH (github.com:22). SOLO surte efecto con adhoc.devMode=true.
+      repoSsh: false
     # enforce: hosts externos extra (además de repoHosts). Poblar desde el inventario (observe).
     allowedHosts: []
     logAll: false

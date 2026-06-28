@@ -1,16 +1,22 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-# Whitelist de egress (enforce, deny-by-default): un ServiceEntry 443/HTTPS por host
-# alcanzable bajo REGISTRY_ONLY. repoHosts (default github) se suman SOLO si el entrypoint
-# clona repos custom (odoo.entrypoint.repos). Ver doc/adhoc-odoo.md.
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+# Whitelist de egress (enforce, deny-by-default). Bajo REGISTRY_ONLY cada destino externo
+# necesita un ServiceEntry. Tipos emitidos (ver doc/adhoc-odoo.md -> "Egress control"):
+#   1. Host/SNI  -> allowedHosts + repoHosts        (443/HTTPS, resolución DNS)
+#   2. IP/CIDR   -> allowedCidrs + baseline PGA      (443/TCP, resolución NONE) -- cubre 443 SIN SNI
+#   3. host:port -> allowedTcp + relay de odoo.smtp  (TCP, resolución DNS)      -- SMTP y otros no-443
+#   4. SSH git   -> github.com:22                    (TCP) SOLO con adhoc.devMode
+#
+# --- 1. Hosts por SNI (HTTPS/443) ---
 {{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
 {{- if .Values.odoo.entrypoint.repos }}
 {{- /* default github en el template también, para que aplique bajo --reuse-values */}}
-{{- $repoHosts := (((.Values.ingress.istio.egress | default dict).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
+{{- $repoHosts := ((($egress).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
 {{- $hosts = (concat $hosts $repoHosts | uniq) }}
 {{- end }}
 {{- range $host := $hosts }}
-# ServiceEntry: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
+# ServiceEntry HTTPS: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -25,5 +31,70 @@ spec:
     protocol: HTTPS
   resolution: DNS
 ---
+{{- end }}
+{{- /* --- 2. IP/CIDR (443 sin SNI). Baseline: VIP de Private Google Access (/30). El match es
+   por IP+puerto destino (resolution NONE -> original-dst), no por SNI: resuelve el egress a
+   GCS sin server_name. Prerequisito infra: habilitar PGA y rutear *.googleapis.com al VIP. */}}
+{{- $cidrs := (concat (list "199.36.153.8/30") ((($egress).allowedCidrs) | default list) | uniq) }}
+{{- range $cidr := $cidrs }}
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-cidr-{{ $cidr | replace "." "-" | replace "/" "-" }}
+spec:
+  addresses:
+  - "{{ $cidr }}"
+  hosts:
+  - "cidr-{{ $cidr | replace "." "-" | replace "/" "-" }}.egress.internal"
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: tcp-443
+    protocol: TCP
+  resolution: NONE
+---
+{{- end }}
+{{- /* --- 3. host:puerto TCP (SMTP y otros no-443). Fuentes: allowedTcp (default: relays
+   compartidos conocidos) + el relay propio del tenant (odoo.smtp). Dedup por host:puerto. */}}
+{{- $tcpMap := dict }}
+{{- range $t := ((($egress).allowedTcp) | default (list (dict "host" "smtp.mailgun.org" "port" 587) (dict "host" "smtp.mailgun.org" "port" 465))) }}
+{{- $_ := set $tcpMap (printf "%s:%v" $t.host $t.port) $t }}
+{{- end }}
+{{- if .Values.odoo.smtp.host }}
+{{- $smtpPort := (.Values.odoo.smtp.port | default 587) }}
+{{- $_ := set $tcpMap (printf "%s:%v" .Values.odoo.smtp.host $smtpPort) (dict "host" .Values.odoo.smtp.host "port" $smtpPort) }}
+{{- end }}
+{{- range $key, $t := $tcpMap }}
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-tcp-{{ $t.host | replace "." "-" }}-{{ $t.port }}
+spec:
+  hosts:
+  - "{{ $t.host }}"
+  location: MESH_EXTERNAL
+  ports:
+  - number: {{ $t.port }}
+    name: tcp-{{ $t.port }}
+    protocol: TCP
+  resolution: DNS
+---
+{{- end }}
+{{- /* --- 4. Git por SSH (github.com:22). Solo si repoSsh=true Y adhoc.devMode=true: es uso de
+   desarrollo, bloqueado en prod y tests comunes. Sin lista de hosts puntual. */}}
+{{- if and (($egress).repoSsh) .Values.adhoc.devMode }}
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-ssh-github
+spec:
+  hosts:
+  - "github.com"
+  location: MESH_EXTERNAL
+  ports:
+  - number: 22
+    name: tcp-ssh
+    protocol: TCP
+  resolution: DNS
 {{- end }}
 {{- end }}
