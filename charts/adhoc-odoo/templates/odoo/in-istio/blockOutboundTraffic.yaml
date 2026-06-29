@@ -88,6 +88,7 @@ spec:
 {{- end }}
 {{- if $smtpHost }}
 {{- $_ := set $tcpMap (printf "%s:%s" $smtpHost $smtpPort) (dict "host" $smtpHost "port" $smtpPortNum) }}
+{{- $_ := set $portOwner $smtpPort $smtpHost }}
 {{- end }}
 {{- range $key, $t := $tcpMap }}
 apiVersion: networking.istio.io/v1
@@ -106,8 +107,14 @@ spec:
 ---
 {{- end }}
 {{- /* --- 4. Git por SSH (github.com:22). Solo si repoSsh=true Y adhoc.devMode=true: es uso de
-   desarrollo, bloqueado en prod y tests comunes. Sin lista de hosts puntual. */}}
+   desarrollo, bloqueado en prod y tests comunes. Sin lista de hosts puntual.
+   github.com:22 también pasa por el guard de puerto: si otro host ya ocupa el 22 (allowedTcp /
+   odoo.smtp) falla; si github.com:22 ya vino por allowedTcp, no se duplica. */}}
 {{- if and (($egress).repoSsh) .Values.adhoc.devMode }}
+{{- if and (hasKey $portOwner "22") (ne (get $portOwner "22") "github.com") }}
+{{- fail (printf "ingress.istio.egress.repoSsh usa github.com:22 pero ya hay otro host (%s) en el puerto 22. Istio no distingue ServiceEntry TCP sin addresses en un mismo puerto: usá un único host por puerto." (get $portOwner "22")) }}
+{{- end }}
+{{- if not (hasKey $portOwner "22") }}
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -121,5 +128,6 @@ spec:
     name: tcp-ssh
     protocol: TCP
   resolution: DNS
+{{- end }}
 {{- end }}
 {{- end }}
