@@ -54,15 +54,32 @@ spec:
   resolution: NONE
 ---
 {{- end }}
-{{- /* --- 3. host:puerto TCP (SMTP y otros no-443). Fuentes: allowedTcp (default: relays
-   compartidos conocidos) + el relay propio del tenant (odoo.smtp). Dedup por host:puerto. */}}
+{{- /* --- 3. host:puerto TCP (SMTP y otros no-443). Fuentes:
+   - allowedTcp: lista del operador. Si la clave NO está (release viejo bajo --reuse-values) se
+     usa el default de relays compartidos conocidos (Mailgun); un `allowedTcp: []` explícito SÍ
+     desactiva los defaults (por eso hasKey, no `default`, que trata [] como vacío).
+   - relay del tenant derivado de odoo.smtp: tiene prioridad — descarta cualquier otra entrada en
+     el mismo puerto (otro host), para no dejar dos ServiceEntry TCP sin addresses en un puerto
+     (Istio no podría distinguirlas). Dedup final por host:puerto. */}}
+{{- $usingDefaultTcp := not (hasKey $egress "allowedTcp") }}
+{{- $allowedTcp := list }}
+{{- if $usingDefaultTcp }}
+{{- $allowedTcp = (list (dict "host" "smtp.mailgun.org" "port" 587) (dict "host" "smtp.mailgun.org" "port" 465)) }}
+{{- else }}
+{{- $allowedTcp = ($egress.allowedTcp | default list) }}
+{{- end }}
+{{- $smtpHost := .Values.odoo.smtp.host }}
+{{- $smtpPortNum := (.Values.odoo.smtp.port | default 587) }}
+{{- $smtpPort := "" }}
+{{- if $smtpHost }}{{- $smtpPort = ($smtpPortNum | toString) }}{{- end }}
 {{- $tcpMap := dict }}
-{{- range $t := ((($egress).allowedTcp) | default (list (dict "host" "smtp.mailgun.org" "port" 587) (dict "host" "smtp.mailgun.org" "port" 465))) }}
+{{- range $t := $allowedTcp }}
+{{- if not (and (ne $smtpPort "") (eq ($t.port | toString) $smtpPort) (ne $t.host $smtpHost)) }}
 {{- $_ := set $tcpMap (printf "%s:%v" $t.host $t.port) $t }}
 {{- end }}
-{{- if .Values.odoo.smtp.host }}
-{{- $smtpPort := (.Values.odoo.smtp.port | default 587) }}
-{{- $_ := set $tcpMap (printf "%s:%v" .Values.odoo.smtp.host $smtpPort) (dict "host" .Values.odoo.smtp.host "port" $smtpPort) }}
+{{- end }}
+{{- if $smtpHost }}
+{{- $_ := set $tcpMap (printf "%s:%s" $smtpHost $smtpPort) (dict "host" $smtpHost "port" $smtpPortNum) }}
 {{- end }}
 {{- range $key, $t := $tcpMap }}
 apiVersion: networking.istio.io/v1
