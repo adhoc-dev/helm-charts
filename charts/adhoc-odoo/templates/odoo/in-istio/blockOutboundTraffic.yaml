@@ -69,12 +69,20 @@ spec:
 {{- $allowedTcp = ($egress.allowedTcp | default list) }}
 {{- end }}
 {{- $smtpHost := .Values.odoo.smtp.host }}
-{{- $smtpPortNum := (.Values.odoo.smtp.port | default 587) }}
+{{- /* Alinear con odooEnvs.yaml: SMTP_PORT solo se renderiza si port != 0; sin él Odoo usa su
+   default (25). El ServiceEntry debe matchear el puerto REAL que usa Odoo, no asumir 587. */}}
+{{- $smtpPortNum := (.Values.odoo.smtp.port | default 25) }}
 {{- $smtpPort := "" }}
 {{- if $smtpHost }}{{- $smtpPort = ($smtpPortNum | toString) }}{{- end }}
 {{- $tcpMap := dict }}
+{{- $portOwner := dict }}
 {{- range $t := $allowedTcp }}
 {{- if not (and (ne $smtpPort "") (eq ($t.port | toString) $smtpPort) (ne $t.host $smtpHost)) }}
+{{- $pk := ($t.port | toString) }}
+{{- if and (hasKey $portOwner $pk) (ne (get $portOwner $pk) $t.host) }}
+{{- fail (printf "ingress.istio.egress.allowedTcp: más de un host en el puerto %s (%s y %s). Istio no distingue ServiceEntry TCP sin addresses en un mismo puerto: usá un único host por puerto." $pk (get $portOwner $pk) $t.host) }}
+{{- end }}
+{{- $_ := set $portOwner $pk $t.host }}
 {{- $_ := set $tcpMap (printf "%s:%v" $t.host $t.port) $t }}
 {{- end }}
 {{- end }}
