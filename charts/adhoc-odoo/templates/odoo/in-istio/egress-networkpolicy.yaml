@@ -2,9 +2,16 @@
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
 {{- $egress := (.Values.ingress.istio.egress | default dict) -}}
 {{- $extra := (($egress.networkPolicy | default dict).allow | default list) -}}
+{{- $exclPorts := splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
+{{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22. */ -}}
+{{- $smtpPorts := without $exclPorts "22" -}}
+{{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
+{{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
+{{- /* GitHub: rangos git de https://api.github.com/meta ("git"). Override/sync vía egress.repoSshCidrs. */ -}}
+{{- $sshCidrs := ($egress.repoSshCidrs | default (list "140.82.112.0/20" "143.55.64.0/20" "185.199.108.0/22" "192.30.252.0/22")) -}}
 # NetworkPolicy de egress (enforce): cubre los pods NO inyectados (PostgreSQL/CNPG, jobs),
 # que sin sidecar saldrían directo por el NAT. Permite solo privado (RFC1918 + link-local) y
-# deniega el público. Los pods meshed (Odoo) los maneja el sidecar. Ver doc/adhoc-odoo.md.
+# deniega el público. Los pods meshed (Odoo) los maneja el sidecar + la NP meshed de abajo.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -35,18 +42,11 @@ spec:
         cidr: {{ . | quote }}
     {{- end }}
 ---
-{{- /* NetworkPolicy del pod MESHED de Odoo. Los puertos server-first (SMTP/SSH) se sacan del
-   sidecar con excludeOutboundPorts (ver deployment.yaml) y salen directo: esta NP es la que los
-   gobierna. Reglas: privado (cualquier puerto: DNS, cluster, istiod) + HTTPS público en 443 (el
-   sidecar REGISTRY_ONLY restringe QUÉ hosts; la NP solo deja salir 443) + los CIDR de relays SMTP
-   / GitHub SSH declarados, en los puertos excluidos. Ver doc/adhoc-odoo.md -> "Egress control". */}}
-{{- $exclPorts := splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
-{{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22. */ -}}
-{{- $smtpPorts := without $exclPorts "22" -}}
-{{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
-{{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
-{{- /* GitHub: rangos git de https://api.github.com/meta ("git"). Override/sync vía egress.repoSshCidrs. */ -}}
-{{- $sshCidrs := ($egress.repoSshCidrs | default (list "140.82.112.0/20" "143.55.64.0/20" "185.199.108.0/22" "192.30.252.0/22")) -}}
+# NetworkPolicy del pod MESHED de Odoo. Los puertos server-first (SMTP/SSH) se sacan del sidecar
+# con excludeOutboundPorts (ver deployment.yaml) y salen directo: esta NP es la que los gobierna.
+# Reglas: privado (cualquier puerto: DNS, cluster, istiod) + HTTPS público en 443 (el sidecar
+# REGISTRY_ONLY restringe QUÉ hosts; la NP solo deja salir 443) + relays SMTP / GitHub SSH por
+# CIDR, cada uno en sus puertos. Ver doc/adhoc-odoo.md -> "Egress control".
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
