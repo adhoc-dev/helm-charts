@@ -1,6 +1,7 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-{{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+{{- $extra := (($egress.networkPolicy | default dict).allow | default list) -}}
 # NetworkPolicy de egress (enforce): cubre los pods NO inyectados (PostgreSQL/CNPG, jobs),
 # que sin sidecar saldrían directo por el NAT. Permite solo privado (RFC1918 + link-local) y
 # deniega el público. Los pods meshed (Odoo) los maneja el sidecar. Ver doc/adhoc-odoo.md.
@@ -33,4 +34,59 @@ spec:
     - ipBlock:
         cidr: {{ . | quote }}
     {{- end }}
+---
+{{- /* NetworkPolicy del pod MESHED de Odoo. Los puertos server-first (SMTP/SSH) se sacan del
+   sidecar con excludeOutboundPorts (ver deployment.yaml) y salen directo: esta NP es la que los
+   gobierna. Reglas: privado (cualquier puerto: DNS, cluster, istiod) + HTTPS público en 443 (el
+   sidecar REGISTRY_ONLY restringe QUÉ hosts; la NP solo deja salir 443) + los CIDR de relays SMTP
+   / GitHub SSH declarados, en los puertos excluidos. Ver doc/adhoc-odoo.md -> "Egress control". */}}
+{{- $exclPorts := splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
+{{- $tcpCidrs := ($egress.outboundTcpCidrs | default list) -}}
+{{- if and ($egress.repoSsh) .Values.adhoc.devMode -}}
+{{- /* GitHub SSH (rangos publicados en https://api.github.com/meta -> "git") */ -}}
+{{- $tcpCidrs = (concat $tcpCidrs (list "140.82.112.0/20" "143.55.64.0/20" "192.30.252.0/22") | uniq) -}}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-egress-meshed
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      adhoc.ar/app-name: "odoo"
+  policyTypes:
+  - Egress
+  egress:
+  # Privado / in-cluster / istiod / DNS (cualquier puerto).
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    - ipBlock:
+        cidr: 172.16.0.0/12
+    - ipBlock:
+        cidr: 192.168.0.0/16
+    - ipBlock:
+        cidr: 169.254.0.0/16
+  # HTTPS público (443): deja salir al sidecar; REGISTRY_ONLY + ServiceEntries restringen los hosts.
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443
+  {{- if $tcpCidrs }}
+  # Puertos sacados del sidecar (SMTP/SSH): solo a los CIDR de relays / GitHub declarados.
+  - to:
+    {{- range $tcpCidrs }}
+    - ipBlock:
+        cidr: {{ . | quote }}
+    {{- end }}
+    ports:
+    {{- range $exclPorts }}
+    - protocol: TCP
+      port: {{ . | trim | int }}
+    {{- end }}
+  {{- end }}
 {{- end }}

@@ -1,12 +1,15 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
 {{- $egress := (.Values.ingress.istio.egress | default dict) -}}
-# Whitelist de egress (enforce, deny-by-default). Bajo REGISTRY_ONLY cada destino externo
-# necesita un ServiceEntry. Tipos emitidos (ver doc/adhoc-odoo.md -> "Egress control"):
-#   1. Host/SNI  -> allowedHosts + repoHosts        (443/HTTPS, resolución DNS)
-#   2. IP/CIDR   -> allowedCidrs + baseline PGA      (443/TCP, resolución NONE) -- cubre 443 SIN SNI
-#   3. host:port -> allowedTcp + relay de odoo.smtp  (TCP, resolución DNS)      -- SMTP y otros no-443
-#   4. SSH git   -> github.com:22                    (TCP) SOLO con adhoc.devMode
+# Whitelist de egress por ServiceEntry (enforce, deny-by-default). SOLO cubre el egress que
+# atraviesa el sidecar (HTTPS/443 y TLS por IP). Bajo REGISTRY_ONLY cada destino externo necesita
+# un ServiceEntry. Tipos emitidos (ver doc/adhoc-odoo.md -> "Egress control"):
+#   1. Host/SNI -> allowedHosts + repoHosts   (443/HTTPS, resolución DNS)
+#   2. IP/CIDR  -> allowedCidrs + baseline PGA (443/TCP, resolución NONE) -- cubre 443 SIN SNI (GCS)
+#
+# SMTP (587/465/25) y SSH (22) NO van acá: son server-first y cuelgan el tls_inspector, así que se
+# sacan del sidecar (excludeOutboundPorts en odoo/deployment.yaml) y se allowlistean por CIDR en la
+# NetworkPolicy (egress-networkpolicy.yaml). Ver doc/adhoc-odoo.md -> "Egress control".
 #
 # --- 1. Hosts por SNI (HTTPS/443) ---
 {{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
@@ -53,81 +56,5 @@ spec:
     protocol: TCP
   resolution: NONE
 ---
-{{- end }}
-{{- /* --- 3. host:puerto TCP (SMTP y otros no-443). Fuentes:
-   - allowedTcp: lista del operador. Si la clave NO está (release viejo bajo --reuse-values) se
-     usa el default de relays compartidos conocidos (Mailgun); un `allowedTcp: []` explícito SÍ
-     desactiva los defaults (por eso hasKey, no `default`, que trata [] como vacío).
-   - relay del tenant derivado de odoo.smtp: tiene prioridad — descarta cualquier otra entrada en
-     el mismo puerto (otro host), para no dejar dos ServiceEntry TCP sin addresses en un puerto
-     (Istio no podría distinguirlas). Dedup final por host:puerto. */}}
-{{- $usingDefaultTcp := not (hasKey $egress "allowedTcp") }}
-{{- $allowedTcp := list }}
-{{- if $usingDefaultTcp }}
-{{- $allowedTcp = (list (dict "host" "smtp.mailgun.org" "port" 587) (dict "host" "smtp.mailgun.org" "port" 465)) }}
-{{- else }}
-{{- $allowedTcp = ($egress.allowedTcp | default list) }}
-{{- end }}
-{{- $smtpHost := .Values.odoo.smtp.host }}
-{{- /* Alinear con odooEnvs.yaml: SMTP_PORT solo se renderiza si port != 0; sin él Odoo usa su
-   default (25). El ServiceEntry debe matchear el puerto REAL que usa Odoo, no asumir 587. */}}
-{{- $smtpPortNum := (.Values.odoo.smtp.port | default 25) }}
-{{- $smtpPort := "" }}
-{{- if $smtpHost }}{{- $smtpPort = ($smtpPortNum | toString) }}{{- end }}
-{{- $tcpMap := dict }}
-{{- $portOwner := dict }}
-{{- range $t := $allowedTcp }}
-{{- if not (and (ne $smtpPort "") (eq ($t.port | toString) $smtpPort) (ne $t.host $smtpHost)) }}
-{{- $pk := ($t.port | toString) }}
-{{- if and (hasKey $portOwner $pk) (ne (get $portOwner $pk) $t.host) }}
-{{- fail (printf "ingress.istio.egress.allowedTcp: más de un host en el puerto %s (%s y %s). Istio no distingue ServiceEntry TCP sin addresses en un mismo puerto: usá un único host por puerto." $pk (get $portOwner $pk) $t.host) }}
-{{- end }}
-{{- $_ := set $portOwner $pk $t.host }}
-{{- $_ := set $tcpMap (printf "%s:%v" $t.host $t.port) $t }}
-{{- end }}
-{{- end }}
-{{- if $smtpHost }}
-{{- $_ := set $tcpMap (printf "%s:%s" $smtpHost $smtpPort) (dict "host" $smtpHost "port" $smtpPortNum) }}
-{{- $_ := set $portOwner $smtpPort $smtpHost }}
-{{- end }}
-{{- range $key, $t := $tcpMap }}
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: allow-egress-tcp-{{ $t.host | replace "." "-" }}-{{ $t.port }}
-spec:
-  hosts:
-  - "{{ $t.host }}"
-  location: MESH_EXTERNAL
-  ports:
-  - number: {{ $t.port }}
-    name: tcp-{{ $t.port }}
-    protocol: TCP
-  resolution: DNS
----
-{{- end }}
-{{- /* --- 4. Git por SSH (github.com:22). Solo si repoSsh=true Y adhoc.devMode=true: es uso de
-   desarrollo, bloqueado en prod y tests comunes. Sin lista de hosts puntual.
-   github.com:22 también pasa por el guard de puerto: si otro host ya ocupa el 22 (allowedTcp /
-   odoo.smtp) falla; si github.com:22 ya vino por allowedTcp, no se duplica. */}}
-{{- if and (($egress).repoSsh) .Values.adhoc.devMode }}
-{{- if and (hasKey $portOwner "22") (ne (get $portOwner "22") "github.com") }}
-{{- fail (printf "ingress.istio.egress.repoSsh usa github.com:22 pero ya hay otro host (%s) en el puerto 22. Istio no distingue ServiceEntry TCP sin addresses en un mismo puerto: usá un único host por puerto." (get $portOwner "22")) }}
-{{- end }}
-{{- if not (hasKey $portOwner "22") }}
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: allow-egress-ssh-github
-spec:
-  hosts:
-  - "github.com"
-  location: MESH_EXTERNAL
-  ports:
-  - number: 22
-    name: tcp-ssh
-    protocol: TCP
-  resolution: DNS
-{{- end }}
 {{- end }}
 {{- end }}

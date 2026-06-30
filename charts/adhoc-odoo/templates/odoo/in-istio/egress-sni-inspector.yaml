@@ -1,14 +1,14 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
 # tls_inspector en virtualOutbound: sin él, el egress TLS en passthrough se loguea como TCP
-# y el `sni` queda vacío. Con él, el access log captura el host externo. Ver doc/adhoc-odoo.md.
+# y el `sni` queda vacío. Con él, el access log captura el host externo (HTTPS/443). Ver doc/adhoc-odoo.md.
 #
-# ACOTADO A 443 (filter_disabled): como INSERT_FIRST, el tls_inspector espera bytes del cliente
-# para detectar TLS/SNI. En protocolos "server-speaks-first" (SMTP 587/465, SSH 22) el servidor
-# habla primero, así que el inspector se cuelga esperando datos que no llegan -> deadlock -> la
-# conexión cae a BlackHole bajo enforce. El SNI solo existe en TLS (443), así que deshabilitamos
-# el filtro fuera de 443: el logging de SNI se conserva y el egress no-443 (SMTP/SSH/allowedTcp)
-# funciona. Sin esto, enforce rompe TODO el egress no-443.
+# IMPORTANTE: como INSERT_FIRST, el inspector espera bytes del cliente para detectar TLS. En
+# protocolos "server-speaks-first" (SMTP 587/STARTTLS, SSH 22) el servidor habla primero → el
+# inspector se cuelga (timeout 15s) → la conexión se resetea (observe) o va a BlackHole (enforce).
+# Por eso esos puertos se sacan del sidecar con `traffic.sidecar.istio.io/excludeOutboundPorts`
+# (ver odoo/deployment.yaml) y se gobiernan por NetworkPolicy, no por Istio. El inspector queda
+# solo para el egress que SÍ pasa por el sidecar (HTTPS/443, donde el cliente manda ClientHello).
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
@@ -26,9 +26,4 @@ spec:
           name: envoy.filters.listener.tls_inspector
           typed_config:
             "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
-          filter_disabled:
-            not_match:
-              destination_port_range:
-                start: 443
-                end: 444
 {{- end }}

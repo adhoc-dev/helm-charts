@@ -66,10 +66,10 @@ ingress:
         - objects.githubusercontent.com
       allowedCidrs: []          # enforce: destinos por IP/CIDR (443 SIN SNI; match por IP).
                                 #   Baseline baked-in: VIP de Private Google Access (GCS)
-      allowedTcp:               # enforce: destinos TCP host:puerto (SMTP y otros no-443);
-        - {host: "smtp.mailgun.org", port: 587}     #   default: relays compartidos conocidos.
-        - {host: "smtp.mailgun.org", port: 465}     #   El relay del tenant sale de odoo.smtp
-      repoSsh: false            # enforce: git por SSH (github:22) SOLO si adhoc.devMode=true
+      # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
+      excludeOutboundPorts: "587,465,25,22"  # puertos que bypassan el sidecar
+      outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
+      repoSsh: false            # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO si adhoc.devMode
     logAll: false
     http10:
       enabled: false            # habilitar para HTTP/1.0 legacy
@@ -86,20 +86,34 @@ Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio ha
 | --- | --- | --- | --- |
 | `open` | `ALLOW_ANY` | no | no |
 | `observe` (default con istio) | `ALLOW_ANY` | sí (SNI → Cloud Logging) | no |
-| `enforce` | `REGISTRY_ONLY` | sí (hereda observe) | solo la whitelist (ver matchers); no-TLS, HTTP/80 y pods no-meshed bloqueados |
+| `enforce` | `REGISTRY_ONLY` | sí (hereda observe) | solo la whitelist (ver abajo); no-TLS, HTTP/80 y pods no-meshed bloqueados |
 
-- **enforce** bloquea en dos capas: el sidecar (`REGISTRY_ONLY`) limita a Odoo a los destinos
-  con `ServiceEntry` (la whitelist), salida directa; una `NetworkPolicy` cubre los pods
-  no-meshed (PG/CNPG, jobs) permitiendo solo privado (RFC1918 + link-local).
+**enforce bloquea en dos planos**, según por dónde sale el tráfico:
 
-La whitelist soporta cuatro tipos de matcher (todos bajo `ingress.istio.egress`):
+1. **Istio (sidecar `REGISTRY_ONLY`)** — el egress HTTPS/443 que pasa por el sidecar: solo los
+   destinos con `ServiceEntry`. Dos tipos de matcher:
 
-| Matcher | Value | ServiceEntry emitido | Para |
-| --- | --- | --- | --- |
-| Host/SNI | `allowedHosts` + `repoHosts` | host, 443/HTTPS, DNS | HTTPS con SNI |
-| IP/CIDR | `allowedCidrs` (+ baseline PGA) | `addresses`, 443/TCP, `resolution: NONE` | 443 **sin SNI** (GCS) |
-| host:puerto TCP | `allowedTcp` `[{host, port}]` | host, puerto/TCP, DNS | SMTP y otros no-443 |
-| SSH git | `repoSsh` (+ `adhoc.devMode`) | `github.com`, 22/TCP | git por SSH (solo dev) |
+   | Matcher | Value | ServiceEntry | Para |
+   | --- | --- | --- | --- |
+   | Host/SNI | `allowedHosts` + `repoHosts` | host, 443/HTTPS, DNS | HTTPS con SNI |
+   | IP/CIDR | `allowedCidrs` (+ baseline PGA) | `addresses`, 443/TCP, `resolution: NONE` | 443 **sin SNI** (GCS) |
+
+2. **NetworkPolicy** — dos políticas: una para los pods **no-meshed** (PG/CNPG, jobs; solo
+   privado) y otra para el pod **meshed de Odoo**. Esta última deja salir privado + HTTPS/443
+   (que el sidecar re-restringe) + los **puertos sacados del sidecar** (`excludeOutboundPorts`)
+   solo a los CIDR declarados.
+
+**SMTP y SSH NO van por ServiceEntry.** Son *server-speaks-first* (el servidor manda el banner
+primero) y cuelgan el `tls_inspector` del egress logging → bajo `REGISTRY_ONLY` irían a BlackHole.
+Por eso esos puertos (`excludeOutboundPorts`, default `587,465,25,22`) se **sacan del sidecar** y
+se allowlistean por **CIDR** en la NetworkPolicy del pod meshed:
+
+- **outboundTcpCidrs** — CIDRs permitidos en esos puertos (rango del relay SMTP del tenant, etc.).
+  No se puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
+- **repoSsh** (+ `adhoc.devMode`) — agrega los CIDR de GitHub SSH (`140.82.112.0/20`, etc.) a la
+  NetworkPolicy; en prod y tests comunes el git por SSH queda bloqueado.
+
+Notas:
 
 - **allowedHosts** se puebla desde el inventario del modo `observe`.
 - **repoHosts** se suman solo si `odoo.entrypoint.repos` no está vacío (default github en el
@@ -107,10 +121,6 @@ La whitelist soporta cuatro tipos de matcher (todos bajo `ingress.istio.egress`)
 - **allowedCidrs** matchea por IP destino (no por SNI) → es el camino para el egress a 443 **sin
   SNI** (p.ej. GCS). Baseline baked-in: el `/30` del **Private Google Access** de Google. Requiere
   que la infra rutee `*.googleapis.com` al VIP privado (ver doc de egress en devops-cloud-infra).
-- **allowedTcp** + el relay propio del tenant (derivado de `odoo.smtp.host:port`) habilitan el
-  **SMTP saliente** (587/465/25). Default: relays compartidos conocidos (Mailgun).
-- **repoSsh** habilita `github.com:22` **solo** con `adhoc.devMode=true`; en prod y tests comunes
-  el git por SSH queda bloqueado.
 
 Diseño y rationale completos: specs de egress (firewall + listas blancas enriquecidas) en
 devops-project. Infraestructura del cluster que lo sostiene (NodeLocal DNS, istiod,
