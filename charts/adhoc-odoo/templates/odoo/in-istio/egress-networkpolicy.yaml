@@ -8,6 +8,11 @@
 {{- range (splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22")) -}}
 {{- $exclPorts = append $exclPorts (trim .) -}}
 {{- end -}}
+{{- /* 443 NO puede excluirse: el HTTPS debe pasar por el sidecar (REGISTRY_ONLY) para que aplique
+   el allowlist. Si se excluye, saldría directo (la NP deja salir 443 a cualquier IP) sin control. */ -}}
+{{- if has "443" $exclPorts -}}
+{{- fail "ingress.istio.egress.excludeOutboundPorts no puede incluir 443: el HTTPS debe pasar por el sidecar para que aplique la whitelist. Quitá 443 de la lista." -}}
+{{- end -}}
 {{- $smtpPorts := without $exclPorts "22" -}}
 {{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
 {{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
