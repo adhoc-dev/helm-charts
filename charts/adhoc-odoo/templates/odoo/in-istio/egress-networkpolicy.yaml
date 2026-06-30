@@ -2,8 +2,12 @@
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
 {{- $egress := (.Values.ingress.istio.egress | default dict) -}}
 {{- $extra := (($egress.networkPolicy | default dict).allow | default list) -}}
-{{- $exclPorts := splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
-{{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22. */ -}}
+{{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22.
+   Trim de cada puerto: tolera "587, 465, ..." con espacios (si no, without/has fallarían). */ -}}
+{{- $exclPorts := list -}}
+{{- range (splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22")) -}}
+{{- $exclPorts = append $exclPorts (trim .) -}}
+{{- end -}}
 {{- $smtpPorts := without $exclPorts "22" -}}
 {{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
 {{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
@@ -70,6 +74,10 @@ spec:
         cidr: 192.168.0.0/16
     - ipBlock:
         cidr: 169.254.0.0/16
+    {{- range $extra }}
+    - ipBlock:
+        cidr: {{ . | quote }}
+    {{- end }}
   # HTTPS público (443): deja salir al sidecar; REGISTRY_ONLY + ServiceEntries restringen los hosts.
   - to:
     - ipBlock:

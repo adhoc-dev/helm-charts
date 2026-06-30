@@ -67,7 +67,8 @@ spec:
         {{- end }}
         {{- end }}
         {{- $egressMode := include "adhoc-odoo.egressMode" . }}
-        {{- if and .Values.ingress.istio.enabled (or (eq $egressMode "observe") (eq $egressMode "enforce")) }}
+        {{- /* No pisar la annotation si el usuario ya la definió en podAnnotations (key duplicada). */}}
+        {{- if and .Values.ingress.istio.enabled (or (eq $egressMode "observe") (eq $egressMode "enforce")) (not (hasKey (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts")) }}
         # SMTP (587/465/25) y SSH (22) son server-speaks-first: cuelgan el tls_inspector del egress
         # (logging SNI). Se sacan del sidecar y se gobiernan por NetworkPolicy. Ver doc/adhoc-odoo.md.
         traffic.sidecar.istio.io/excludeOutboundPorts: {{ (((.Values.ingress.istio.egress | default dict).excludeOutboundPorts) | default "587,465,25,22") | quote }}
