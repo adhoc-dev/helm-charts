@@ -108,10 +108,11 @@ primero) y cuelgan el `tls_inspector` del egress logging → bajo `REGISTRY_ONLY
 Por eso esos puertos (`excludeOutboundPorts`, default `587,465,25,22`) se **sacan del sidecar** y
 se allowlistean por **CIDR** en la NetworkPolicy del pod meshed:
 
-- **outboundTcpCidrs** — CIDRs permitidos en esos puertos (rango del relay SMTP del tenant, etc.).
-  No se puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
-- **repoSsh** (+ `adhoc.devMode`) — agrega los CIDR de GitHub SSH (`140.82.112.0/20`, etc.) a la
-  NetworkPolicy; en prod y tests comunes el git por SSH queda bloqueado.
+- **outboundTcpCidrs** — CIDRs permitidos en los puertos SMTP (los excluidos **salvo 22**). No se
+  puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
+- **repoSsh** (+ `adhoc.devMode`) — agrega los CIDR de GitHub (`repoSshCidrs`, rangos "git" de
+  `api.github.com/meta`) a la NetworkPolicy **solo en el puerto 22**; en prod y tests comunes el
+  git por SSH queda bloqueado. Las reglas SMTP y SSH son **por puerto** (no se mezclan).
 
 Notas:
 

@@ -86,9 +86,16 @@ ingress:
       # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP del tenant, etc.). No se
       # puede derivar de un hostname; usar el rango publicado del proveedor o la IP del relay.
       outboundTcpCidrs: []
-      # enforce: habilita git por SSH agregando los CIDR de GitHub SSH a la NetworkPolicy.
+      # enforce: habilita git por SSH agregando los CIDR de GitHub SSH a la NetworkPolicy (en :22).
       # SOLO surte efecto con adhoc.devMode=true.
       repoSsh: false
+      # CIDRs de GitHub SSH para repoSsh (rangos "git" de https://api.github.com/meta).
+      # Sincronizar si GitHub publica nuevos rangos.
+      repoSshCidrs:
+        - "140.82.112.0/20"
+        - "143.55.64.0/20"
+        - "185.199.108.0/22"
+        - "192.30.252.0/22"
     # enforce: hosts externos extra (además de repoHosts). Poblar desde el inventario (observe).
     allowedHosts: []
     logAll: false
