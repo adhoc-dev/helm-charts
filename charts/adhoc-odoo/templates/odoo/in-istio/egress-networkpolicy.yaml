@@ -73,7 +73,9 @@ spec:
   policyTypes:
   - Egress
   egress:
-  # Privado / in-cluster / istiod / DNS (cualquier puerto).
+  # Privado / in-cluster / istiod / DNS (cualquier puerto). RFC1918 + link-local cubren kube-dns,
+  # NodeLocal, istiod y los ClusterIP de servicios. NO se suma networkPolicy.allow acá: ese value
+  # es para pods NO-meshed y podría contener rangos públicos → abriría los puertos excluidos.
   - to:
     - ipBlock:
         cidr: 10.0.0.0/8
@@ -83,10 +85,6 @@ spec:
         cidr: 192.168.0.0/16
     - ipBlock:
         cidr: 169.254.0.0/16
-    {{- range $extra }}
-    - ipBlock:
-        cidr: {{ . | quote }}
-    {{- end }}
   # HTTPS público (443): deja salir al sidecar; REGISTRY_ONLY + ServiceEntries restringen los hosts.
   - to:
     - ipBlock:
