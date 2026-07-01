@@ -4,8 +4,11 @@
 {{- $extra := (($egress.networkPolicy | default dict).allow | default list) -}}
 {{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22.
    Trim de cada puerto: tolera "587, 465, ..." con espacios (si no, without/has fallarían). */ -}}
+{{- /* Puertos excluidos EFECTIVOS: el override del usuario en podAnnotations gana (deployment.yaml
+   lo respeta), si no el valor de egress.excludeOutboundPorts. Así la NP no diverge del pod. */ -}}
+{{- $exclRaw := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
 {{- $exclPorts := list -}}
-{{- range (splitList "," (($egress.excludeOutboundPorts) | default "587,465,25,22")) -}}
+{{- range (splitList "," $exclRaw) -}}
 {{- $exclPorts = append $exclPorts (trim .) -}}
 {{- end -}}
 {{- /* 443 NO puede excluirse: el HTTPS debe pasar por el sidecar (REGISTRY_ONLY) para que aplique
@@ -65,6 +68,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
+      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
       adhoc.ar/app-name: "odoo"
   policyTypes:
   - Egress
