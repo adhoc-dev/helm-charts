@@ -70,6 +70,9 @@ spec:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
       adhoc.ar/app-name: "odoo"
+      # Solo pods realmente inyectados: si la inyección falla, el pod NO matchea acá y queda solo
+      # con la NP no-meshed (deny público). Sin esto, un pod sin sidecar tendría 443 abierto.
+      security.istio.io/tlsMode: istio
   policyTypes:
   - Egress
   egress:
