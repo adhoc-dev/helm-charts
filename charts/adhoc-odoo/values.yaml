@@ -76,6 +76,26 @@ ingress:
         - "github.com"
         - "codeload.github.com"
         - "objects.githubusercontent.com"
+      # enforce: destinos por IP/CIDR para 443 SIN SNI (match por IP). Se suman al baseline
+      # baked-in (VIP de Private Google Access 199.36.153.8/30, para GCS). Normalmente vacío.
+      allowedCidrs: []
+      # SMTP (587/465/25) y SSH (22) son server-first y cuelgan el tls_inspector del egress: se
+      # SACAN del sidecar (estos puertos) y se gobiernan por NetworkPolicy, no por ServiceEntry.
+      # Ver "Egress control" en doc/adhoc-odoo.md.
+      excludeOutboundPorts: "587,465,25,22"
+      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP del tenant, etc.). No se
+      # puede derivar de un hostname; usar el rango publicado del proveedor o la IP del relay.
+      outboundTcpCidrs: []
+      # enforce: habilita git por SSH agregando los CIDR de GitHub SSH a la NetworkPolicy (en :22).
+      # SOLO surte efecto con adhoc.devMode=true.
+      repoSsh: false
+      # CIDRs de GitHub SSH para repoSsh (rangos "git" de https://api.github.com/meta).
+      # Sincronizar si GitHub publica nuevos rangos.
+      repoSshCidrs:
+        - "140.82.112.0/20"
+        - "143.55.64.0/20"
+        - "185.199.108.0/22"
+        - "192.30.252.0/22"
     # enforce: hosts externos extra (además de repoHosts). Poblar desde el inventario (observe).
     allowedHosts: []
     logAll: false

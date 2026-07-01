@@ -1,7 +1,14 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (or (eq $mode "observe") (eq $mode "enforce")) -}}
 # tls_inspector en virtualOutbound: sin él, el egress TLS en passthrough se loguea como TCP
-# y el `sni` queda vacío. Con él, el access log captura el host externo. Ver doc/adhoc-odoo.md.
+# y el `sni` queda vacío. Con él, el access log captura el host externo (HTTPS/443). Ver doc/adhoc-odoo.md.
+#
+# IMPORTANTE: como INSERT_FIRST, el inspector espera bytes del cliente para detectar TLS. En
+# protocolos "server-speaks-first" (SMTP 587/STARTTLS, SSH 22) el servidor habla primero → el
+# inspector se cuelga (timeout 15s) → la conexión se resetea (observe) o va a BlackHole (enforce).
+# Por eso esos puertos se sacan del sidecar con `traffic.sidecar.istio.io/excludeOutboundPorts`
+# (ver odoo/deployment.yaml) y se gobiernan por NetworkPolicy, no por Istio. El inspector queda
+# solo para el egress que SÍ pasa por el sidecar (HTTPS/443, donde el cliente manda ClientHello).
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
