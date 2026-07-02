@@ -9,7 +9,8 @@
 {{- $exclRaw := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
 {{- $exclPorts := list -}}
 {{- range (splitList "," $exclRaw) -}}
-{{- $exclPorts = append $exclPorts (trim .) -}}
+{{- $p := trim . -}}
+{{- if $p -}}{{- $exclPorts = append $exclPorts $p -}}{{- end -}}
 {{- end -}}
 {{- /* 443 NO puede excluirse: el HTTPS debe pasar por el sidecar (REGISTRY_ONLY) para que aplique
    el allowlist. Si se excluye, saldría directo (la NP deja salir 443 a cualquier IP) sin control. */ -}}
@@ -27,7 +28,8 @@
    por alto pero el YAML igual lo parsearía como 465/443). */ -}}
 {{- $openTcpPorts := list -}}
 {{- range ($egress.openTcpPorts | default list) -}}
-{{- $openTcpPorts = append $openTcpPorts (. | toString | trim) -}}
+{{- $p := (. | toString | trim) -}}
+{{- if $p -}}{{- $openTcpPorts = append $openTcpPorts $p -}}{{- end -}}
 {{- end -}}
 {{- /* Un puerto no puede estar en openTcpPorts Y en excludeOutboundPorts: el exclude lo bypassa
    (sin sidecar → sin log ni ServiceEntry), contradiciendo el "abierto + logueado" de openTcpPorts. */ -}}

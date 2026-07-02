@@ -62,6 +62,7 @@ spec:
    server-first (SMTP 587/25, SSH 22) cuelgan el tls_inspector -> van por excludeOutboundPorts. */}}
 {{- range $rawPort := ((($egress).openTcpPorts) | default list) }}
 {{- $port := ($rawPort | toString | trim) }}
+{{- if $port }}
 {{- if or (eq $port "443") (eq $port "80") }}
 {{- fail "ingress.istio.egress.openTcpPorts no puede incluir 80 ni 443: el 443 va por allowedHosts/allowedCidrs (whitelist) y el 80 se bloquea. Abrirlos acá anularía esos controles." }}
 {{- end }}
@@ -82,5 +83,6 @@ spec:
     protocol: TCP
   resolution: NONE
 ---
+{{- end }}
 {{- end }}
 {{- end }}
