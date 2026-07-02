@@ -79,6 +79,11 @@ ingress:
       # enforce: destinos por IP/CIDR para 443 SIN SNI (match por IP). Se suman al baseline
       # baked-in (VIP de Private Google Access 199.36.153.8/30, para GCS). Normalmente vacío.
       allowedCidrs: []
+      # enforce: puertos "abiertos a priori" — ServiceEntry wildcard que deja salir a CUALQUIER host
+      # en ese puerto, LOGUEADO por el sidecar. SOLO protocolos client-first (el cliente habla
+      # primero: HTTP, PG, Redis, SMTPS-465...). Los server-first (SMTP 587/25/STARTTLS, SSH 22)
+      # NO van acá — cuelgan el tls_inspector; esos van por excludeOutboundPorts. NUNCA poner 80/443.
+      openTcpPorts: []
       # SMTP (587/465/25) y SSH (22) son server-first y cuelgan el tls_inspector del egress: se
       # SACAN del sidecar (estos puertos) y se gobiernan por NetworkPolicy, no por ServiceEntry.
       # Ver "Egress control" en doc/adhoc-odoo.md.

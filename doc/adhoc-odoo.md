@@ -66,6 +66,8 @@ ingress:
         - objects.githubusercontent.com
       allowedCidrs: []          # enforce: destinos por IP/CIDR (443 SIN SNI; match por IP).
                                 #   Baseline baked-in: VIP de Private Google Access (GCS)
+      openTcpPorts: []          # enforce: puertos "abiertos a priori" a CUALQUIER host, LOGUEADOS
+                                #   (client-first: HTTP/PG/Redis/465...). NO server-first, NO 80/443
       # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
       excludeOutboundPorts: "587,465,25,22"  # puertos que bypassan el sidecar
       outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
@@ -122,6 +124,11 @@ Notas:
 - **allowedCidrs** matchea por IP destino (no por SNI) → es el camino para el egress a 443 **sin
   SNI** (p.ej. GCS). Baseline baked-in: el `/30` del **Private Google Access** de Google. Requiere
   que la infra rutee `*.googleapis.com` al VIP privado (ver doc de egress en devops-cloud-infra).
+- **openTcpPorts** — puertos "abiertos a priori": emite un ServiceEntry por puerto (`addresses:
+  0.0.0.0/0`) que deja salir a **cualquier host** en ese puerto **y lo loguea** (pasa por el
+  sidecar). Solo para protocolos **client-first** (HTTP, PostgreSQL, Redis, SMTPS-465…); los
+  **server-first** (SMTP 587/25 STARTTLS, SSH 22) cuelgan el `tls_inspector` → esos van por
+  `excludeOutboundPorts`. El chart **rechaza 80/443** acá (romperían el bloqueo/whitelist).
 
 Diseño y rationale completos: specs de egress (firewall + listas blancas enriquecidas) en
 devops-project. Infraestructura del cluster que lo sostiene (NodeLocal DNS, istiod,
