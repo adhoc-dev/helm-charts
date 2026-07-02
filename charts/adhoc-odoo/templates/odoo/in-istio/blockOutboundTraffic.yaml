@@ -12,7 +12,7 @@
 # NetworkPolicy (egress-networkpolicy.yaml). Ver doc/adhoc-odoo.md -> "Egress control".
 #
 # --- 1. Hosts por SNI (HTTPS/443) ---
-{{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
+{{- $hosts := ((($egress).allowedHosts) | default list) }}
 {{- if .Values.odoo.entrypoint.repos }}
 {{- /* default github en el template también, para que aplique bajo --reuse-values */}}
 {{- $repoHosts := ((($egress).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
