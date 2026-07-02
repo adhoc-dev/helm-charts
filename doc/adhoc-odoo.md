@@ -51,7 +51,6 @@ ingress:
     cloudMainDomain: shared.dev-adhoc.com
     altHosts: ""
     createCertificate: true
-    allowedHosts: []            # enforce: hosts externos extra (whitelist), por SNI
     egress:
       mode: ""                  # "" | open | observe | enforce ("" → observe con istio)
       meshExternalNamespaces:   # enforce: ns cluster-level que Odoo usa cross-namespace
@@ -64,6 +63,7 @@ ingress:
         - github.com            #   se suman a la whitelist solo si odoo.entrypoint.repos != ""
         - codeload.github.com
         - objects.githubusercontent.com
+      allowedHosts: []          # enforce: whitelist principal — hosts externos por SNI (443)
       allowedCidrs: []          # enforce: destinos por IP/CIDR (443 SIN SNI; match por IP).
                                 #   Baseline baked-in: VIP de Private Google Access (GCS)
       openTcpPorts: []          # enforce: puertos "abiertos a priori" a CUALQUIER host, LOGUEADOS
@@ -71,7 +71,8 @@ ingress:
       # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
       excludeOutboundPorts: "587,465,25,22"  # puertos que bypassan el sidecar
       outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
-      repoSsh: false            # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO si adhoc.devMode
+      repoSsh: true             # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO con adhoc.devMode
+                                #   (no-op en prod). Default true → devMode abre GitHub:22; false para dev sin SSH
     logAll: false
     http10:
       enabled: false            # habilitar para HTTP/1.0 legacy
@@ -119,9 +120,11 @@ se allowlistean por **CIDR** en la NetworkPolicy del pod meshed:
 
 - **outboundTcpCidrs** — CIDRs permitidos en los puertos SMTP (los excluidos **salvo 22**). No se
   puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
-- **repoSsh** (+ `adhoc.devMode`) — agrega los CIDR de GitHub (`repoSshCidrs`, rangos "git" de
-  `api.github.com/meta`) a la NetworkPolicy **solo en el puerto 22**; en prod y tests comunes el
-  git por SSH queda bloqueado. Las reglas SMTP y SSH son **por puerto** (no se mezclan).
+- **repoSsh** (default `true`) — agrega los CIDR de GitHub (`repoSshCidrs`, rangos "git" de
+  `api.github.com/meta`) a la NetworkPolicy **solo en el puerto 22**. **Solo surte efecto con
+  `adhoc.devMode=true`** (es no-op en prod → ahí git-SSH queda bloqueado igual). Con `devMode` abre
+  GitHub:22 por defecto; poner `repoSsh: false` para un dev sin git-SSH. Reglas SMTP y SSH **por
+  puerto** (no se mezclan).
 
 Notas:
 

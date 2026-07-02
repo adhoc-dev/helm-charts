@@ -504,10 +504,17 @@ questions:
       - enforce
     required: false
     default: ""
-  - variable: ingress.istio.allowedHosts
+  - variable: ingress.istio.egress.allowedHosts
     group: "Ingress"
     label: "Allowed Hosts (egress whitelist)"
     description: "enforce: the only external hosts reachable, by SNI (list of strings)."
+    type: "listofstrings"
+    default: []
+    required: false
+  - variable: ingress.istio.egress.allowedCidrs
+    group: "Ingress"
+    label: "Allowed CIDRs (egress, 443 no-SNI)"
+    description: "enforce: extra IP/CIDR destinations for 443 WITHOUT SNI (matched by IP), besides the baked-in Private Google Access VIP (GCS). List of CIDRs."
     type: "listofstrings"
     default: []
     required: false

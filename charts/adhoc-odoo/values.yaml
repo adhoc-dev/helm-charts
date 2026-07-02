@@ -76,6 +76,9 @@ ingress:
         - "github.com"
         - "codeload.github.com"
         - "objects.githubusercontent.com"
+      # enforce: hosts externos extra alcanzables por SNI (443), además de repoHosts. Es la
+      # whitelist principal de egress. Poblar desde el inventario del modo observe.
+      allowedHosts: []
       # enforce: destinos por IP/CIDR para 443 SIN SNI (match por IP). Se suman al baseline
       # baked-in (VIP de Private Google Access 199.36.153.8/30, para GCS). Normalmente vacío.
       allowedCidrs: []
@@ -93,8 +96,9 @@ ingress:
       # puede derivar de un hostname; usar el rango publicado del proveedor o la IP del relay.
       outboundTcpCidrs: []
       # enforce: habilita git por SSH agregando los CIDR de GitHub SSH a la NetworkPolicy (en :22).
-      # SOLO surte efecto con adhoc.devMode=true.
-      repoSsh: false
+      # SOLO surte efecto con adhoc.devMode=true (no-op en prod) → default true: en devMode abre
+      # GitHub:22 automáticamente. Poner false para un dev sin git-SSH.
+      repoSsh: true
       # CIDRs de GitHub SSH para repoSsh (rangos "git" de https://api.github.com/meta).
       # Sincronizar si GitHub publica nuevos rangos.
       repoSshCidrs:
@@ -102,8 +106,6 @@ ingress:
         - "143.55.64.0/20"
         - "185.199.108.0/22"
         - "192.30.252.0/22"
-    # enforce: hosts externos extra (además de repoHosts). Poblar desde el inventario (observe).
-    allowedHosts: []
     logAll: false
     # DEPRECADO: usar egress.mode. Compat: logEgress=true → observe.
     logEgress: false
