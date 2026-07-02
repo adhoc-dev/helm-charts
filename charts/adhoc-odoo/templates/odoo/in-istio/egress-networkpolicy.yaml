@@ -23,11 +23,16 @@
 {{- $sshCidrs := ($egress.repoSshCidrs | default (list "140.82.112.0/20" "143.55.64.0/20" "185.199.108.0/22" "192.30.252.0/22")) -}}
 {{- /* openTcpPorts: van por el sidecar (ServiceEntry wildcard en blockOutboundTraffic.yaml), pero
    la NP también tiene que dejarlos salir a 0.0.0.0/0 o Kubernetes los bloquea. */ -}}
-{{- $openTcpPorts := ($egress.openTcpPorts | default list) -}}
+{{- /* Trim de cada openTcpPort (tolera "465 " con espacios; si no, los guards de abajo lo pasarían
+   por alto pero el YAML igual lo parsearía como 465/443). */ -}}
+{{- $openTcpPorts := list -}}
+{{- range ($egress.openTcpPorts | default list) -}}
+{{- $openTcpPorts = append $openTcpPorts (. | toString | trim) -}}
+{{- end -}}
 {{- /* Un puerto no puede estar en openTcpPorts Y en excludeOutboundPorts: el exclude lo bypassa
    (sin sidecar → sin log ni ServiceEntry), contradiciendo el "abierto + logueado" de openTcpPorts. */ -}}
 {{- range $op := $openTcpPorts -}}
-{{- if has ($op | toString) $exclPorts -}}
+{{- if has $op $exclPorts -}}
 {{- fail (printf "El puerto %v está en openTcpPorts Y en excludeOutboundPorts: elegí uno (openTcpPorts pasa por el sidecar y se loguea; excludeOutboundPorts lo bypassa). Sacalo de una de las dos listas." $op) -}}
 {{- end -}}
 {{- end -}}

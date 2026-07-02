@@ -60,8 +60,9 @@ spec:
 {{- /* --- 3. Puertos "abiertos a priori" (openTcpPorts): ServiceEntry wildcard por puerto -> deja
    salir a CUALQUIER host en ese puerto, LOGUEADO por el sidecar. SOLO client-first; los
    server-first (SMTP 587/25, SSH 22) cuelgan el tls_inspector -> van por excludeOutboundPorts. */}}
-{{- range $port := ((($egress).openTcpPorts) | default list) }}
-{{- if or (eq ($port | toString) "443") (eq ($port | toString) "80") }}
+{{- range $rawPort := ((($egress).openTcpPorts) | default list) }}
+{{- $port := ($rawPort | toString | trim) }}
+{{- if or (eq $port "443") (eq $port "80") }}
 {{- fail "ingress.istio.egress.openTcpPorts no puede incluir 80 ni 443: el 443 va por allowedHosts/allowedCidrs (whitelist) y el 80 se bloquea. Abrirlos acá anularía esos controles." }}
 {{- end }}
 apiVersion: networking.istio.io/v1
@@ -76,7 +77,7 @@ spec:
   - "open-tcp-{{ $port }}.egress.internal"
   location: MESH_EXTERNAL
   ports:
-  - number: {{ $port }}
+  - number: {{ $port | int }}
     name: tcp-{{ $port }}
     protocol: TCP
   resolution: NONE
