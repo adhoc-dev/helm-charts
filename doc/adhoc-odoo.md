@@ -105,6 +105,13 @@ Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio ha
    (que el sidecar re-restringe) + los **puertos sacados del sidecar** (`excludeOutboundPorts`)
    solo a los CIDR declarados.
 
+   > **In-cluster por identidad (Cilium / GKE Dataplane V2).** Ambas políticas usan
+   > `namespaceSelector: {}` para el egress in-cluster. En Dataplane V2 (anetd/Cilium) un `ipBlock`
+   > CIDR **no** habilita el tráfico a pods del cluster (Cilium los matchea por identidad, no por
+   > CIDR): sin `namespaceSelector` el sidecar no llega a **istiod** y el pod **no arranca** bajo
+   > `enforce`. Los `ipBlock` privados quedan para destinos privados **no-cluster** (Cloud SQL, LBs
+   > internos) y el link-local `169.254.0.0/16` cubre NodeLocal DNSCache y el metadata server.
+
 **SMTP y SSH NO van por ServiceEntry.** Son *server-speaks-first* (el servidor manda el banner
 primero) y cuelgan el `tls_inspector` del egress logging → bajo `REGISTRY_ONLY` irían a BlackHole.
 Por eso esos puertos (`excludeOutboundPorts`, default `587,465,25,22`) se **sacan del sidecar** y

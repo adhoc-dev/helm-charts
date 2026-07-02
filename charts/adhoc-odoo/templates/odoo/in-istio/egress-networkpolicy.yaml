@@ -57,7 +57,11 @@ spec:
   - Egress
   egress:
   - to:
-    # Privado / in-cluster / infra (todo lo no-público). El resto (Internet) queda denegado.
+    # In-cluster por identidad (namespaceSelector) + privado/host por CIDR. En Cilium/Dataplane V2
+    # el ipBlock CIDR no habilita el egress a pods del cluster (peers CNPG, kube-dns backends): eso
+    # lo cubre namespaceSelector:{}. Los ipBlock privados cubren destinos privados NO-cluster y el
+    # link-local (NodeLocal DNSCache + metadata). El resto (Internet) queda denegado.
+    - namespaceSelector: {}
     - ipBlock:
         cidr: 10.0.0.0/8
     - ipBlock:
@@ -93,10 +97,17 @@ spec:
   policyTypes:
   - Egress
   egress:
-  # Privado / in-cluster / istiod / DNS (cualquier puerto). RFC1918 + link-local cubren kube-dns,
-  # NodeLocal, istiod y los ClusterIP de servicios. NO se suma networkPolicy.allow acá: ese value
-  # es para pods NO-meshed y podría contener rangos públicos → abriría los puertos excluidos.
+  # In-cluster por IDENTIDAD (namespaceSelector) + privado/host por CIDR.
+  # CLAVE en GKE Dataplane V2 (Cilium/anetd): un `ipBlock` CIDR NO habilita el egress a pods del
+  # cluster — Cilium los matchea por identidad, no por CIDR. Sin `namespaceSelector` el sidecar no
+  # puede llegar a istiod (15012) y el pod NO ARRANCA bajo enforce (istio-proxy nunca queda ready).
+  # Por eso namespaceSelector:{} cubre istiod, kube-dns backends, la DB CNPG y demás pods del cluster.
+  # Los ipBlock privados quedan para destinos privados NO-cluster (Cloud SQL, LBs internos) y el
+  # link-local (169.254/16) para NodeLocal DNSCache (169.254.20.10) y el metadata server
+  # (169.254.169.254). NO se suma networkPolicy.allow acá: ese value es para pods NO-meshed y podría
+  # contener rangos públicos → abriría los puertos excluidos.
   - to:
+    - namespaceSelector: {}
     - ipBlock:
         cidr: 10.0.0.0/8
     - ipBlock:
