@@ -66,6 +66,19 @@ spec:
         gke-gcsfuse/ephemeral-storage-request: 100Mi
         {{- end }}
         {{- end }}
+        {{- $egressMode := include "adhoc-odoo.egressMode" . }}
+        {{- if and .Values.ingress.istio.enabled (or (eq $egressMode "observe") (eq $egressMode "enforce")) }}
+        {{- /* 443 NUNCA puede excluirse (en ningún modo): el HTTPS debe pasar por el sidecar para la
+           whitelist + logging SNI. Se valida el valor EFECTIVO (override de podAnnotations o el value). */}}
+        {{- $effExcl := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (((.Values.ingress.istio.egress | default dict).excludeOutboundPorts) | default "587,465,25,22") }}
+        {{- range (splitList "," $effExcl) }}{{- if eq (trim .) "443" }}{{- fail "ingress.istio.egress.excludeOutboundPorts no puede incluir 443: el HTTPS debe pasar por el sidecar (whitelist + logging SNI). Quitá 443." }}{{- end }}{{- end }}
+        {{- /* No pisar la annotation si el usuario ya la definió en podAnnotations (key duplicada). */}}
+        {{- if not (hasKey (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") }}
+        # SMTP (587/465/25) y SSH (22) son server-speaks-first: cuelgan el tls_inspector del egress
+        # (logging SNI). Se sacan del sidecar y se gobiernan por NetworkPolicy. Ver doc/adhoc-odoo.md.
+        traffic.sidecar.istio.io/excludeOutboundPorts: {{ (((.Values.ingress.istio.egress | default dict).excludeOutboundPorts) | default "587,465,25,22") | quote }}
+        {{- end }}
+        {{- end }}
         rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
         {{- if ne .Values.adhoc.appType "prod" }}
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

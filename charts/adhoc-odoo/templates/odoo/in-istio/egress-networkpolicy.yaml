@@ -1,9 +1,46 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-{{- $extra := (((.Values.ingress.istio.egress | default dict).networkPolicy | default dict).allow | default list) -}}
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+{{- $extra := (($egress.networkPolicy | default dict).allow | default list) -}}
+{{- /* Reglas separadas por puerto (no cartesiano): relays SMTP en sus puertos, GitHub SSH en 22.
+   Trim de cada puerto: tolera "587, 465, ..." con espacios (si no, without/has fallarían). */ -}}
+{{- /* Puertos excluidos EFECTIVOS: el override del usuario en podAnnotations gana (deployment.yaml
+   lo respeta), si no el valor de egress.excludeOutboundPorts. Así la NP no diverge del pod. */ -}}
+{{- $exclRaw := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
+{{- $exclPorts := list -}}
+{{- range (splitList "," $exclRaw) -}}
+{{- $p := trim . -}}
+{{- if $p -}}{{- $exclPorts = append $exclPorts $p -}}{{- end -}}
+{{- end -}}
+{{- /* 443 NO puede excluirse: el HTTPS debe pasar por el sidecar (REGISTRY_ONLY) para que aplique
+   el allowlist. Si se excluye, saldría directo (la NP deja salir 443 a cualquier IP) sin control. */ -}}
+{{- if has "443" $exclPorts -}}
+{{- fail "ingress.istio.egress.excludeOutboundPorts no puede incluir 443: el HTTPS debe pasar por el sidecar para que aplique la whitelist. Quitá 443 de la lista." -}}
+{{- end -}}
+{{- $smtpPorts := without $exclPorts "22" -}}
+{{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
+{{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
+{{- /* GitHub: rangos git de https://api.github.com/meta ("git"). Override/sync vía egress.repoSshCidrs. */ -}}
+{{- $sshCidrs := ($egress.repoSshCidrs | default (list "140.82.112.0/20" "143.55.64.0/20" "185.199.108.0/22" "192.30.252.0/22")) -}}
+{{- /* openTcpPorts: van por el sidecar (ServiceEntry wildcard en blockOutboundTraffic.yaml), pero
+   la NP también tiene que dejarlos salir a 0.0.0.0/0 o Kubernetes los bloquea. */ -}}
+{{- /* Trim de cada openTcpPort (tolera "465 " con espacios; si no, los guards de abajo lo pasarían
+   por alto pero el YAML igual lo parsearía como 465/443). */ -}}
+{{- $openTcpPorts := list -}}
+{{- range ($egress.openTcpPorts | default list) -}}
+{{- $p := (. | toString | trim) -}}
+{{- if $p -}}{{- $openTcpPorts = append $openTcpPorts $p -}}{{- end -}}
+{{- end -}}
+{{- /* Un puerto no puede estar en openTcpPorts Y en excludeOutboundPorts: el exclude lo bypassa
+   (sin sidecar → sin log ni ServiceEntry), contradiciendo el "abierto + logueado" de openTcpPorts. */ -}}
+{{- range $op := $openTcpPorts -}}
+{{- if has $op $exclPorts -}}
+{{- fail (printf "El puerto %v está en openTcpPorts Y en excludeOutboundPorts: elegí uno (openTcpPorts pasa por el sidecar y se loguea; excludeOutboundPorts lo bypassa). Sacalo de una de las dos listas." $op) -}}
+{{- end -}}
+{{- end -}}
 # NetworkPolicy de egress (enforce): cubre los pods NO inyectados (PostgreSQL/CNPG, jobs),
 # que sin sidecar saldrían directo por el NAT. Permite solo privado (RFC1918 + link-local) y
-# deniega el público. Los pods meshed (Odoo) los maneja el sidecar. Ver doc/adhoc-odoo.md.
+# deniega el público. Los pods meshed (Odoo) los maneja el sidecar + la NP meshed de abajo.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -33,4 +70,82 @@ spec:
     - ipBlock:
         cidr: {{ . | quote }}
     {{- end }}
+---
+# NetworkPolicy del pod MESHED de Odoo. Los puertos server-first (SMTP/SSH) se sacan del sidecar
+# con excludeOutboundPorts (ver deployment.yaml) y salen directo: esta NP es la que los gobierna.
+# Reglas: privado (cualquier puerto: DNS, cluster, istiod) + HTTPS público en 443 (el sidecar
+# REGISTRY_ONLY restringe QUÉ hosts; la NP solo deja salir 443) + relays SMTP / GitHub SSH por
+# CIDR, cada uno en sus puertos. Ver doc/adhoc-odoo.md -> "Egress control".
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "adhoc-odoo.fullname" . }}-egress-meshed
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+      adhoc.ar/app-name: "odoo"
+      # Solo pods realmente inyectados: si la inyección falla, el pod NO matchea acá y queda solo
+      # con la NP no-meshed (deny público). Sin esto, un pod sin sidecar tendría 443 abierto.
+      security.istio.io/tlsMode: istio
+  policyTypes:
+  - Egress
+  egress:
+  # Privado / in-cluster / istiod / DNS (cualquier puerto). RFC1918 + link-local cubren kube-dns,
+  # NodeLocal, istiod y los ClusterIP de servicios. NO se suma networkPolicy.allow acá: ese value
+  # es para pods NO-meshed y podría contener rangos públicos → abriría los puertos excluidos.
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    - ipBlock:
+        cidr: 172.16.0.0/12
+    - ipBlock:
+        cidr: 192.168.0.0/16
+    - ipBlock:
+        cidr: 169.254.0.0/16
+  # HTTPS público (443): deja salir al sidecar; REGISTRY_ONLY + ServiceEntries restringen los hosts.
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443
+  {{- if $openTcpPorts }}
+  # openTcpPorts: los mismos puertos que abre el ServiceEntry wildcard, a cualquier IP (van por el
+  # sidecar, logueados). Sin esta regla la NP los bloquearía.
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    {{- range $openTcpPorts }}
+    - protocol: TCP
+      port: {{ . | int }}
+    {{- end }}
+  {{- end }}
+  {{- if and $smtpCidrs $smtpPorts }}
+  # Relays SMTP (y otros TCP no-443) sacados del sidecar: solo a esos CIDR, en sus puertos (no en 22).
+  - to:
+    {{- range $smtpCidrs }}
+    - ipBlock:
+        cidr: {{ . | quote }}
+    {{- end }}
+    ports:
+    {{- range $smtpPorts }}
+    - protocol: TCP
+      port: {{ . | trim | int }}
+    {{- end }}
+  {{- end }}
+  {{- if $sshOn }}
+  # Git por SSH (solo con adhoc.devMode): CIDRs de GitHub únicamente en el puerto 22.
+  - to:
+    {{- range $sshCidrs }}
+    - ipBlock:
+        cidr: {{ . | quote }}
+    {{- end }}
+    ports:
+    - protocol: TCP
+      port: 22
+  {{- end }}
 {{- end }}

@@ -1,16 +1,25 @@
 {{- $mode := include "adhoc-odoo.egressMode" . -}}
 {{- if and .Values.ingress.istio.enabled (eq $mode "enforce") -}}
-# Whitelist de egress (enforce, deny-by-default): un ServiceEntry 443/HTTPS por host
-# alcanzable bajo REGISTRY_ONLY. repoHosts (default github) se suman SOLO si el entrypoint
-# clona repos custom (odoo.entrypoint.repos). Ver doc/adhoc-odoo.md.
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+# Whitelist de egress por ServiceEntry (enforce, deny-by-default). SOLO cubre el egress que
+# atraviesa el sidecar (HTTPS/443 y TLS por IP). Bajo REGISTRY_ONLY cada destino externo necesita
+# un ServiceEntry. Tipos emitidos (ver doc/adhoc-odoo.md -> "Egress control"):
+#   1. Host/SNI -> allowedHosts + repoHosts   (443/HTTPS, resolución DNS)
+#   2. IP/CIDR  -> allowedCidrs + baseline PGA (443/TCP, resolución NONE) -- cubre 443 SIN SNI (GCS)
+#
+# SMTP (587/465/25) y SSH (22) NO van acá: son server-first y cuelgan el tls_inspector, así que se
+# sacan del sidecar (excludeOutboundPorts en odoo/deployment.yaml) y se allowlistean por CIDR en la
+# NetworkPolicy (egress-networkpolicy.yaml). Ver doc/adhoc-odoo.md -> "Egress control".
+#
+# --- 1. Hosts por SNI (HTTPS/443) ---
 {{- $hosts := (.Values.ingress.istio.allowedHosts | default list) }}
 {{- if .Values.odoo.entrypoint.repos }}
 {{- /* default github en el template también, para que aplique bajo --reuse-values */}}
-{{- $repoHosts := (((.Values.ingress.istio.egress | default dict).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
+{{- $repoHosts := ((($egress).repoHosts) | default (list "github.com" "codeload.github.com" "objects.githubusercontent.com")) }}
 {{- $hosts = (concat $hosts $repoHosts | uniq) }}
 {{- end }}
 {{- range $host := $hosts }}
-# ServiceEntry: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
+# ServiceEntry HTTPS: declara el host externo en el registry para que REGISTRY_ONLY lo permita.
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -25,5 +34,55 @@ spec:
     protocol: HTTPS
   resolution: DNS
 ---
+{{- end }}
+{{- /* --- 2. IP/CIDR (443 sin SNI). Baseline: VIP de Private Google Access (/30). El match es
+   por IP+puerto destino (resolution NONE -> original-dst), no por SNI: resuelve el egress a
+   GCS sin server_name. Prerequisito infra: habilitar PGA y rutear *.googleapis.com al VIP. */}}
+{{- $cidrs := (concat (list "199.36.153.8/30") ((($egress).allowedCidrs) | default list) | uniq) }}
+{{- range $cidr := $cidrs }}
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-cidr-{{ $cidr | replace "." "-" | replace "/" "-" }}
+spec:
+  addresses:
+  - "{{ $cidr }}"
+  hosts:
+  - "cidr-{{ $cidr | replace "." "-" | replace "/" "-" }}.egress.internal"
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: tcp-443
+    protocol: TCP
+  resolution: NONE
+---
+{{- end }}
+{{- /* --- 3. Puertos "abiertos a priori" (openTcpPorts): ServiceEntry wildcard por puerto -> deja
+   salir a CUALQUIER host en ese puerto, LOGUEADO por el sidecar. SOLO client-first; los
+   server-first (SMTP 587/25, SSH 22) cuelgan el tls_inspector -> van por excludeOutboundPorts. */}}
+{{- range $rawPort := ((($egress).openTcpPorts) | default list) }}
+{{- $port := ($rawPort | toString | trim) }}
+{{- if $port }}
+{{- if or (eq $port "443") (eq $port "80") }}
+{{- fail "ingress.istio.egress.openTcpPorts no puede incluir 80 ni 443: el 443 va por allowedHosts/allowedCidrs (whitelist) y el 80 se bloquea. Abrirlos acá anularía esos controles." }}
+{{- end }}
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: allow-egress-open-tcp-{{ $port }}
+spec:
+  # addresses 0.0.0.0/0 (no hosts "*", que Istio rechaza): matchea cualquier IP en ese puerto.
+  addresses:
+  - "0.0.0.0/0"
+  hosts:
+  - "open-tcp-{{ $port }}.egress.internal"
+  location: MESH_EXTERNAL
+  ports:
+  - number: {{ $port | int }}
+    name: tcp-{{ $port }}
+    protocol: TCP
+  resolution: NONE
+---
+{{- end }}
 {{- end }}
 {{- end }}
