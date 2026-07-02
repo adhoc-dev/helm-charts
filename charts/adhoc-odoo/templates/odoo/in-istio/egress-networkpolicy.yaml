@@ -24,6 +24,13 @@
 {{- /* openTcpPorts: van por el sidecar (ServiceEntry wildcard en blockOutboundTraffic.yaml), pero
    la NP también tiene que dejarlos salir a 0.0.0.0/0 o Kubernetes los bloquea. */ -}}
 {{- $openTcpPorts := ($egress.openTcpPorts | default list) -}}
+{{- /* Un puerto no puede estar en openTcpPorts Y en excludeOutboundPorts: el exclude lo bypassa
+   (sin sidecar → sin log ni ServiceEntry), contradiciendo el "abierto + logueado" de openTcpPorts. */ -}}
+{{- range $op := $openTcpPorts -}}
+{{- if has ($op | toString) $exclPorts -}}
+{{- fail (printf "El puerto %v está en openTcpPorts Y en excludeOutboundPorts: elegí uno (openTcpPorts pasa por el sidecar y se loguea; excludeOutboundPorts lo bypassa). Sacalo de una de las dos listas." $op) -}}
+{{- end -}}
+{{- end -}}
 # NetworkPolicy de egress (enforce): cubre los pods NO inyectados (PostgreSQL/CNPG, jobs),
 # que sin sidecar saldrían directo por el NAT. Permite solo privado (RFC1918 + link-local) y
 # deniega el público. Los pods meshed (Odoo) los maneja el sidecar + la NP meshed de abajo.
