@@ -6,7 +6,7 @@
    Trim de cada puerto: tolera "587, 465, ..." con espacios (si no, without/has fallarían). */ -}}
 {{- /* Puertos excluidos EFECTIVOS: el override del usuario en podAnnotations gana (deployment.yaml
    lo respeta), si no el valor de egress.excludeOutboundPorts. Así la NP no diverge del pod. */ -}}
-{{- $exclRaw := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (($egress.excludeOutboundPorts) | default "587,465,25,22") -}}
+{{- $exclRaw := (index (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundPorts") | default (include "adhoc-odoo.egressExcludePorts" .) -}}
 {{- $exclPorts := list -}}
 {{- range (splitList "," $exclRaw) -}}
 {{- $p := trim . -}}
