@@ -101,10 +101,10 @@ Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio ha
    | Host/SNI | `allowedHosts` + `repoHosts` | host, 443/HTTPS, DNS | HTTPS con SNI |
    | IP/CIDR | `allowedCidrs` (+ baseline PGA) | `addresses`, 443/TCP, `resolution: NONE` | 443 **sin SNI** (GCS) |
 
-2. **NetworkPolicy** — dos políticas: una para los pods **no-meshed** (PG/CNPG, jobs; solo
-   privado) y otra para el pod **meshed de Odoo**. Esta última deja salir privado + HTTPS/443
-   (que el sidecar re-restringe) + los **puertos sacados del sidecar** (`excludeOutboundPorts`)
-   solo a los CIDR declarados.
+2. **NetworkPolicy** — dos políticas: una para los pods **no-meshed** (PG/CNPG, jobs; privado +
+   la VIP de Google APIs en 443, para gcsfuse/backups a GCS) y otra para el pod **meshed de Odoo**.
+   Esta última deja salir privado + HTTPS/443 (que el sidecar re-restringe) + los **puertos sacados
+   del sidecar** (`excludeOutboundPorts`) solo a los CIDR declarados.
 
    > **In-cluster por identidad (Cilium / GKE Dataplane V2).** Ambas políticas usan
    > `namespaceSelector: {}` para el egress in-cluster. En Dataplane V2 (anetd/Cilium) un `ipBlock`
