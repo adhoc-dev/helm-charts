@@ -74,6 +74,19 @@ spec:
     - ipBlock:
         cidr: {{ . | quote }}
     {{- end }}
+  # GCS / Google APIs (443 sin SNI): los pods NO-meshed también salen a la VIP de Private Google
+  # Access. Los jobs con gcsfuse (p.ej. fixdb) y los backups de CNPG montan/leen GCS; sin sidecar,
+  # esta NP es su único control. Sin esta regla, gcsfuse no valida el bucket bajo enforce → el mount
+  # cuelga → CreateContainerError (wedge). Baseline PGA /30 + allowedCidrs, SOLO en 443 (mismo set
+  # que la whitelist IP/CIDR del pod meshed). No abre 0.0.0.0/0: el resto de Internet queda denegado.
+  - to:
+    {{- range (concat (list "199.36.153.8/30") (($egress.allowedCidrs) | default list) | uniq) }}
+    - ipBlock:
+        cidr: {{ . | quote }}
+    {{- end }}
+    ports:
+    - protocol: TCP
+      port: 443
 ---
 # NetworkPolicy del pod MESHED de Odoo. Los puertos server-first (SMTP/SSH) se sacan del sidecar
 # con excludeOutboundPorts (ver deployment.yaml) y salen directo: esta NP es la que los gobierna.
