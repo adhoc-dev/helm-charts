@@ -69,7 +69,7 @@ ingress:
       openTcpPorts: []          # enforce: puertos "abiertos a priori" a CUALQUIER host, LOGUEADOS
                                 #   (client-first: HTTP/PG/Redis/465...). NO server-first, NO 80/443
       # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
-      excludeOutboundPorts: "587,465,25,22"  # puertos que bypassan el sidecar
+      excludeOutboundPorts: "587,465,25,22,2525"  # bypassan el sidecar; odoo.smtp.port se auto-incluye
       outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
       repoSsh: true             # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO con adhoc.devMode
                                 #   (no-op en prod). Default true → devMode abre GitHub:22; false para dev sin SSH
@@ -113,9 +113,12 @@ Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio ha
    > internos) y el link-local `169.254.0.0/16` cubre NodeLocal DNSCache y el metadata server.
 
 **SMTP y SSH NO van por ServiceEntry.** Son *server-speaks-first* (el servidor manda el banner
-primero) y cuelgan el `tls_inspector` del egress logging → bajo `REGISTRY_ONLY` irían a BlackHole.
-Por eso esos puertos (`excludeOutboundPorts`, default `587,465,25,22`) se **sacan del sidecar** y
-se allowlistean por **CIDR** en la NetworkPolicy del pod meshed:
+primero) y cuelgan el `tls_inspector` del egress logging → **incluso en `observe`** la conexión
+se resetea (15s de timeout); bajo `REGISTRY_ONLY` irían a BlackHole. Por eso esos puertos
+(`excludeOutboundPorts`, default `587,465,25,22,2525`) se **sacan del sidecar** y se allowlistean
+por **CIDR** en la NetworkPolicy del pod meshed. **El puerto SMTP configurado (`odoo.smtp.port`)
+se auto-incluye** en la lista efectiva — un relay en puerto no estándar (p.ej. Mailgun `2525`)
+queda excluido sin tener que editar `excludeOutboundPorts`:
 
 - **outboundTcpCidrs** — CIDRs permitidos en los puertos SMTP (los excluidos **salvo 22**). No se
   puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.

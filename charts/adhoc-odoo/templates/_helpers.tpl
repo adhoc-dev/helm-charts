@@ -231,3 +231,27 @@ Sin istio.enabled devuelve "open" (los recursos de egress no aplican).
 {{- $mode -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+adhoc-odoo.egressExcludePorts — puertos que se SACAN del sidecar (server-first: SMTP/SSH).
+Default 587,465,25,22,2525 (SMTP estándar 587/465/25 + Mailgun-2525 + SSH 22) MÁS el
+odoo.smtp.port configurado si es no estándar. Los puertos SMTP son server-speaks-first: si
+pasan por el sidecar, el tls_inspector del egress logging los cuelga (timeout 15s → reset,
+incluso en observe). Auto-derivar smtp.port evita que un relay en puerto no estándar (p.ej.
+Mailgun 2525) quede bloqueado. Nunca agrega 443 (debe pasar por el sidecar). El override de
+podAnnotations lo maneja cada template; este helper es el DEFAULT.
+*/}}
+{{- define "adhoc-odoo.egressExcludePorts" -}}
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+{{- $base := ($egress.excludeOutboundPorts | default "587,465,25,22,2525") -}}
+{{- $ports := list -}}
+{{- range (splitList "," $base) -}}
+{{- $p := trim . -}}
+{{- if $p -}}{{- $ports = append $ports $p -}}{{- end -}}
+{{- end -}}
+{{- $smtp := (((.Values.odoo | default dict).smtp | default dict).port | default 0 | toString | trim) -}}
+{{- if and (ne $smtp "0") (ne $smtp "") (ne $smtp "443") (not (has $smtp $ports)) -}}
+{{- $ports = append $ports $smtp -}}
+{{- end -}}
+{{- join "," $ports -}}
+{{- end -}}
