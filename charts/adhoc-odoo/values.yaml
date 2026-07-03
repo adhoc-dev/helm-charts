@@ -107,10 +107,6 @@ ingress:
         - "185.199.108.0/22"
         - "192.30.252.0/22"
     logAll: false
-    # DEPRECADO: usar egress.mode. Compat: logEgress=true → observe.
-    logEgress: false
-    # DEPRECADO: usar egress.mode. Compat: blockOutboundTraffic=true → enforce.
-    blockOutboundTraffic: false
     http10:
       enabled: false
 

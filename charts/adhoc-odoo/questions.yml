@@ -485,13 +485,6 @@ questions:
     type: "string"
     required: false
     default: ""
-  - variable: ingress.istio.blockOutboundTraffic
-    group: "Ingress"
-    label: "Block outbound traffic"
-    description: "Block outbound traffic from Istio Ingress"
-    type: "boolean"
-    required: false
-    default: false
   - variable: ingress.istio.egress.mode
     group: "Ingress"
     label: "Egress mode"
