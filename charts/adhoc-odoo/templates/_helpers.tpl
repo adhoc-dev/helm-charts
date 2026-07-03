@@ -216,8 +216,7 @@ adhoc-odoo.egressMode — resuelve el modo de egress efectivo: open | observe | 
 - open: ALLOW_ANY, sin logging ni bloqueo.
 - observe: ALLOW_ANY + logging de egress (tls_inspector + Telemetry).
 - enforce: REGISTRY_ONLY + listas (allow/ban) + NetworkPolicy. Hereda el logging.
-Precedencia: ingress.istio.egress.mode explícito > flags legacy
-(blockOutboundTraffic→enforce, logEgress→observe) > default "observe" con istio.enabled.
+Fuente única: ingress.istio.egress.mode. Vacío con istio.enabled → default "observe".
 Sin istio.enabled devuelve "open" (los recursos de egress no aplican).
 */}}
 {{- define "adhoc-odoo.egressMode" -}}
@@ -225,13 +224,7 @@ Sin istio.enabled devuelve "open" (los recursos de egress no aplican).
 {{- if not $istio.enabled -}}
 {{- "open" -}}
 {{- else -}}
-{{- $egress := $istio.egress | default dict -}}
-{{- $mode := $egress.mode | default "" -}}
-{{- if not $mode -}}
-  {{- if $istio.blockOutboundTraffic -}}{{- $mode = "enforce" -}}
-  {{- else if $istio.logEgress -}}{{- $mode = "observe" -}}
-  {{- else -}}{{- $mode = "observe" -}}{{- end -}}
-{{- end -}}
+{{- $mode := ($istio.egress | default dict).mode | default "observe" -}}
 {{- if not (has $mode (list "open" "observe" "enforce")) -}}
   {{- fail (printf "ingress.istio.egress.mode inválido: %q (open|observe|enforce)" $mode) -}}
 {{- end -}}

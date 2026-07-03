@@ -78,8 +78,7 @@ ingress:
       enabled: false            # habilitar para HTTP/1.0 legacy
 ```
 
-`blockOutboundTraffic`/`logEgress` quedan como flags legacy (deprecados): el helper de modo
-los mapea a `enforce`/`observe`. Ver "Egress control" abajo.
+El modo de egress se controla **solo** por `ingress.istio.egress.mode`. Ver "Egress control" abajo.
 
 ### Egress control
 
