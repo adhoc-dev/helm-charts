@@ -70,6 +70,7 @@ ingress:
                                 #   (client-first: HTTP/PG/Redis/465...). NO server-first, NO 80/443
       # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
       excludeOutboundPorts: "587,465,25,22,2525"  # bypassan el sidecar; odoo.smtp.port se auto-incluye
+      excludeOutboundIPRanges: ""  # IPs extra fuera del redirect; el metadata server (169.254.169.254) ya va baked-in
       outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
       repoSsh: true             # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO con adhoc.devMode
                                 #   (no-op en prod). Default true → devMode abre GitHub:22; false para dev sin SSH
@@ -130,6 +131,10 @@ queda excluido sin tener que editar `excludeOutboundPorts`:
 
 Notas:
 
+- **Metadata server / Workload Identity.** El metadata server de GKE (`169.254.169.254`, HTTP:80)
+  se saca del redirect del sidecar (`excludeOutboundIPRanges`, baked-in). gcsfuse lo consulta para
+  la WI; bajo `enforce` el sidecar (REGISTRY_ONLY) lo bloquearía (**502**) → gcsfuse no monta → el
+  pod **no arranca**. Excluirlo lo deja gobernado por la NetworkPolicy (que ya permite link-local).
 - **allowedHosts** se puebla desde el inventario del modo `observe`.
 - **repoHosts** se suman solo si `odoo.entrypoint.repos` no está vacío (default github en el
   template, vale bajo `--reuse-values`; sobreescribible para gitlab/etc.).

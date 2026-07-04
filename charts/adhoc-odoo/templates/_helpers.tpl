@@ -255,3 +255,21 @@ podAnnotations lo maneja cada template; este helper es el DEFAULT.
 {{- end -}}
 {{- join "," $ports -}}
 {{- end -}}
+
+{{/*
+adhoc-odoo.egressExcludeIPRanges — IPs que se SACAN del redirect del sidecar (salen directo).
+Baseline: el metadata server de GKE (169.254.169.254). La Workload Identity de gcsfuse lo consulta
+por HTTP:80; bajo enforce (REGISTRY_ONLY) el sidecar no tiene ServiceEntry para él → 502 → gcsfuse
+no obtiene el token → el mount cuelga → el pod NO ARRANCA. Excluirlo del mesh lo resuelve (queda
+gobernado por la NetworkPolicy, que ya permite link-local). Se le suman los CIDRs extra que el
+tenant declare en egress.excludeOutboundIPRanges.
+*/}}
+{{- define "adhoc-odoo.egressExcludeIPRanges" -}}
+{{- $egress := (.Values.ingress.istio.egress | default dict) -}}
+{{- $ranges := list "169.254.169.254/32" -}}
+{{- range (splitList "," ($egress.excludeOutboundIPRanges | default "")) -}}
+{{- $r := trim . -}}
+{{- if and $r (not (has $r $ranges)) -}}{{- $ranges = append $ranges $r -}}{{- end -}}
+{{- end -}}
+{{- join "," $ranges -}}
+{{- end -}}

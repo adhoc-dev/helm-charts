@@ -79,6 +79,12 @@ spec:
         # configurado (odoo.smtp.port) se auto-incluye. Ver doc/adhoc-odoo.md.
         traffic.sidecar.istio.io/excludeOutboundPorts: {{ include "adhoc-odoo.egressExcludePorts" . | quote }}
         {{- end }}
+        {{- /* Metadata server de GKE (169.254.169.254): la Workload Identity de gcsfuse lo consulta
+           por HTTP:80; bajo enforce el sidecar lo bloquea (502) → gcsfuse no monta → el pod no arranca.
+           Se saca del redirect del sidecar (queda gobernado por la NetworkPolicy). Ver doc/adhoc-odoo.md. */}}
+        {{- if not (hasKey (.Values.podAnnotations | default dict) "traffic.sidecar.istio.io/excludeOutboundIPRanges") }}
+        traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ include "adhoc-odoo.egressExcludeIPRanges" . | quote }}
+        {{- end }}
         {{- end }}
         rollme: {{ include "adhoc-odoo.releaseDigest" . }} # Force redeploy on change
         {{- if ne .Values.adhoc.appType "prod" }}
