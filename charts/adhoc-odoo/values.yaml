@@ -93,6 +93,11 @@ ingress:
       # El puerto SMTP configurado (odoo.smtp.port) se AUTO-INCLUYE (cubre relays en puertos no
       # estándar sin tocar esta lista). Ver "Egress control" en doc/adhoc-odoo.md.
       excludeOutboundPorts: "587,465,25,22,2525"
+      # IPs que se SACAN del redirect del sidecar (salen directo, gobernadas por la NetworkPolicy).
+      # El metadata server de GKE (169.254.169.254) SIEMPRE se excluye (baked-in): la Workload
+      # Identity de gcsfuse lo consulta por HTTP:80 y bajo enforce el sidecar lo bloquearía (502) →
+      # gcsfuse no montaría → el pod no arranca. Acá se agregan CIDRs EXTRA (raro). Ver doc.
+      excludeOutboundIPRanges: ""
       # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP del tenant, etc.). No se
       # puede derivar de un hostname; usar el rango publicado del proveedor o la IP del relay.
       outboundTcpCidrs: []
