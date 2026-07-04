@@ -106,7 +106,7 @@ spec:
       {{- if .Values.adhoc.devMode }}
       initContainers:
         - name: seed-vscode-server
-          image: adhoc/ops-tools:vscode-sidecar-latest
+          image: {{ .Values.adhoc.sidecarImage | default "adhoc/ops-tools:vscode-sidecar-latest" }}
           imagePullPolicy: Always
           securityContext:
             readOnlyRootFilesystem: false
@@ -130,8 +130,13 @@ spec:
               done
               # 2) Tooling dev (prefijo relocatable → volumen compartido). El guard
               #    hace no-op con imágenes viejas del sidecar (sin /opt/adhoc-dev).
+              #    Copiamos los CONTENIDOS (dotglob para incluir .agents/) sin
+              #    preservar ownership/timestamps: la raíz del emptyDir es root:root
+              #    y el seed corre como odoo no-root (chown/utime en la raíz → EPERM).
               if [ -d /opt/adhoc-dev ]; then
-                cp -a /opt/adhoc-dev/. /work/dev-tools/
+                shopt -s dotglob
+                cp -a --no-preserve=ownership,timestamps /opt/adhoc-dev/* /work/dev-tools/
+                shopt -u dotglob
                 echo "Seeded /opt/adhoc-dev -> /work/dev-tools ($(ls /work/dev-tools/bin 2>/dev/null | wc -l) bins)"
               fi
           volumeMounts:
@@ -170,17 +175,25 @@ spec:
               PREFIX=/opt/adhoc-dev
               if [ -d "$PREFIX/bin" ]; then
                 # CLIs → ~/.local/bin: ya está en PATH tanto en login como no-login
-                # (evita pelearse con el reset de PATH de /etc/profile).
+                # (evita pelearse con el reset de PATH de /etc/profile). Symlink al
+                # prefijo ro: los binarios no se reescriben.
                 mkdir -p "$HOME/.local/bin"
                 for b in "$PREFIX"/bin/*; do ln -sfn "$b" "$HOME/.local/bin/$(basename "$b")"; done
-                # skills → ~/.claude/skills (Claude Code) y ~/.agents/skills (codex/gemini)
-                mkdir -p "$HOME/.claude" "$HOME/.agents"
-                ln -sfn "$PREFIX/.agents/skills" "$HOME/.claude/skills"
-                ln -sfn "$PREFIX/.agents/skills" "$HOME/.agents/skills"
-                # templates fallback AGENTS.md / CLAUDE.md / GEMINI.md
+                # skills + templates → COPIAS writable en HOME (NO symlink al mount ro):
+                # `adhoc-way init` y la CLI de skills gestionan estas rutas, y escribir
+                # a través de un symlink al prefijo ro daría EROFS.
+                mkdir -p "$HOME/.claude/skills" "$HOME/.agents/skills"
+                cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.claude/skills/"
+                cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.agents/skills/"
                 for f in AGENTS.md CLAUDE.md GEMINI.md; do
-                  [ -f "$PREFIX/agents-templates/$f" ] && ln -sfn "$PREFIX/agents-templates/$f" "$HOME/$f"
+                  [ -f "$PREFIX/agents-templates/$f" ] && cp -a "$PREFIX/agents-templates/$f" "$HOME/$f"
                 done
+                # Registrar los hooks user-level de los agentes (idempotente,
+                # non-interactive). best-effort + timeout: init NO debe colgar ni
+                # tumbar el pod (p.ej. si el paso de skills necesita egress y no
+                # está). La identidad queda pendiente (skeleton); el dev la completa
+                # en el primer "hola" al agente (agent-mediated vía tuqui-adhoc).
+                timeout 180 "$PREFIX/bin/adhoc-way" init || echo "adhoc-way init: warning best-effort, continúo"
               fi
               exec sleep infinity
           {{ end }}

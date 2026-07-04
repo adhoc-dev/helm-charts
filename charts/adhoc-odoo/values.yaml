@@ -422,6 +422,9 @@ adhoc:
   appType: prod
   clientAnalyticAccount: "Unknown"
   devMode: false
+  # Imagen del sidecar que, en devMode, siembra el VS Code server + el tooling de
+  # agentes IA (node, adhoc-way, skills, CLIs) en el pod. Ver doc/adhoc-odoo.md.
+  sidecarImage: adhoc/ops-tools:vscode-sidecar-latest
   # (adhoc.dnsBannedHost eliminado junto con su ConfigMap /etc/hosts y el mount del
   # Deployment. En modo enforce el egress queda controlado por el whitelist deny-by-default
   # — ya no hay sinkhole por /etc/hosts. Blacklist explícito: follow-up por EnvoyFilter.)
