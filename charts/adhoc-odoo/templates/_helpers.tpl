@@ -187,15 +187,22 @@ Restoring the database we need to scale down to 0, so if replicaCount is set to 
 {{- end -}}
 
 {{/*
-wakeupController.enabled — true when KEDA + wakeup controller are both active
-and minReplicas is 0 (scale-to-zero mode).
+wakeupController.enabled — true when KEDA + wakeup controller are both active,
+minReplicas>=1, and controllerSvc is set. The OWC owns the 1→0 transition, so KEDA
+is pinned at floor>=1 (never scales to 0 on its own); the OWC lowers the floor to 0
+and scales down itself when idle, and back to 1 on wakeup.
+
+Resilient by design: minReplicas>=1 is a CONDITION here, NOT a hard validation. If an
+instance ends up OWC-enabled with minReplicas=0 (e.g. mid-migration of the values),
+this returns false → the OWC is silently disabled and the instance falls back to
+KEDA-owned scale-to-zero (woken by the HTTP interceptor) instead of failing to render.
 */}}
 {{- define "wakeupController.enabled" -}}
 {{- $wc := .Values.autoscaling.wakeupController | default dict -}}
 {{- and
     (eq (include "keda.enabled" . | trim) "true")
     ($wc.enabled | default false)
-    (eq (.Values.autoscaling.minReplicas | int) 0)
+    (ge (.Values.autoscaling.minReplicas | int) 1)
     (ne ($wc.controllerSvc | default "") "")
 -}}
 {{- end -}}

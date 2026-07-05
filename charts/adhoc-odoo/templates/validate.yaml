@@ -35,15 +35,18 @@ Debe existir nombre de base de datos.
 {{- /*
 wakeupController: keda es prerrequisito, pero no es un error tenerlo apagado.
 Si keda está desactivado, el wakeup controller queda deshabilitado
-automáticamente (lo resuelve el helper "wakeupController.enabled"), así que su
-configuración solo se valida cuando keda está efectivamente activo.
+automáticamente (lo resuelve el helper "wakeupController.enabled").
+
+Resiliente por diseño: NO se hace `fail` por la inconsistencia OWC + minReplicas.
+El OWC es dueño del 1→0, así que requiere minReplicas>=1; si una base queda
+OWC-on + min=0 (ej. a mitad de la migración de values), el helper
+"wakeupController.enabled" devuelve false y el OWC se desactiva solo (cae a KEDA
+scale-to-zero + HTTP interceptor) en vez de romper el render. Acá solo se valida
+que, si el OWC quiere activarse, tenga controllerSvc.
 */ -}}
 {{- $wc := .Values.autoscaling.wakeupController | default dict -}}
 {{- if and ($wc.enabled | default false) (eq (include "keda.enabled" . | trim) "true") -}}
 {{- if eq ($wc.controllerSvc | default "") "" -}}
 {{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.wakeupController.controllerSvc to be set (use the FQDN from the adhoc-wakeup-controller chart NOTES)." -}}
-{{- end -}}
-{{- if ne (.Values.autoscaling.minReplicas | int) 0 -}}
-{{- fail "autoscaling.wakeupController.enabled=true requires autoscaling.minReplicas=0 (scale-to-zero mode)." -}}
 {{- end -}}
 {{- end -}}
