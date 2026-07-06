@@ -10,7 +10,5 @@ data:
   odoo-extra.conf: |
     [options]
       log_handler = :INFO,odoo.addons.rpc.controllers.jsonrpc:ERROR
-{{- if not .Values.ingress.reverseProxy.enabled }}
-      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-http.{{ .Release.Namespace }}
-{{- end }}
+{{- /* report.url quitado: este CM es solo 19+, y en 19 Odoo lo lee del ICP, no del conf (inerte) -> solo generaba warning */}}
 {{- end }}
