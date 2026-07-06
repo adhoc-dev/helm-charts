@@ -10,6 +10,11 @@ Fixes:
   --reuse-values` sobre una instancia legacy anterior a #74). Antes el render
   fallaba con `nil pointer evaluating interface {}.domain`. Regresión cubierta
   por el fixture `ci/legacy-no-wakeupcontroller-values.yaml`.
+- Odoo 19: quitado `report.url` de los ConfigMaps de conf (`odooExtraConf` y
+  `odoo-send-file`). En 19 Odoo lo lee del `ir.config_parameter`, no del
+  odoo.conf, así que la línea era inerte y solo generaba el warning de arranque
+  `unknown option 'report.url'`. `x_sendfile=True` se mantiene; en 18
+  `report.url` queda intacto (gateado a `<190`).
 
 Features:
 

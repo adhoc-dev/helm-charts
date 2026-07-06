@@ -10,5 +10,8 @@ data:
   odoo-send-file.conf: |
     [options]
       x_sendfile = True
+{{- /* report.url solo <19: en 19+ Odoo lo lee del ICP, no del conf (inerte) -> solo generaba warning */}}
+{{- if lt $odooVersion 190 }}
       report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-nginx.{{ .Release.Namespace }}
+{{- end }}
 {{- end }}
