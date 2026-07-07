@@ -10,11 +10,14 @@ Fixes:
   --reuse-values` sobre una instancia legacy anterior a #74). Antes el render
   fallaba con `nil pointer evaluating interface {}.domain`. Regresión cubierta
   por el fixture `ci/legacy-no-wakeupcontroller-values.yaml`.
-- Odoo 19: quitado `report.url` de los ConfigMaps de conf (`odooExtraConf` y
-  `odoo-send-file`). En 19 Odoo lo lee del `ir.config_parameter`, no del
-  odoo.conf, así que la línea era inerte y solo generaba el warning de arranque
-  `unknown option 'report.url'`. `x_sendfile=True` se mantiene; en 18
-  `report.url` queda intacto (gateado a `<190`).
+- Odoo 19: `report.url` se coloca en la sección de conf según la imagen. Corrige
+  la suposición previa de que era inerte: `server_global_parameters` (ADHOC SA)
+  lo lee del odoo.conf vía `get_param`, así que quitarlo cambiaba el
+  comportamiento (afecta wkhtml2pdf). Ahora: imágenes 19 `>= 20260707` (con el
+  `server_global_parameters` que lee la sección `[adhoc]`) lo reciben bajo
+  `[adhoc]` (sin warning `unknown option`); imágenes 18 y 19 anteriores lo
+  reciben bajo `[options]` (compatibilidad con el módulo previo). `x_sendfile=True`
+  queda siempre en `[options]`.
 
 Features:
 
