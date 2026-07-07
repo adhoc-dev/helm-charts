@@ -1,4 +1,5 @@
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
+{{- $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int }}
 {{- if ge $odooVersion 190 }}
 apiVersion: v1
 kind: ConfigMap
@@ -10,5 +11,14 @@ data:
   odoo-extra.conf: |
     [options]
       log_handler = :INFO,odoo.addons.rpc.controllers.jsonrpc:ERROR
-{{- /* report.url quitado: este CM es solo 19+, y en 19 Odoo lo lee del ICP, no del conf (inerte) -> solo generaba warning */}}
+{{- if not .Values.ingress.reverseProxy.enabled }}
+{{- /* report.url (reverseProxy off): imágenes >= 20260707 leen [adhoc] via server_global_parameters; viejas -> [options] */}}
+{{- if ge $minorVersion 20260707 }}
+
+    [adhoc]
+      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-http.{{ .Release.Namespace }}
+{{- else }}
+      report.url = http://{{ include "adhoc-odoo.serviceNameSuffix" . }}-http.{{ .Release.Namespace }}
+{{- end }}
+{{- end }}
 {{- end }}
