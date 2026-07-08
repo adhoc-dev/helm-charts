@@ -177,8 +177,10 @@ data:
   ODOO_MAX_HTTP_THREADS: "8"
   ODOO_SESSION_REDIS_SSL: "0"
   LITELLM_LOG: "CRITICAL"
-  {{- /* multiprocess only makes sense with workers>0; setting it threaded crashes prometheus_client on a missing dir */}}
-  {{- if gt $workers 0 }}
+  {{- /* Multiprocess mode lets the exporter sidecar read metrics from files, so it also works in
+         threaded mode (workers=0); the module creates the dir on boot (no more missing-dir crash).
+         Falls back to the old workers>0-only behavior when the sidecar is off (controller scrape). */}}
+  {{- if and .Values.odoo.monitoring.enabled (or .Values.odoo.monitoring.exporterSidecar (gt $workers 0)) }}
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus_client"
   {{- end }}
   KWKHTMLTOPDF_SERVER_URL: {{ .Values.odoo.kwkhtmltopdfServerUrl | quote }}

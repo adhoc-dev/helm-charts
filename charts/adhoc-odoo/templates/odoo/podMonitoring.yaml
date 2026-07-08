@@ -12,7 +12,13 @@ spec:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
   podMetricsEndpoints:
+  {{- if .Values.odoo.monitoring.exporterSidecar }}
+  - port: prom-odoo
+    path: /metrics
+    interval: 60s
+  {{- else }}
   - port: http
     path: /metrics
     interval: 60s
+  {{- end }}
 {{- end }}

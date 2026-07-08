@@ -387,6 +387,13 @@ odoo:
     # example2: "no"
   monitoring:
     enabled: false
+    # Out-of-band metrics exporter sidecar. When true (default), Prometheus scrapes the sidecar
+    # (:9101), which reads the multiprocess dir, so metrics survive Odoo worker-pool exhaustion.
+    # Set false to fall back to scraping the in-process controller (:8069) — the old behavior.
+    exporterSidecar: true
+    # Must match the prometheus_client version in the Odoo image (see prometheusOdooExporter dockerfile).
+    exporterRepository: dockerhub.adhoc.inc/adhoc/ops-tools
+    exporterTag: "prometheus-odoo-exporter-20260707"
 
   kwkhtmltopdfServerUrl: "http://kwkhtmltopdf.kwkhtmltopdf"
 
