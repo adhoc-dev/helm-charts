@@ -208,18 +208,19 @@ spec:
           # https://v1-18.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
           # Waits the pod to be ready on startup, important during modules installation or running "fixdb"
           startupProbe:
-            # - if $isKedaEnabled
-            # httpGet:
-            #   {{- if ge $odooVersion 180 }}
-            #   path: /saas_client/healthz
-            #   {{- else }}
-            #   path: /web/health
-            #   {{- end }}
-            #   port: 8069
-            # - else
+            {{- if $isKedaEnabled }}
+            # healthz gates readiness to a worker that can serve a DB-backed request
+            httpGet:
+              {{- if ge $odooVersion 180 }}
+              path: /saas_client/healthz
+              {{- else }}
+              path: /web/health
+              {{- end }}
+              port: 8069
+            {{- else }}
             tcpSocket:
               port: 8069
-            # - end
+            {{- end }}
             initialDelaySeconds: 1
             failureThreshold: 900 # 15 min
             periodSeconds: 1
