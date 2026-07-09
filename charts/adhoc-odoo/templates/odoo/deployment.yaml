@@ -321,7 +321,8 @@ spec:
           {{- end }}
         {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
         # Out-of-band metrics exporter: serves /metrics from the shared multiprocess dir so scrapes
-        # survive Odoo worker-pool exhaustion. Image: devops-ops-tools/prometheusOdooExporter.
+        # survive Odoo worker-pool exhaustion. Image from values (monitoring.exporterRepository/Tag);
+        # source at devops-ops-tools/prometheusOdooExporter.
         - name: prometheus-exporter
           image: {{ printf "%s:%s" .Values.odoo.monitoring.exporterRepository .Values.odoo.monitoring.exporterTag | quote }}
           securityContext:
