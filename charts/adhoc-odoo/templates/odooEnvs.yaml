@@ -177,8 +177,13 @@ data:
   ODOO_MAX_HTTP_THREADS: "8"
   ODOO_SESSION_REDIS_SSL: "0"
   LITELLM_LOG: "CRITICAL"
-  {{- /* multiprocess only makes sense with workers>0; setting it threaded crashes prometheus_client on a missing dir */}}
-  {{- if gt $workers 0 }}
+  {{- /* Multiprocess mode lets the exporter sidecar read metrics from files. In prefork (workers>0)
+         every image creates the dir, so it's always safe. In threaded mode (workers=0) the dir is
+         only created on images >= 2026-06-24; gate on the image minor version to avoid crashing
+         older images. Tags carry a date by design; a dateless (dev) tag is assumed current (today). */}}
+  {{- $minorRaw := include "adhoc-odoo.odoo-minor-version" . | trim -}}
+  {{- $effectiveMinor := int (ternary $minorRaw (now | date "20060102") (regexMatch "^[0-9]{8}$" $minorRaw)) -}}
+  {{- if and .Values.odoo.monitoring.enabled (or (gt $workers 0) (and .Values.odoo.monitoring.exporterSidecar (ge $effectiveMinor 20260624))) }}
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus_client"
   {{- end }}
   KWKHTMLTOPDF_SERVER_URL: {{ .Values.odoo.kwkhtmltopdfServerUrl | quote }}

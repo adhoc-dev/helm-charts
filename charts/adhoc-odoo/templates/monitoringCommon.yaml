@@ -25,8 +25,13 @@ spec:
           protocol: TCP
       {{- end }}
       {{- if .Values.odoo.monitoring.enabled }}
+        {{- if .Values.odoo.monitoring.exporterSidecar }}
+        - port: 9101
+          protocol: TCP
+        {{- else }}
         - port: 8069
           protocol: TCP
+        {{- end }}
       {{- end }}
   {{- end }}
 {{- end }}

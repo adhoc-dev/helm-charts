@@ -315,6 +315,41 @@ spec:
           - name: session-folder-ro
             mountPath: /home/odoo/data/sessions
             readOnly: true
+          {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+          # Shared with the prometheus-exporter sidecar; the module writes multiprocess metric files here.
+          - name: prometheus-multiproc
+            mountPath: /tmp/prometheus_client
+          {{- end }}
+        {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+        # Out-of-band metrics exporter: serves /metrics from the shared multiprocess dir so scrapes
+        # survive Odoo worker-pool exhaustion. Image from values (monitoring.exporterRepository/Tag);
+        # source at devops-ops-tools/prometheusOdooExporter.
+        - name: prometheus-exporter
+          image: {{ printf "%s:%s" .Values.odoo.monitoring.exporterRepository .Values.odoo.monitoring.exporterTag | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: PROMETHEUS_MULTIPROC_DIR
+              value: "/tmp/prometheus_client"
+          ports:
+            - name: prom-odoo
+              containerPort: 9101
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: prometheus-multiproc
+              mountPath: /tmp/prometheus_client
+              readOnly: true
+        {{- end }}
       affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -425,3 +460,8 @@ spec:
       {{- end }}
       - name: session-folder-ro
         emptyDir: {}
+      {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+      # Volume shared with the exporter sidecar for prometheus_client multiproc files (tiny mmap files).
+      - name: prometheus-multiproc
+        emptyDir: {}
+      {{- end }}
