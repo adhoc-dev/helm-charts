@@ -392,9 +392,11 @@ odoo:
     # dir, so metrics survive Odoo worker-pool exhaustion. Set false to fall back to scraping the
     # in-process controller (:8069) — the old behavior.
     exporterSidecar: true
-    # Must match the prometheus_client version in the Odoo image (see prometheusOdooExporter dockerfile).
+    # Built by the prometheusOdooExporter GitHub Action (pushed to docker.io/adhoc/ops-tools, pulled
+    # via this mirror). Pin a dated tag (prometheusOdooExporter-<YYYY.MM.DD>.<run>) in prod; -latest
+    # is fine for testing. Keep the exporter's prometheus_client aligned with the Odoo image.
     exporterRepository: dockerhub.adhoc.inc/adhoc/ops-tools
-    exporterTag: "prometheus-odoo-exporter-20260707"
+    exporterTag: "prometheusOdooExporter-latest"
 
   kwkhtmltopdfServerUrl: "http://kwkhtmltopdf.kwkhtmltopdf"
 
