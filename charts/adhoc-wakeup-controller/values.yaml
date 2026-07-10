@@ -1,6 +1,6 @@
 image:
   repository: docker.io/adhoc/ops-tools
-  tag: odooWakeupController-2026.07.10.34
+  tag: odooWakeupController-2026.07.10.35
   # digest: set to pin to an exact image (overrides tag). Format: sha256:<hash>
   digest: ""
   pullPolicy: Always
