@@ -51,6 +51,7 @@ spec:
             x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
             {{- end }}
             x-adhoc-odoo-instance:  {{ .Values.odoo.pg.db  | quote }}
+            x-adhoc-odoo-tier:  {{ .Values.adhoc.appType | lower | quote }}
       route:
         - destination:
             host: {{ $srvHttp }}
@@ -138,6 +139,7 @@ spec:
             x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
             {{- end }}
             x-adhoc-odoo-instance:  {{ .Values.odoo.pg.db  | quote }}
+            x-adhoc-odoo-tier:  {{ .Values.adhoc.appType | lower | quote }}
       route:
         - destination:
             host: {{ $srvHttp }}
