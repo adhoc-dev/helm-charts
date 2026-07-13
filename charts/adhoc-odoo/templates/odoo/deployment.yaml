@@ -172,26 +172,29 @@ spec:
               # (lo provee el initContainer seed-vscode-server desde el sidecar).
               PREFIX=/opt/adhoc-dev
               if [ -d "$PREFIX/bin" ]; then
-                # CLIs → ~/.local/bin: ya está en PATH tanto en login como no-login
-                # (evita pelearse con el reset de PATH de /etc/profile). Symlink al
-                # prefijo ro: los binarios no se reescriben.
-                mkdir -p "$HOME/.local/bin"
-                for b in "$PREFIX"/bin/*; do ln -sfn "$b" "$HOME/.local/bin/$(basename "$b")"; done
-                # skills + templates → COPIAS writable en HOME (NO symlink al mount ro):
-                # `adhoc-way init` y la CLI de skills gestionan estas rutas, y escribir
-                # a través de un symlink al prefijo ro daría EROFS.
-                mkdir -p "$HOME/.claude/skills" "$HOME/.agents/skills"
-                cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.claude/skills/"
-                cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.agents/skills/"
-                for f in AGENTS.md CLAUDE.md GEMINI.md; do
-                  [ -f "$PREFIX/agents-templates/$f" ] && cp -a "$PREFIX/agents-templates/$f" "$HOME/$f"
-                done
-                # Registrar los hooks user-level de los agentes (idempotente,
-                # non-interactive). best-effort + timeout: init NO debe colgar ni
-                # tumbar el pod (p.ej. si el paso de skills necesita egress y no
-                # está). La identidad queda pendiente (skeleton); el dev la completa
-                # en el primer "hola" al agente (agent-mediated vía tuqui-adhoc).
-                timeout 180 "$PREFIX/bin/adhoc-way" init || echo "adhoc-way init: warning best-effort, continúo"
+                # Todo el setup de tooling es BEST-EFFORT: envuelto en `{ ... } || echo`
+                # para que ningún fallo tumbe el pod — siempre tiene que llegar a
+                # `exec sleep infinity`.
+                {
+                  # CLIs → ~/.local/bin: ya está en PATH en login y no-login (evita el
+                  # reset de PATH de /etc/profile). Symlink al prefijo ro.
+                  mkdir -p "$HOME/.local/bin"
+                  for b in "$PREFIX"/bin/*; do ln -sfn "$b" "$HOME/.local/bin/$(basename "$b")"; done
+                  # skills + templates → COPIAS writable en HOME. rm -rf primero: la imagen
+                  # odoo ya trae ~/.claude/skills como symlinks (bake OCI) y en un restart el
+                  # HOME persiste; sin el rm, cp choca ("cannot overwrite non-directory with
+                  # directory") y con set -e tumbaba el pod (CrashLoop).
+                  rm -rf "$HOME/.claude/skills" "$HOME/.agents/skills"
+                  mkdir -p "$HOME/.claude/skills" "$HOME/.agents/skills"
+                  cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.claude/skills/"
+                  cp -a --no-preserve=ownership,timestamps "$PREFIX"/.agents/skills/. "$HOME/.agents/skills/"
+                  for f in AGENTS.md CLAUDE.md GEMINI.md; do
+                    [ -f "$PREFIX/agents-templates/$f" ] && cp -a --remove-destination "$PREFIX/agents-templates/$f" "$HOME/$f"
+                  done
+                  # hooks user-level (idempotente, non-interactive). La identidad queda
+                  # pendiente (skeleton); el dev la completa en el primer "hola".
+                  timeout 180 "$PREFIX/bin/adhoc-way" init
+                } || echo "dev-tools bootstrap: warning (best-effort), el pod sigue arriba"
               fi
               exec sleep infinity
           {{ end }}
