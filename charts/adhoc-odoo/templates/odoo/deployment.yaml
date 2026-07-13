@@ -145,9 +145,7 @@ spec:
             - name: dev-tools
               mountPath: /work/dev-tools
       {{ end }}
-      {{- if eq .Values.adhoc.appType "prod" }}
-      priorityClassName: prod-priority
-      {{- end }}
+      priorityClassName: {{ include "adhoc-odoo.priorityClassName" (dict "ctx" . "kind" "app") }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

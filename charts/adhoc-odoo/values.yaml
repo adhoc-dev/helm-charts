@@ -428,8 +428,12 @@ createPullSecret:
 adhoc:
   # standard, advanced, premium
   serviceLevel: standard
-  # Type: test, train, backup, new, old
+  # Type: prod, test, train, demo, backup, new, old, trainp, int
   appType: prod
+  # PriorityClasses generadas en Pulumi (platform_resources.py). Un appType fuera de
+  # esta lista cae a default-priority (schedulea normal en vez de romper). Mantener
+  # en sync con las clases de Pulumi.
+  priorityTiers: [prod, backup, int, new, old, test, demo, train, trainp]
   clientAnalyticAccount: "Unknown"
   devMode: false
   # Imagen del sidecar que, en devMode, siembra el VS Code server + el tooling de

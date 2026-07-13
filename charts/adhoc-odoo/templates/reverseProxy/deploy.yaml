@@ -65,9 +65,7 @@ spec:
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
 
-      {{- if eq .Values.adhoc.appType "prod" }}
-      priorityClassName: prod-priority
-      {{- end }}
+      priorityClassName: {{ include "adhoc-odoo.priorityClassName" (dict "ctx" . "kind" "app") }}
       serviceAccountName: {{ include "adhoc-odoo.serviceAccountName" . }}
       containers:
         - name: nginx

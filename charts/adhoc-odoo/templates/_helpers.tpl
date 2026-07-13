@@ -6,6 +6,25 @@ Expand the name of the chart.
 {{- end }}
 
 {{- /*
+adhoc-odoo.priorityClassName — resuelve la PriorityClass del pod según adhoc.appType.
+Uso: {{ include "adhoc-odoo.priorityClassName" (dict "ctx" . "kind" "app") }}  (o "db")
+Devuelve "<appType>-priority" (app) o "<appType>-db-priority" (base) para los tiers
+conocidos (adhoc.priorityTiers, que debe espejar las clases creadas en Pulumi
+platform_resources.py). Un appType fuera de la lista cae a "default-priority": así un
+tier nuevo/desconocido schedulea normal (globalDefault) en vez de quedar Pending para
+siempre (una PriorityClass inexistente vuelve al pod no-scheduleable).
+*/}}
+{{- define "adhoc-odoo.priorityClassName" -}}
+{{- $appType := .ctx.Values.adhoc.appType | toString -}}
+{{- $known := .ctx.Values.adhoc.priorityTiers | default list -}}
+{{- if has $appType $known -}}
+{{- if eq .kind "db" -}}{{- printf "%s-db-priority" $appType -}}{{- else -}}{{- printf "%s-priority" $appType -}}{{- end -}}
+{{- else -}}
+{{- "default-priority" -}}
+{{- end -}}
+{{- end -}}
+
+{{- /*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
