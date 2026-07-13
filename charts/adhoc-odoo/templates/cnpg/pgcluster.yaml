@@ -57,12 +57,13 @@ metadata:
     */}}
 {{- /*https://cloudnative-pg.io/documentation/1.22/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec */}}
 spec:
-  {{- if eq .Values.adhoc.appType "prod" }}
   {{- /*
-  # Name of the priority class which will be used in every generated Pod, if the PriorityClass specified does not exist, the pod will not be able to schedule. Please refer to https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass for more information
+  # PriorityClass de cada Pod generado. Resuelta desde appType: <appType>-db-priority
+  # para tiers conocidos, si no default-priority. Una clase inexistente dejaría el Pod
+  # sin schedulear (https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).
+  # La base va un escalón sobre su Odoo (-db) para poder despejarlo si necesita el slot.
   */}}
-  priorityClassName: prod-priority
-  {{- end }}
+  priorityClassName: {{ include "adhoc-odoo.priorityClassName" (dict "ctx" . "kind" "db") }}
   # Set to 0 enable the immediate fast shutdown (bypassing the smart shutdown process)
   smartShutdownTimeout: 0
   # The time in seconds that is allowed for a PostgreSQL instance to gracefully shutdown (default 1800) We chose 3 minutes maximum
