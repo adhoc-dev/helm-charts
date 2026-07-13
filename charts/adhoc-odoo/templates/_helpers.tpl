@@ -12,7 +12,7 @@ Devuelve "<appType>-priority" (app) o "<appType>-db-priority" (base) para los ti
 conocidos (adhoc.priorityTiers, que debe espejar las clases creadas en Pulumi
 platform_resources.py). Un appType fuera de la lista cae a "default-priority": así un
 tier nuevo/desconocido schedulea normal (globalDefault) en vez de quedar Pending para
-siempre (una PriorityClass inexistente vuelve al pod no-scheduleable).
+siempre (una PriorityClass inexistente deja al pod unschedulable).
 */}}
 {{- define "adhoc-odoo.priorityClassName" -}}
 {{- $appType := .ctx.Values.adhoc.appType | toString -}}
