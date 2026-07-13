@@ -337,6 +337,9 @@ spec:
             - name: prom-odoo
               containerPort: 9101
           resources:
+            requests:
+              cpu: 10m
+              memory: 8Mi
             limits:
               cpu: 100m
               memory: 64Mi
