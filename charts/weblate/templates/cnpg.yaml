@@ -18,10 +18,14 @@ metadata:
     app.kubernetes.io/name: {{ include "app-instance.fullname" . }}-pg
   annotations:
     cnpg.io/hibernation: "off"
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 spec:
   priorityClassName: prod-priority
   smartShutdownTimeout: 0
   logLevel: info
+  inheritedMetadata:
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
   primaryUpdateStrategy: unsupervised
   enablePDB: false
