@@ -6,6 +6,7 @@
 {{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
 {{- $fullName := include "adhoc-odoo.serviceNameSuffix" . -}}
 {{- $svcHost := ternary (printf "%s-nginx" $fullName) (printf "%s-http" $fullName) .Values.ingress.reverseProxy.enabled -}}
+{{- $fusePath := printf "/home/odoo/data/filestore/%s" (ternary "odoo" .Release.Name .Values.cloudNativePG.enabled) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -225,13 +226,20 @@ spec:
             initialDelaySeconds: 1
             failureThreshold: 900 # 15 min
             periodSeconds: 1
-          # Check if the pod is halted and need to be restarted
+          # Check if the pod is halted and need to be restarted. Bases no-fuse → tcpSocket.
           livenessProbe:
-            # httpGet:
-            #   path: /web/login
-            #   port: 8069
+            {{- if eq .Values.storage.location "fuse" }}
+            # exec, no tcpSocket: con el mount gcsfuse muerto (Errno 107) Odoo sigue escuchando en
+            # 8069, así que el tcp no lo ve. os.stat del mount + check del puerto → fuerza restart.
+            exec:
+              command:
+                - python3
+                - -c
+                - "import os,socket; os.stat('{{ $fusePath }}'); socket.create_connection(('127.0.0.1', 8069), 3).close()"
+            {{- else }}
             tcpSocket:
               port: 8069
+            {{- end }}
             initialDelaySeconds: 2
             periodSeconds: 15
             timeoutSeconds: 5
@@ -283,7 +291,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
           {{- if eq .Values.storage.location "fuse" }}
-          {{- $fusePath := printf "/home/odoo/data/filestore/%s" (ternary "odoo" .Release.Name .Values.cloudNativePG.enabled) }}
+          {{- /* $fusePath se define al top del template (reusado por la livenessProbe) */}}
           - name: gcs-fuse-csi-ephemeral
             readOnly: false
             mountPath: {{ $fusePath }}
