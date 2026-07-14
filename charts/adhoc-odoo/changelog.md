@@ -4,6 +4,14 @@
 
 Fixes:
 
+- Bases `fuse`: la `livenessProbe` de `adhoc-odoo` y del reverse proxy (`-nx`)
+  pasa de `tcpSocket:8069` a un `exec` que verifica el mount del filestore. Si el
+  sidecar gcsfuse muere, el mount queda colgado (`Errno 107`) pero Odoo sigue
+  escuchando en 8069, así que el pod quedaba "vivo pero roto" (`/web/image` y
+  adjuntos daban 500); ahora el kubelet reinicia el container y gcsfuse remonta
+  limpio. odoo: `os.stat` del mount + check de puerto; nginx: `[ -d mount ]`. Se
+  agrega además `readinessProbe` al nginx del `-nx` (`tcpSocket:9080`). Solo
+  afecta bases `fuse`; con valores por defecto el render no cambia (sin bump).
 - OWC (wakeup controller): los helpers `wakeupController.domain` y
   `wakeupController.enabled` ahora toleran que el sub-map
   `autoscaling.wakeupController` venga nil/ausente (caso típico: `helm upgrade
