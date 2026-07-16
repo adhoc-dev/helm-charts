@@ -324,12 +324,12 @@ spec:
           - name: session-folder-ro
             mountPath: /home/odoo/data/sessions
             readOnly: true
-          {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+          {{- if and .Values.odoo.monitoring.enabled (eq (include "adhoc-odoo.exporterSidecarEnabled" .) "true") }}
           # Shared with the prometheus-exporter sidecar; the module writes multiprocess metric files here.
           - name: prometheus-multiproc
             mountPath: /tmp/prometheus_client
           {{- end }}
-        {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+        {{- if and .Values.odoo.monitoring.enabled (eq (include "adhoc-odoo.exporterSidecarEnabled" .) "true") }}
         # Out-of-band metrics exporter: serves /metrics from the shared multiprocess dir so scrapes
         # survive Odoo worker-pool exhaustion. Image from values (monitoring.exporterRepository/Tag);
         # source at devops-ops-tools/prometheusOdooExporter.
@@ -469,7 +469,7 @@ spec:
       {{- end }}
       - name: session-folder-ro
         emptyDir: {}
-      {{- if and .Values.odoo.monitoring.enabled .Values.odoo.monitoring.exporterSidecar }}
+      {{- if and .Values.odoo.monitoring.enabled (eq (include "adhoc-odoo.exporterSidecarEnabled" .) "true") }}
       # Volume shared with the exporter sidecar for prometheus_client multiproc files (tiny mmap files).
       - name: prometheus-multiproc
         emptyDir: {}
