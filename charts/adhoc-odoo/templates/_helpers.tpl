@@ -64,16 +64,24 @@ Get odoo minor version.
 {{- end }}
 
 {{- /*
+Odoo image minor version as a YYYYMMDD string, with a dateless (dev) tag assumed current (today).
+Pipe through `| int` at the call site. Keeps version gating consistent across templates.
+*/}}
+{{- define "adhoc-odoo.odoo-effective-minor-version" -}}
+{{- $minorRaw := include "adhoc-odoo.odoo-minor-version" . | trim -}}
+{{- ternary $minorRaw (now | date "20060102") (regexMatch "^[0-9]{8}$" $minorRaw) -}}
+{{- end }}
+
+{{- /*
 Whether the out-of-band Prometheus exporter sidecar should run. Derived from the Odoo image
 version instead of a static value: the sidecar only makes sense on images that ship the
 multiprocess-aware saas_prometheus module (Odoo >= 18.0 and image minor >= 20260714). Older
-images fall back to scraping the in-process controller on :8069. A dateless (dev) tag is
-assumed current (today). Returns "true" when enabled, empty otherwise.
+images fall back to scraping the in-process controller on :8069. Returns "true" when enabled,
+empty otherwise.
 */}}
 {{- define "adhoc-odoo.exporterSidecarEnabled" -}}
 {{- $major := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
-{{- $minorRaw := include "adhoc-odoo.odoo-minor-version" . | trim -}}
-{{- $effectiveMinor := int (ternary $minorRaw (now | date "20060102") (regexMatch "^[0-9]{8}$" $minorRaw)) -}}
+{{- $effectiveMinor := include "adhoc-odoo.odoo-effective-minor-version" . | int -}}
 {{- if and (ge $major 180) (ge $effectiveMinor 20260714) -}}
 true
 {{- end -}}

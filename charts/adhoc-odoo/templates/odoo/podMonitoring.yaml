@@ -1,4 +1,4 @@
-{{- $minorVersion := include "adhoc-odoo.odoo-minor-version" . | int -}}
+{{- $minorVersion := include "adhoc-odoo.odoo-effective-minor-version" . | int -}}
 {{- $odooVersion := include "adhoc-odoo.odoo-version" . | replace "." "" | int -}}
 {{- if and .Values.odoo.monitoring.enabled (ge $odooVersion 180) (ge $minorVersion 20251121) }}
 apiVersion: monitoring.coreos.com/v1
