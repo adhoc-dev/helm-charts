@@ -46,6 +46,8 @@ spec:
       headers:
         request:
           set:
+            {{- /* activa ProxyFix de Odoo (gate X-Forwarded-Host) para url_root https bajo Istio */}}
+            x-forwarded-host: '%REQ(:AUTHORITY)%'
             {{- if ne .Values.ingress.reverseProxy.inactive.mode "" }}
             x-maintenance-mode: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
             x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
@@ -134,6 +136,8 @@ spec:
       headers:
         request:
           set:
+            {{- /* activa ProxyFix de Odoo (gate X-Forwarded-Host) para url_root https bajo Istio */}}
+            x-forwarded-host: '%REQ(:AUTHORITY)%'
             {{- if ne .Values.ingress.reverseProxy.inactive.mode "" }}
             x-maintenance-mode: {{ .Values.ingress.reverseProxy.inactive.mode | quote }}
             x-maintenance-eta:  {{ .Values.ingress.reverseProxy.inactive.eta | default "" | quote }}
