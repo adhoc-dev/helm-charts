@@ -65,7 +65,9 @@ Get odoo minor version.
 
 {{- /*
 Odoo image minor version as a YYYYMMDD string, with a dateless (dev) tag assumed current (today).
-Pipe through `| int` at the call site. Keeps version gating consistent across templates.
+Pipe through `| int` at the call site. Used by the exporter-sidecar and PodMonitor gates so a
+dateless/dev tag is treated as current; other version gates in the chart still read
+odoo-minor-version directly (dateless -> 0).
 */}}
 {{- define "adhoc-odoo.odoo-effective-minor-version" -}}
 {{- $minorRaw := include "adhoc-odoo.odoo-minor-version" . | trim -}}
