@@ -12,7 +12,7 @@ spec:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
   podMetricsEndpoints:
-  {{- if .Values.odoo.monitoring.exporterSidecar }}
+  {{- if eq (include "adhoc-odoo.exporterSidecarEnabled" .) "true" }}
   - port: prom-odoo
     path: /metrics
     interval: 60s

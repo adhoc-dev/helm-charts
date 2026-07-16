@@ -25,7 +25,7 @@ spec:
           protocol: TCP
       {{- end }}
       {{- if .Values.odoo.monitoring.enabled }}
-        {{- if .Values.odoo.monitoring.exporterSidecar }}
+        {{- if eq (include "adhoc-odoo.exporterSidecarEnabled" .) "true" }}
         - port: 9101
           protocol: TCP
         {{- else }}

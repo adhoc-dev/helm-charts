@@ -388,11 +388,12 @@ odoo:
     # example2: "no"
   monitoring:
     enabled: false
-    # Out-of-band metrics exporter sidecar (only takes effect when monitoring.enabled=true).
-    # When true (default), Prometheus scrapes the sidecar (:9101), which reads the multiprocess
-    # dir, so metrics survive Odoo worker-pool exhaustion. Set false to fall back to scraping the
-    # in-process controller (:8069) — the old behavior.
-    exporterSidecar: true
+    # Out-of-band metrics exporter sidecar: Prometheus scrapes the sidecar (:9101), which reads the
+    # multiprocess dir, so metrics survive Odoo worker-pool exhaustion. Enablement is NOT a static
+    # value: it's derived from the Odoo image version (helper adhoc-odoo.exporterSidecarEnabled) —
+    # used on images >= 18.0 with minor >= 20260714 (which ship the multiprocess-aware module), and
+    # falls back to scraping the in-process controller (:8069) on older images. Only takes effect
+    # when monitoring.enabled=true.
     # Built by the prometheusOdooExporter GitHub Action (pushed to docker.io/adhoc/ops-tools, pulled
     # via this mirror). Pin a dated tag (prometheusOdooExporter-<YYYY.MM.DD>.<run>) in prod; -latest
     # is fine for testing. Keep the exporter's prometheus_client aligned with the Odoo image.
