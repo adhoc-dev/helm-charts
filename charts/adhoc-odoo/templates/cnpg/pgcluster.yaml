@@ -251,11 +251,13 @@ spec:
     {{- end }}
     target: prefer-standby
 
-  {{- /* bootstrap is create-only: echo the live one on existing clusters, never re-derive it. */}}
-  {{- $existingCluster := (lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (printf "%s-pg" (include "cnpg.sanitizedPgName" .))) }}
-  {{- if and $existingCluster $existingCluster.spec $existingCluster.spec.bootstrap }}
+  {{- /* bootstrap is create-only: on existing clusters echo the live one (or omit if none), never re-derive it. */}}
+  {{- $existingCluster := (lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (include "cnpg.pgClusterName" .)) }}
+  {{- if $existingCluster }}
+  {{- if and $existingCluster.spec $existingCluster.spec.bootstrap }}
   bootstrap:
     {{- $existingCluster.spec.bootstrap | toYaml | nindent 4 }}
+  {{- end }}
   {{- else if .Values.cloudNativePG.restore.inTimeRecovery }}
   bootstrap:
     recovery:

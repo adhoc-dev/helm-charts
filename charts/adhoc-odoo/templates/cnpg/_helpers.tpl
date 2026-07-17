@@ -13,3 +13,10 @@ Pg name sanitization.
 {{- $original = regexReplaceAll "^[0-9]+" $original "" }}
 {{- regexReplaceAll "[^a-z0-9-]" $original "" }}
 {{- end }}
+
+{{- /*
+CNPG Cluster object name (single source of truth for the lookup name).
+*/}}
+{{- define "cnpg.pgClusterName" -}}
+{{- printf "%s-pg" (include "cnpg.sanitizedPgName" .) }}
+{{- end }}

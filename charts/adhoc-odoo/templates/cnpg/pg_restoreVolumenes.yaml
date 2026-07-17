@@ -1,5 +1,5 @@
 {{- /* Restore source snapshot: only on initial creation, not on clusters that already exist. */}}
-{{- $existingCluster := (lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (printf "%s-pg" (include "cnpg.sanitizedPgName" .))) }}
+{{- $existingCluster := (lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (include "cnpg.pgClusterName" .)) }}
 {{- if and .Values.cloudNativePG.enabled .Values.cloudNativePG.restore.fromGCPSnapshot (not $existingCluster) }}
 
 # Class
