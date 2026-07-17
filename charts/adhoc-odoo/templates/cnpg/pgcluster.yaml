@@ -251,7 +251,12 @@ spec:
     {{- end }}
     target: prefer-standby
 
-  {{- if .Values.cloudNativePG.restore.inTimeRecovery }}
+  {{- /* bootstrap is create-only: echo the live one on existing clusters, never re-derive it. */}}
+  {{- $existingCluster := (lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (printf "%s-pg" (include "cnpg.sanitizedPgName" .))) }}
+  {{- if and $existingCluster $existingCluster.spec $existingCluster.spec.bootstrap }}
+  bootstrap:
+    {{- $existingCluster.spec.bootstrap | toYaml | nindent 4 }}
+  {{- else if .Values.cloudNativePG.restore.inTimeRecovery }}
   bootstrap:
     recovery:
       {{- if or .Values.cloudNativePG.restore.fromSnapshot .Values.cloudNativePG.restore.fromGCPSnapshot }}
@@ -306,7 +311,8 @@ spec:
             annotations:
               exposed-service: "true"
       {{- end }}
-  {{- if not .Values.cloudNativePG.restore.inTimeRecovery }}
+  {{- /* Manage roles on existing clusters or fresh non-restore installs. */}}
+  {{- if or $existingCluster (not .Values.cloudNativePG.restore.inTimeRecovery) }}
     roles:
     - name: odoo
       ensure: present
