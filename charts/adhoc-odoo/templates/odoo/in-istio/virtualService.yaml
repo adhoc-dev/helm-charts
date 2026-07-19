@@ -59,6 +59,14 @@ spec:
             host: {{ $srvHttp }}
             port:
               number: {{ $srvPort }}
+      {{- if and $isKedaEnabled (not $isWakeupEnabled) }}
+      # Ver mismo bloque en el VS "*-custom": solo cold-start de KEDA sin
+      # wakeup controller, seguro porque todavía no hay backend real.
+      retries:
+        attempts: 10
+        perTryTimeout: 5s
+        retryOn: gateway-error,connect-failure,refused-stream
+      {{- end }}
       {{- if gt $usewebsocket 0 }}
     - match:
         - uri:
@@ -149,10 +157,17 @@ spec:
             host: {{ $srvHttp }}
             port:
               number: {{ $srvPort }}
+      {{- if and $isKedaEnabled (not $isWakeupEnabled) }}
+      # Solo para KEDA sin wakeup controller: durante el cold-start el
+      # interceptor de KEDA sostiene la conexión sin haber llegado a un backend
+      # real, así que reintentar acá no duplica nada (gateway-error = sigue
+      # dormido). Sin esta condición, el mismo bloque reintenta sobre backends
+      # ya despiertos y duplica cualquier acción no idempotente en curso.
       retries:
         attempts: 10
         perTryTimeout: 5s
         retryOn: gateway-error,connect-failure,refused-stream
+      {{- end }}
       {{- if gt $usewebsocket 0 }}
     - match:
         - uri:
