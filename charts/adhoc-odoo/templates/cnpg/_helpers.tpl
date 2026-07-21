@@ -1,8 +1,9 @@
 {{- /*
 Expand the name of the chart.
 */}}
+{{- /* Deterministic (no `now`): se evalúa por separado en pg_restoreVolumenes.yaml y pgcluster.yaml; releaseName+namespace es único por release aun con 2 CNPG en el mismo ns. */}}
 {{- define "cnpg.targetBkp" -}}
-{{- now | date "20060102150405" }}
+{{- printf "%s-%s" .Release.Name .Release.Namespace | sha256sum | trunc 12 }}
 {{- end }}
 
 {{- /*
