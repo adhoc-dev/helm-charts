@@ -1,5 +1,4 @@
 {{- if .Values.ingress.reverseProxy.enabled }}
-{{- $nxFusePath := printf "/mnt/filestore/%s" (ternary "odoo" .Release.Name .Values.cloudNativePG.enabled) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -81,30 +80,6 @@ spec:
             - name: http
               containerPort: 9080
               protocol: TCP
-          # Readiness: saca el pod del Service si nginx deja de aceptar conexiones en 9080.
-          readinessProbe:
-            tcpSocket:
-              port: 9080
-            initialDelaySeconds: 2
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          {{- if eq .Values.storage.location "fuse" }}
-          # nginx sirve el filestore por sendfile; sin probe seguiría "vivo" con 5xx si el mount
-          # gcsfuse muere. [ -d ], no ls: listar el root del bucket con implicit-dirs cuelga.
-          livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - '[ -d "{{ $nxFusePath }}" ]'
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 8 # 2 min
-            successThreshold: 1
-          {{- end }}
           {{- if eq .Values.adhoc.appType "prod" }}
           resources:
             requests:
