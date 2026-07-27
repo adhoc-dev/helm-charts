@@ -5,10 +5,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "adhoc-cluster-sentinel.labels" . | nindent 4 }}
-  {{- with .Values.podAnnotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 spec:
   # Hard-coded to 1: guardrail state (cooldown, circuit-breaker, confirmation
   # windows) lives in-process and is not shared, so a second replica could delete
@@ -21,6 +17,10 @@ spec:
     metadata:
       labels:
         {{- include "adhoc-cluster-sentinel.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "adhoc-cluster-sentinel.serviceAccountName" . }}
       securityContext:
