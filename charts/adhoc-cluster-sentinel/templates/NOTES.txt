@@ -1,0 +1,18 @@
+Adhoc Cluster Sentinel deployed in namespace {{ .Release.Namespace }}.
+
+  modeOverride:   {{ .Values.modeOverride | default "(none — checks use their own default)" }}
+  disabledChecks: {{ .Values.disabledChecks | default "(none)" }}
+  prometheusUrl:  {{ .Values.prometheusUrl }}
+
+Checks (mode/thresholds are code defaults per check):
+  gcsfuse-mount    (source: k8s)         restarted gcsfuse sidecar -> recreate pod
+  memory-pressure  (source: Prometheus)  pod near memory limit -> rotate pod
+
+Metrics on :{{ .Values.metricsPort }}/metrics — key series (labeled by check):
+  cluster_sentinel_findings{check="..."}
+  cluster_sentinel_actions_total{check="..."}
+  cluster_sentinel_suppressed_total{check="...",reason="..."}
+  cluster_sentinel_check_last_run_timestamp_seconds{check="..."}   (heartbeat)
+
+Checks ship in observe. Confirm cluster_sentinel_findings flags the right targets,
+then flip a check to enforce (set modeOverride=enforce for all, per the rollout).

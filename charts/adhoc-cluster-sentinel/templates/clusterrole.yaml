@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "adhoc-cluster-sentinel.fullname" . }}
+  labels:
+    {{- include "adhoc-cluster-sentinel.labels" . | nindent 4 }}
+rules:
+  # List pods clusterwide to run the detectors, and delete the confirmed-broken
+  # ones so their Deployment recreates them. This is the controller's whole job.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "delete"]
