@@ -1,0 +1,54 @@
+image:
+  repository: docker.io/adhoc/ops-tools
+  tag: clusterSentinel-latest
+  # digest: set to pin to an exact image (overrides tag). Format: sha256:<hash>
+  digest: ""
+  pullPolicy: Always
+
+# Kubernetes namespace where the controller is deployed.
+namespace: adhoc-cluster-sentinel
+
+# Per-check config (interval, thresholds, selector, mode) lives as code defaults on
+# each Check. These are the only global knobs.
+
+# If set (observe|enforce), forces the mode of ALL checks — for the observe->enforce
+# rollout. Empty = each check uses its own default (checks ship in observe).
+modeOverride: ""
+
+# Comma-separated check names to disable entirely (e.g. "memory-pressure").
+disabledChecks: ""
+
+# Prometheus HTTP API base, shared by Prometheus-sourced checks.
+prometheusUrl: "http://prometheus-operated.monitoring:9090"
+
+# /metrics + /healthz port.
+metricsPort: 9091
+
+# Prometheus scraping of /metrics. Requires the PodMonitor CRD (prometheus-operator);
+# additionalLabels must match the cluster Prometheus's podMonitorSelector (e.g.
+# {release: prom}). Enabled per-deployment (e.g. in the Pulumi values).
+metrics:
+  podMonitor:
+    enabled: false
+    interval: 30s
+    additionalLabels: {}
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    # Check scans are bursty (a k8s check parses the whole fleet each interval); a
+    # tight CPU limit throttles it, stalls the event loop, and fails the liveness probe.
+    cpu: 500m
+    memory: 192Mi
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
