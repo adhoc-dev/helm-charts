@@ -1,0 +1,26 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "adhoc-way-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "adhoc-way-instance.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Ingress to the proxy port is allowed only from the ingress gateway
+    # namespace (namespace-scoped, not a specific pod). The tool on 127.0.0.1
+    # is unreachable from the cluster regardless.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.gatewayNamespace }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.authProxy.listenPort }}
+{{- end }}

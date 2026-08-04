@@ -1,0 +1,21 @@
+{{- if .Values.ingress.istio.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "adhoc-way-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.labels" . | nindent 4 }}
+spec:
+  hosts:
+    - {{ .Values.host | quote }}
+  gateways:
+    - {{ .Values.ingress.istio.gateway }}
+  http:
+    # Single catch-all route; Istio passes WebSocket transparently on the same host.
+    - route:
+        - destination:
+            host: {{ printf "%s.%s.svc.cluster.local" (include "adhoc-way-instance.fullname" .) .Release.Namespace }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}

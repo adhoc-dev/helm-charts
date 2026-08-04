@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adhoc-way-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "adhoc-way-instance.selectorLabels" . | nindent 4 }}
+  ports:
+    # Only the auth-proxy port. The tool (127.0.0.1) is not exposed.
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
