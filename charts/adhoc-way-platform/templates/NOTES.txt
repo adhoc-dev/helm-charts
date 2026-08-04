@@ -1,0 +1,15 @@
+adhoc-way-platform deployed in namespace "{{ .Release.Namespace }}".
+
+  auth-svc : Service {{ include "adhoc-way-platform.fullname" . }}:{{ .Values.authSvc.listenPort }}  (POST /grant, bearer)
+  pubkey   : ConfigMap {{ include "adhoc-way-platform.fullname" . }}-entry-pubkey  (consumed by adhoc-way-instance)
+{{- if .Values.gateway.enabled }}
+  gateway  : {{ include "adhoc-way-platform.fullname" . }}-gateway  for *.{{ .Values.domain }}
+{{- end }}
+{{- if .Values.certificate.enabled }}
+  cert     : wildcard *.{{ .Values.domain }}  (secret {{ .Values.gateway.credentialName }} in {{ .Values.certificate.namespace }})
+{{- end }}
+
+Bootstrap the keypair once:
+  docker run --rm {{ .Values.authSvc.image.repository }}:{{ .Values.authSvc.image.tag }} keygen
+    -> WAY_SIGNING_KEY  to the Secret  (authSvc.existingSecret, or authSvc.secret.signingKey)
+    -> WAY_ENTRY_PUBKEY to the value   entryPubKey

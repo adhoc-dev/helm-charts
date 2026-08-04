@@ -1,0 +1,31 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- toYaml .Values.gateway.istioSelector | nindent 4 }}
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: {{ .Values.gateway.credentialName | quote }}
+        minProtocolVersion: TLSV1_2
+      hosts:
+        - '*.{{ .Values.domain }}'
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - '*.{{ .Values.domain }}'
+      tls:
+        httpsRedirect: true
+{{- end }}

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.authSvc.replicas }}
+  selector:
+    matchLabels:
+      {{- include "adhoc-way-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adhoc-way-platform.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "adhoc-way-platform.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: authsvc
+          image: "{{ .Values.authSvc.image.repository }}{{ if .Values.authSvc.image.digest }}@{{ .Values.authSvc.image.digest }}{{ else }}:{{ .Values.authSvc.image.tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.authSvc.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.authSvc.listenPort }}
+              protocol: TCP
+          env:
+            - name: WAY_LISTEN
+              value: ":{{ .Values.authSvc.listenPort }}"
+            - name: WAY_ENTRY_TTL
+              value: {{ .Values.authSvc.entryTtl | quote }}
+            - name: WAY_HOST_SUFFIX
+              value: {{ .Values.authSvc.hostSuffix | quote }}
+            - name: WAY_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "adhoc-way-platform.authSvcSecretName" . }}
+                  key: signing-key
+            - name: WAY_GRANT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "adhoc-way-platform.authSvcSecretName" . }}
+                  key: grant-token
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.authSvc.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "adhoc-way-platform.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.authSvc.listenPort }}
+      targetPort: http
+      protocol: TCP

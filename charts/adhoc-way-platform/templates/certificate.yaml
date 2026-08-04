@@ -1,0 +1,20 @@
+{{- if .Values.certificate.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}-wildcard
+  namespace: {{ .Values.certificate.namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  commonName: '{{ .Values.domain }}'
+  dnsNames:
+    - '{{ .Values.domain }}'
+    - '*.{{ .Values.domain }}'
+  issuerRef:
+    name: {{ .Values.certificate.issuerRef.name | quote }}
+    kind: {{ .Values.certificate.issuerRef.kind }}
+  secretName: {{ .Values.gateway.credentialName | quote }}
+  privateKey:
+    rotationPolicy: Always
+{{- end }}
