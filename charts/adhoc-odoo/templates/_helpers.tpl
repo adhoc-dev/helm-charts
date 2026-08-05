@@ -285,7 +285,8 @@ Sin istio.enabled devuelve "open" (los recursos de egress no aplican).
 {{- end -}}
 
 {{/*
-adhoc-odoo.egressExcludePorts — puertos que se SACAN del sidecar (server-first: SMTP/SSH + PG).
+adhoc-odoo.egressExcludePorts — puertos que se SACAN del sidecar. Dos motivos distintos conviven
+en esta lista: SMTP/SSH salen por ser server-first, y Postgres por latencia (NO es server-first).
 Default 587,465,25,22,2525,5432 (SMTP estándar 587/465/25 + Mailgun-2525 + SSH 22 + Postgres)
 MÁS el odoo.smtp.port configurado si es no estándar. Los puertos SMTP son server-speaks-first: si
 pasan por el sidecar, el tls_inspector del egress logging los cuelga (timeout 15s → reset,

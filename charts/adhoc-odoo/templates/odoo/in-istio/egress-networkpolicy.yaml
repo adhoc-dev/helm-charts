@@ -17,7 +17,11 @@
 {{- if has "443" $exclPorts -}}
 {{- fail "ingress.istio.egress.excludeOutboundPorts no puede incluir 443: el HTTPS debe pasar por el sidecar para que aplique la whitelist. Quitá 443 de la lista." -}}
 {{- end -}}
-{{- $smtpPorts := without $exclPorts "22" -}}
+{{- /* 22 (SSH) tiene su propia regla con los CIDR de GitHub, y 5432 (Postgres) sale por latencia
+   contra la DB in-cluster — no contra el relay del tenant. Si 5432 entrara acá, outboundTcpCidrs
+   (pensado para SMTP) terminaría abriendo el puerto de la base hacia los rangos del proveedor
+   de mail. La DB in-cluster ya está cubierta por la regla namespaceSelector de más abajo. */ -}}
+{{- $smtpPorts := without $exclPorts "22" "5432" -}}
 {{- $smtpCidrs := ($egress.outboundTcpCidrs | default list) -}}
 {{- $sshOn := and ($egress.repoSsh) .Values.adhoc.devMode (has "22" $exclPorts) -}}
 {{- /* GitHub: rangos git de https://api.github.com/meta ("git"). Override/sync vía egress.repoSshCidrs. */ -}}

@@ -97,6 +97,10 @@ ingress:
       # ~0,78 ms, más que el tiempo que la propia consulta pasa en el motor. El CNPG no está en
       # el mesh (sin sidecar), así que el passthrough no aporta mTLS ni políticas. Bajo enforce
       # la NP -egress-meshed lo restringe a in-cluster + RFC1918 y le deniega Internet.
+      # ⚠️ AL ACTUALIZAR: un tenant con Postgres EXTERNO que haya puesto 5432 en openTcpPorts
+      # (para que salga logueado por el sidecar) va a fallar el upgrade — el chart rechaza a
+      # propósito que un puerto esté en las dos listas. Sacarlo de una: de openTcpPorts si
+      # prefiere la latencia baja, o de esta lista (override local) si prefiere el logging.
       excludeOutboundPorts: "587,465,25,22,2525,5432"
       # IPs que se SACAN del redirect del sidecar (salen directo, gobernadas por la NetworkPolicy).
       # El metadata server de GKE (169.254.169.254) SIEMPRE se excluye (baked-in): la Workload
