@@ -1,0 +1,64 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Platform base domain. The Gateway and Certificate cover *.<domain>.
+# The real domain is provided at deploy time (e.g. Pulumi values).
+domain: way.example.com
+
+# Ed25519 public key (NOT secret) of the signer, consumed by the
+# adhocwayAuthProxy sidecars via a ConfigMap. Comes from `keygen` (WAY_ENTRY_PUBKEY).
+entryPubKey: ""
+
+authSvc:
+  image:
+    repository: docker.io/adhoc/ops-tools
+    tag: adhocwayAuthSvc-2026.08.04.1
+    # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
+    digest: ""
+    pullPolicy: Always
+  replicas: 1
+  listenPort: 8090
+  entryTtl: 60s
+  # Only sign entry tokens for hosts under this suffix; set it to match `domain`.
+  hostSuffix: .way.example.com
+  # Secret holding the signing key (Ed25519) and the grant token. If
+  # existingSecret is set it is used (recommended in prod). Otherwise the chart
+  # creates one from `secret` (dev only).
+  existingSecret: ""
+  secret:
+    signingKey: "" # base64 (32B seed or 64B full) — WAY_SIGNING_KEY from keygen
+    grantToken: "" # bearer the caller presents on /grant
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+gateway:
+  enabled: true
+  # Selector of the existing Envoy ingress gateway this Gateway binds to.
+  istioSelector:
+    istio: external-ingressgateway
+  # TLS secret created by cert-manager (see `certificate`), read by the gateway.
+  credentialName: way-wildcard-tls
+
+certificate:
+  enabled: true
+  # cert-manager creates the wildcard *.<domain> in this namespace (where the
+  # ingress gateway reads TLS secrets).
+  namespace: istio-system
+  issuerRef:
+    # cert-manager ClusterIssuer (DNS-01). Set the real issuer at deploy time.
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

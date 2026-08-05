@@ -1,0 +1,22 @@
+annotations:
+  category: DevOps
+apiVersion: v2
+name: adhoc-way-platform
+description: >
+  Singleton chart for the "way" platform: the central signer service
+  (adhocwayAuthSvc, POST /grant + keygen), a dedicated Istio Gateway and a
+  wildcard certificate for the platform domain. Installed once per cluster.
+  Per-user instances are deployed by the adhoc-way-instance chart.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "adhocwayAuthSvc-2026.08.04.1"
+
+home: "https://github.com/adhoc-dev/helm-charts"
+sources:
+  - "https://github.com/ingadhoc/devops-ops-tools"
+maintainers:
+  - name: azacchino
+    email: az@adhoc.inc
