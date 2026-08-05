@@ -126,7 +126,12 @@ Mailgun `2525`) queda excluido sin tener que editar `excludeOutboundPorts`:
   No se puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
 
 > **`5432` está en la lista por otro motivo: latencia, no server-first.** Postgres es el camino
-> más caliente de Odoo y cada salto por el sidecar agrega ~0,78 ms por consulta; el pod CNPG no
+> más caliente de Odoo y cada salto por el sidecar agrega **~0,15 ms por consulta** — medido con
+> un A/B entre bases con el puerto excluido y bases con el puerto aún interceptado, normalizando
+> la latencia de red con una sonda al puerto 22 (que ya estaba excluido). A ~126 consultas/s son
+> ~2 h de espera acumulada cada 108 h. ⚠️ **No medir esto durante una ventana de CPU throttling
+> del propio Postgres**: el congelamiento del backend infla el `SELECT 1` y se atribuye al proxy
+> latencia que es del motor (nos pasó: 0,85 ms aparentes contra 0,13 ms reales). El pod CNPG no
 > está en el mesh, así que el passthrough no aportaba mTLS ni políticas. Queda fuera de la regla
 > de `outboundTcpCidrs` (es tráfico a la DB in-cluster, no al relay del tenant): lo cubre la
 > regla `namespaceSelector` de la NetworkPolicy meshed. **Si un tenant usa Postgres externo con
