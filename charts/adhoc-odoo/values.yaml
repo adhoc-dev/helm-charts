@@ -92,7 +92,12 @@ ingress:
       # SACAN del sidecar (estos puertos) y se gobiernan por NetworkPolicy, no por ServiceEntry.
       # El puerto SMTP configurado (odoo.smtp.port) se AUTO-INCLUYE (cubre relays en puertos no
       # estándar sin tocar esta lista). Ver "Egress control" en doc/adhoc-odoo.md.
-      excludeOutboundPorts: "587,465,25,22,2525"
+      # 5432 (Postgres) entra por LATENCIA, no por server-first: es el path caliente de Odoo
+      # (~126 consultas/s medidas en una base productiva) y cada salto por el sidecar cuesta
+      # ~0,78 ms, más que el tiempo que la propia consulta pasa en el motor. El CNPG no está en
+      # el mesh (sin sidecar), así que el passthrough no aporta mTLS ni políticas. Bajo enforce
+      # la NP -egress-meshed lo restringe a in-cluster + RFC1918 y le deniega Internet.
+      excludeOutboundPorts: "587,465,25,22,2525,5432"
       # IPs que se SACAN del redirect del sidecar (salen directo, gobernadas por la NetworkPolicy).
       # El metadata server de GKE (169.254.169.254) SIEMPRE se excluye (baked-in): la Workload
       # Identity de gcsfuse lo consulta por HTTP:80 y bajo enforce el sidecar lo bloquearía (502) →
