@@ -292,7 +292,7 @@ MÁS el odoo.smtp.port configurado si es no estándar. Los puertos SMTP son serv
 pasan por el sidecar, el tls_inspector del egress logging los cuelga (timeout 15s → reset,
 incluso en observe). Auto-derivar smtp.port evita que un relay en puerto no estándar (p.ej.
 Mailgun 2525) quede bloqueado. 5432 entra por otra razón — LATENCIA: es el path caliente de Odoo
-y cada salto por el sidecar cuesta ~0,78 ms/consulta; el CNPG no está en el mesh, así que el
+y cada salto por el sidecar cuesta ~0,15 ms/consulta; el CNPG no está en el mesh, así que el
 passthrough no aporta mTLS ni políticas. Nunca agrega 443 (debe pasar por el sidecar). El override
 de podAnnotations lo maneja cada template; este helper es el DEFAULT.
 */}}

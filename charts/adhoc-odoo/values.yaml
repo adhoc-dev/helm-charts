@@ -94,9 +94,10 @@ ingress:
       # estándar sin tocar esta lista). Ver "Egress control" en doc/adhoc-odoo.md.
       # 5432 (Postgres) entra por LATENCIA, no por server-first: es el path caliente de Odoo
       # (~126 consultas/s medidas en una base productiva) y cada salto por el sidecar cuesta
-      # ~0,78 ms, más que el tiempo que la propia consulta pasa en el motor. El CNPG no está en
-      # el mesh (sin sidecar), así que el passthrough no aporta mTLS ni políticas. Bajo enforce
-      # la NP -egress-meshed lo restringe a in-cluster + RFC1918 y le deniega Internet.
+      # ~0,15 ms por consulta (A/B contra bases con el puerto aún interceptado; ~2 h de espera
+      # acumulada cada 108 h a ese volumen). El CNPG no está en el mesh (sin sidecar), así que
+      # el passthrough no aporta mTLS ni políticas: solo latencia. Bajo enforce la NP
+      # -egress-meshed lo restringe a in-cluster + RFC1918 y le deniega Internet.
       # ⚠️ AL ACTUALIZAR: un tenant con Postgres EXTERNO que haya puesto 5432 en openTcpPorts
       # (para que salga logueado por el sidecar) va a fallar el upgrade — el chart rechaza a
       # propósito que un puerto esté en las dos listas. Sacarlo de una: de openTcpPorts si

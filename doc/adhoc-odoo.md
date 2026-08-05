@@ -126,12 +126,17 @@ Mailgun `2525`) queda excluido sin tener que editar `excludeOutboundPorts`:
   No se puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
 
 > **`5432` está en la lista por otro motivo: latencia, no server-first.** Postgres es el camino
-> más caliente de Odoo y cada salto por el sidecar agrega ~0,78 ms por consulta; el pod CNPG no
-> está en el mesh, así que el passthrough no aportaba mTLS ni políticas. Queda fuera de la regla
-> de `outboundTcpCidrs` (es tráfico a la DB in-cluster, no al relay del tenant): lo cubre la
-> regla `namespaceSelector` de la NetworkPolicy meshed. **Si un tenant usa Postgres externo con
-> `5432` en `openTcpPorts`, hay que sacarlo de una de las dos listas** — el chart rechaza a
-> propósito que un puerto esté en ambas.
+> más caliente de Odoo y cada salto por el sidecar agrega **~0,15 ms por consulta** — medido con
+> un A/B entre bases con el puerto excluido y bases con el puerto aún interceptado, normalizando
+> la latencia de red con una sonda al puerto 22 (que ya estaba excluido). A ~126 consultas/s son
+> ~2 h de espera acumulada cada 108 h. ⚠️ **No medir esto durante una ventana de CPU throttling
+> del propio Postgres**: el congelamiento del backend infla el `SELECT 1`, y esa demora —que es
+> del motor— termina contabilizada como si fuera del proxy (nos pasó: 0,85 ms aparentes contra
+> 0,13 ms reales). El pod CNPG no está en el mesh, así que el passthrough no aportaba mTLS ni
+> políticas. Queda fuera de la regla de `outboundTcpCidrs` (es tráfico a la DB in-cluster, no al
+> relay del tenant): lo cubre la regla `namespaceSelector` de la NetworkPolicy meshed. **Si un
+> tenant usa Postgres externo con `5432` en `openTcpPorts`, hay que sacarlo de una de las dos
+> listas** — el chart rechaza a propósito que un puerto esté en ambas.
 - **repoSsh** (default `true`) — agrega los CIDR de GitHub (`repoSshCidrs`, rangos "git" de
   `api.github.com/meta`) a la NetworkPolicy **solo en el puerto 22**. **Solo surte efecto con
   `adhoc.devMode=true`** (es no-op en prod → ahí git-SSH queda bloqueado igual). Con `devMode` abre
