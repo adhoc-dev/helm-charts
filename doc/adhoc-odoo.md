@@ -68,8 +68,9 @@ ingress:
                                 #   Baseline baked-in: VIP de Private Google Access (GCS)
       openTcpPorts: []          # enforce: puertos "abiertos a priori" a CUALQUIER host, LOGUEADOS
                                 #   (client-first: HTTP/PG/Redis/465...). NO server-first, NO 80/443
-      # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry):
-      excludeOutboundPorts: "587,465,25,22,2525"  # bypassan el sidecar; odoo.smtp.port se auto-incluye
+      # SMTP/SSH (server-first) se sacan del sidecar y se gobiernan por NetworkPolicy (no ServiceEntry).
+      # 5432 también sale del sidecar, pero por latencia (ver nota más abajo), no por server-first:
+      excludeOutboundPorts: "587,465,25,22,2525,5432"  # bypassan el sidecar; odoo.smtp.port se auto-incluye
       excludeOutboundIPRanges: ""  # IPs extra fuera del redirect; el metadata server (169.254.169.254) ya va baked-in
       outboundTcpCidrs: []      # enforce: CIDRs permitidos en esos puertos (rango del relay SMTP)
       repoSsh: true             # enforce: agrega CIDRs de GitHub SSH a la NP, SOLO con adhoc.devMode
@@ -116,13 +117,21 @@ Postura de salida por tenant vía `ingress.istio.egress.mode` (solo con istio ha
 **SMTP y SSH NO van por ServiceEntry.** Son *server-speaks-first* (el servidor manda el banner
 primero) y cuelgan el `tls_inspector` del egress logging → **incluso en `observe`** la conexión
 se resetea (15s de timeout); bajo `REGISTRY_ONLY` irían a BlackHole. Por eso esos puertos
-(`excludeOutboundPorts`, default `587,465,25,22,2525`) se **sacan del sidecar** y se allowlistean
-por **CIDR** en la NetworkPolicy del pod meshed. **El puerto SMTP configurado (`odoo.smtp.port`)
-se auto-incluye** en la lista efectiva — un relay en puerto no estándar (p.ej. Mailgun `2525`)
-queda excluido sin tener que editar `excludeOutboundPorts`:
+(`excludeOutboundPorts`, default `587,465,25,22,2525,5432`) se **sacan del sidecar** y se
+allowlistean por **CIDR** en la NetworkPolicy del pod meshed. **El puerto SMTP configurado
+(`odoo.smtp.port`) se auto-incluye** en la lista efectiva — un relay en puerto no estándar (p.ej.
+Mailgun `2525`) queda excluido sin tener que editar `excludeOutboundPorts`:
 
-- **outboundTcpCidrs** — CIDRs permitidos en los puertos SMTP (los excluidos **salvo 22**). No se
-  puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
+- **outboundTcpCidrs** — CIDRs permitidos en los puertos SMTP (los excluidos **salvo 22 y 5432**).
+  No se puede derivar de un hostname: usar el rango publicado del proveedor o la IP del relay.
+
+> **`5432` está en la lista por otro motivo: latencia, no server-first.** Postgres es el camino
+> más caliente de Odoo y cada salto por el sidecar agrega ~0,78 ms por consulta; el pod CNPG no
+> está en el mesh, así que el passthrough no aportaba mTLS ni políticas. Queda fuera de la regla
+> de `outboundTcpCidrs` (es tráfico a la DB in-cluster, no al relay del tenant): lo cubre la
+> regla `namespaceSelector` de la NetworkPolicy meshed. **Si un tenant usa Postgres externo con
+> `5432` en `openTcpPorts`, hay que sacarlo de una de las dos listas** — el chart rechaza a
+> propósito que un puerto esté en ambas.
 - **repoSsh** (default `true`) — agrega los CIDR de GitHub (`repoSshCidrs`, rangos "git" de
   `api.github.com/meta`) a la NetworkPolicy **solo en el puerto 22**. **Solo surte efecto con
   `adhoc.devMode=true`** (es no-op en prod → ahí git-SSH queda bloqueado igual). Con `devMode` abre
