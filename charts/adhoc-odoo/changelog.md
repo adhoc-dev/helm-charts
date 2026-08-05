@@ -4,6 +4,19 @@
 
 Fixes:
 
+- Istio VS (KEDA sin wakeup controller): `perTryTimeout` del bloque `retries`
+  pasa de un hardcode de `5s` a `odoo.performance.maxTimeReal`, y `attempts`
+  baja de `10` a `2`. El `5s` fijo (agregado en #115 para el cold-start de
+  KEDA) aplicaba también una vez el pod ya estaba despierto, cortando y
+  reintentando requests legítimas más lentas (reportes pesados, imports) y
+  arriesgando duplicar acciones no idempotentes sobre un backend real — el
+  mismo riesgo que #115 buscaba evitar. Además, `retryOn` saca `gateway-error`
+  (queda solo `connect-failure,refused-stream`): ese valor cubre tanto una
+  respuesta 5xx real como el propio `perTryTimeout` expirando, y en este
+  segundo caso el backend puede seguir procesando la request vieja sin que
+  hayamos recibido nada — ya no hace falta para el cold-start porque el nuevo
+  `perTryTimeout` le da margen de sobra en el primer intento. Sin cambio para
+  bases con `wakeupController.enabled=true` o sin KEDA (sin bloque `retries`).
 - Bases `fuse`: se revierte la `livenessProbe` exec de #110 (`adhoc-odoo` y `-nx`)
   y se vuelve a `tcpSocket:8069`. La reproducción mostró que un restart de container
   no re-monta el gcsfuse (mount pod-scoped): el exec no auto-recuperaba y podía

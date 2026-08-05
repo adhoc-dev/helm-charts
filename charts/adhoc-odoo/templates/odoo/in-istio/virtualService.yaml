@@ -10,6 +10,7 @@
 {{- $srvPort := 80 }}
 {{- $isKedaEnabled := eq (include "keda.enabled" . | trim) "true" -}}
 {{- $isWakeupEnabled := eq (include "wakeupController.enabled" . | trim) "true" -}}
+{{- $kedaRetryPerTry := printf "%ds" (int .Values.odoo.performance.maxTimeReal) -}}
 {{- if .Values.ingress.reverseProxy.enabled }}
 {{- $srvHttp = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
 {{- $srvWs = printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) }}
@@ -60,12 +61,15 @@ spec:
             port:
               number: {{ $srvPort }}
       {{- if and $isKedaEnabled (not $isWakeupEnabled) }}
-      # Ver mismo bloque en el VS "*-custom": solo cold-start de KEDA sin
-      # wakeup controller, seguro porque todavía no hay backend real.
+      # KEDA sin wakeup controller: perTryTimeout = maxTimeReal (no cortar
+      # requests legítimas en curso). retryOn excluye gateway-error a
+      # propósito: solo reintenta cuando no hubo respuesta del todo, nunca
+      # sobre un intento que expiró con el backend posiblemente procesando.
+      # Ver mismo bloque en el VS "*-custom".
       retries:
-        attempts: 10
-        perTryTimeout: 5s
-        retryOn: gateway-error,connect-failure,refused-stream
+        attempts: 2
+        perTryTimeout: {{ $kedaRetryPerTry }}
+        retryOn: connect-failure,refused-stream
       {{- end }}
       {{- if gt $usewebsocket 0 }}
     - match:
@@ -158,15 +162,11 @@ spec:
             port:
               number: {{ $srvPort }}
       {{- if and $isKedaEnabled (not $isWakeupEnabled) }}
-      # Solo para KEDA sin wakeup controller: durante el cold-start el
-      # interceptor de KEDA sostiene la conexión sin haber llegado a un backend
-      # real, así que reintentar acá no duplica nada (gateway-error = sigue
-      # dormido). Sin esta condición, el mismo bloque reintenta sobre backends
-      # ya despiertos y duplica cualquier acción no idempotente en curso.
+      # Ver mismo bloque en el VS "*-shared".
       retries:
-        attempts: 10
-        perTryTimeout: 5s
-        retryOn: gateway-error,connect-failure,refused-stream
+        attempts: 2
+        perTryTimeout: {{ $kedaRetryPerTry }}
+        retryOn: connect-failure,refused-stream
       {{- end }}
       {{- if gt $usewebsocket 0 }}
     - match:
