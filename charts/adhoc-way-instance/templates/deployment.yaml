@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adhoc-way-instance.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.labels" . | nindent 4 }}
+  annotations:
+    adhoc.inc/way-host: {{ .Values.host | quote }}
+    {{- with .Values.user.id }}
+    adhoc.inc/way-user-id: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.user.email }}
+    adhoc.inc/way-user-email: {{ . | quote }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "adhoc-way-instance.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adhoc-way-instance.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        # --- gate: the only exposed port of the pod ---
+        - name: auth-proxy
+          image: "{{ .Values.authProxy.image.repository }}{{ if .Values.authProxy.image.digest }}@{{ .Values.authProxy.image.digest }}{{ else }}:{{ .Values.authProxy.image.tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.authProxy.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.authProxy.listenPort }}
+              protocol: TCP
+          env:
+            - name: WAY_HOST
+              value: {{ .Values.host | quote }}
+            - name: WAY_UPSTREAM
+              value: "http://127.0.0.1:{{ .Values.tool.port }}"
+            - name: WAY_LISTEN
+              value: ":{{ .Values.authProxy.listenPort }}"
+            - name: WAY_COOKIE_NAME
+              value: {{ .Values.authProxy.cookieName | quote }}
+            - name: WAY_SESSION_TTL
+              value: {{ .Values.authProxy.sessionTtl | quote }}
+            - name: WAY_MAX_ENTRY_TTL
+              value: {{ .Values.authProxy.maxEntryTtl | quote }}
+            - name: WAY_ENTRY_PUBKEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.authProxy.entryPubKeyConfigMap }}
+                  key: {{ .Values.authProxy.entryPubKeyKey }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.authProxy.resources | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+        # --- tool: listens on 127.0.0.1, no port in the Service ---
+        - name: tool
+          image: "{{ .Values.tool.image.repository }}{{ if .Values.tool.image.digest }}@{{ .Values.tool.image.digest }}{{ else }}:{{ .Values.tool.image.tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.tool.image.pullPolicy }}
+          {{- with .Values.tool.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tool.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tool.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tool.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.tool.resources | nindent 12 }}
+          {{- with .Values.tool.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

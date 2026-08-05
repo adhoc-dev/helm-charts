@@ -1,0 +1,21 @@
+annotations:
+  category: DevOps
+apiVersion: v2
+name: adhoc-way-instance
+description: >
+  Ephemeral per-user instance of the "way" platform: a pod with a third-party
+  web tool and the adhocwayAuthProxy sidecar that only lets the owning user in.
+  Installed once per user (release = host prefix). Requires adhoc-way-platform.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "adhocwayAuthProxy-2026.08.04.1"
+
+home: "https://github.com/adhoc-dev/helm-charts"
+sources:
+  - "https://github.com/ingadhoc/devops-ops-tools"
+maintainers:
+  - name: azacchino
+    email: az@adhoc.inc

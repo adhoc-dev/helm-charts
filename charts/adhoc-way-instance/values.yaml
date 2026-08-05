@@ -1,0 +1,79 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Full host served by the pod, e.g. <prefix>.<platform-domain>.  (REQUIRED)
+host: ""
+
+# Odoo user that owns this instance (informational; goes to annotations).
+user:
+  id: ""
+  email: ""
+
+# --- The third-party web tool that runs in the pod ---
+# It MUST listen on 127.0.0.1 (anti-bypass): its port is not exposed in the
+# Service, only the auth-proxy sidecar reaches it inside the pod.
+tool:
+  image:
+    repository: docker.io/adhoc/ops-tools
+    tag: openCodeServer-latest
+    # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
+    digest: ""
+    pullPolicy: Always
+  # Port the tool listens on (localhost).
+  port: 3000
+  command: []
+  args: []
+  env: []
+  volumeMounts: []
+  securityContext: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+# --- Authentication sidecar (adhocwayAuthProxy) ---
+authProxy:
+  image:
+    repository: docker.io/adhoc/ops-tools
+    tag: adhocwayAuthProxy-2026.08.04.1
+    digest: ""
+    pullPolicy: Always
+  listenPort: 8080
+  cookieName: way_session
+  sessionTtl: 12h
+  maxEntryTtl: 5m
+  # ConfigMap (same namespace) with the signer Ed25519 public key.
+  # Created by adhoc-way-platform.
+  entryPubKeyConfigMap: adhoc-way-platform-entry-pubkey
+  entryPubKeyKey: pubkey
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+service:
+  port: 80
+
+ingress:
+  istio:
+    enabled: true
+    # Dedicated *.<domain> Gateway (from the adhoc-way-platform chart).
+    gateway: adhoc-way-platform-gateway
+
+# Accept ingress to the proxy port only from the ingress gateway namespace.
+# Defense in depth — the tool already listens only on 127.0.0.1.
+networkPolicy:
+  enabled: true
+  gatewayNamespace: istio-system
+
+volumes: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,11 @@
+way instance "{{ .Release.Name }}" deployed in namespace "{{ .Release.Namespace }}".
+
+  host : https://{{ .Values.host }}
+  tool : {{ .Values.tool.image.repository }}:{{ .Values.tool.image.tag }}  (listens on 127.0.0.1:{{ .Values.tool.port }})
+  gate : adhocwayAuthProxy  (port {{ .Values.authProxy.listenPort }}, the only exposed one)
+
+Entry: the orchestrator calls POST /grant on the signer and redirects the user to
+  https://{{ .Values.host }}/_auth?token=<JWT>
+
+Reminder: the tool MUST bind 127.0.0.1 (not 0.0.0.0). Configure it via
+tool.command / tool.args / tool.env.
