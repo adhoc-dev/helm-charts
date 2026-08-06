@@ -95,9 +95,16 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.tool.env }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env }}
           env:
+            {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
+            # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
+            - name: {{ .Values.tool.publicUrlEnvVar | quote }}
+              value: {{ printf "https://%s" .Values.host | quote }}
+            {{- end }}
+            {{- with .Values.tool.env }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
           {{- with .Values.tool.volumeMounts }}
           volumeMounts:
