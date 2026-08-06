@@ -12,6 +12,9 @@ instances are deployed by [`adhoc-way-instance`](../adhoc-way-instance).
 - ConfigMap `adhoc-way-platform-entry-pubkey` — the public key consumed by the sidecars.
 - Istio Gateway for `*.<domain>` (binds to the ingress gateway).
 - cert-manager Certificate (wildcard) — TLS secret in `istio-system`.
+- Optional (`authSvc.internalHost`): an Istio Gateway + VirtualService on the **internal**
+  gateway, so in-VPC callers can `POST /grant` over HTTPS (still bearer-gated) without a
+  port-forward. Reuses the wildcard certificate.
 
 ## Bootstrap (once)
 

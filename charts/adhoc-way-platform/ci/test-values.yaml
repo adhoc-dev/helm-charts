@@ -1,6 +1,7 @@
 # Minimal values for `helm lint` / `helm template` (not real secrets).
 entryPubKey: "TEST_ENTRY_PUBKEY_BASE64=="
 authSvc:
+  internalHost: auth.way.example.com
   secret:
     signingKey: "TEST_SIGNING_KEY_BASE64=="
     grantToken: "test-grant-token"
