@@ -21,6 +21,12 @@ authSvc:
   entryTtl: 60s
   # Only sign entry tokens for hosts under this suffix; set it to match `domain`.
   hostSuffix: .way.example.com
+  # Publish the signer on the cluster's internal gateway so in-VPC callers (the Odoo
+  # orchestrator) can POST /grant over HTTPS without a port-forward. Empty disables it;
+  # the host must be covered by the platform certificate (e.g. auth.<domain>).
+  internalHost: ""
+  internalIstioSelector:
+    istio: internal-ingressgateway
   # Secret holding the signing key (Ed25519) and the grant token. If
   # existingSecret is set it is used (recommended in prod). Otherwise the chart
   # creates one from `secret` (dev only).

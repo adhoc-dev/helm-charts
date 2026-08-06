@@ -1,0 +1,46 @@
+{{- if .Values.authSvc.internalHost }}
+# Publishes the signer on the cluster's internal gateway. Reachable only from inside the
+# VPC (not the public internet), and still gated by the /grant bearer. Lets an in-VPC Odoo
+# orchestrator POST /grant over HTTPS instead of a port-forward. Reuses the platform's
+# wildcard certificate, which covers auth.<domain>.
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}-authsvc-internal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- toYaml .Values.authSvc.internalIstioSelector | nindent 4 }}
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: {{ .Values.gateway.credentialName | quote }}
+        minProtocolVersion: TLSV1_2
+      hosts:
+        - {{ .Values.authSvc.internalHost | quote }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "adhoc-way-platform.fullname" . }}-authsvc-internal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-platform.labels" . | nindent 4 }}
+spec:
+  hosts:
+    - {{ .Values.authSvc.internalHost | quote }}
+  gateways:
+    - {{ include "adhoc-way-platform.fullname" . }}-authsvc-internal
+  http:
+    - route:
+        - destination:
+            host: {{ printf "%s.%s.svc.cluster.local" (include "adhoc-way-platform.fullname" .) .Release.Namespace }}
+            port:
+              number: {{ .Values.authSvc.listenPort }}
+{{- end }}
