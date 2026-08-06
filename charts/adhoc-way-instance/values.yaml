@@ -10,29 +10,41 @@ user:
   email: ""
 
 # --- The third-party web tool that runs in the pod ---
-# It MUST listen on 127.0.0.1 (anti-bypass): its port is not exposed in the
-# Service, only the auth-proxy sidecar reaches it inside the pod.
+# Only the auth-proxy sidecar is exposed in the Service; the tool is reached over
+# 127.0.0.1 inside the pod. It should listen on the configured `port` (ideally on
+# 127.0.0.1 for anti-bypass; the default tool, openCode, binds 0.0.0.0, so the
+# Service + NetworkPolicy are the enforced boundary).
+# Defaults below run openCode; override tool.* for a different tool.
 tool:
   image:
     repository: docker.io/adhoc/ops-tools
-    tag: openCodeServer-latest
+    tag: open-code-server-20260701-1
     # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
     digest: ""
     pullPolicy: Always
   # Port the tool listens on (localhost).
-  port: 3000
+  port: 4096
+  # Env var name to receive the tool's own public URL, injected as https://<host>.
+  # openCode needs it (OPENCODE_PUBLIC_URL) for its web/OAuth flows behind a proxy.
+  # Set to "" for tools that don't need it.
+  publicUrlEnvVar: OPENCODE_PUBLIC_URL
   command: []
   args: []
-  env: []
+  # Defaults for openCode. OPENCODE_CONTAINER_PORT must match `port`.
+  env:
+    - name: OPENCODE_CONTAINER_PORT
+      value: "4096"
+    - name: OPENCODE_BUNDLES
+      value: ""
   volumeMounts: []
   securityContext: {}
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 100m
+      memory: 256Mi
     limits:
       cpu: "1"
-      memory: 1Gi
+      memory: 2Gi
 
 # --- Authentication sidecar (adhocwayAuthProxy) ---
 authProxy:
@@ -44,7 +56,9 @@ authProxy:
   listenPort: 8080
   cookieName: way_session
   sessionTtl: 12h
-  maxEntryTtl: 5m
+  # Max lifetime the proxy accepts on an entry token. Kept above the signer's
+  # entryTtl (5m) so a freshly-minted token always validates (provisioning wait).
+  maxEntryTtl: 10m
   # ConfigMap (same namespace) with the signer Ed25519 public key.
   # Created by adhoc-way-platform.
   entryPubKeyConfigMap: adhoc-way-platform-entry-pubkey
