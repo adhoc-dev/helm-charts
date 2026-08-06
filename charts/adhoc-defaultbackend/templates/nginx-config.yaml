@@ -15,14 +15,14 @@ data:
           listen 80;
           server_name ~^(?<subdomain>.+)\.adhoc\.ar$;
 
-          return 307 https://$subdomain.adhoc.inc$request_uri;
+          return 308 https://$subdomain.adhoc.inc$request_uri;
       }
 
       server {
           listen 80;
           server_name ~^(?<subdomain>.+)\.adhoc\.com\.es$;
 
-          return 307 https://$subdomain.adhoc.inc$request_uri;
+          return 308 https://$subdomain.adhoc.inc$request_uri;
       }
 
       server {
