@@ -95,12 +95,12 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.tool.publicUrlEnvVar .Values.tool.env }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env }}
           env:
-            {{- if .Values.tool.publicUrlEnvVar }}
+            {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
-            - name: {{ .Values.tool.publicUrlEnvVar }}
-              value: "https://{{ .Values.host }}"
+            - name: {{ .Values.tool.publicUrlEnvVar | quote }}
+              value: {{ printf "https://%s" .Values.host | quote }}
             {{- end }}
             {{- with .Values.tool.env }}
             {{- toYaml . | nindent 12 }}

@@ -7,7 +7,7 @@ namespace.
 
 ## What it installs
 
-- Deployment with **2 containers**: `auth-proxy` (the only exposed port) + `tool` (listens on `127.0.0.1`).
+- Deployment with **2 containers**: `auth-proxy` (the only exposed port) + `tool` (reached only over loopback inside the pod; no Service port).
 - Service (only the proxy port) · Istio VirtualService (`{host}` → platform gateway) · NetworkPolicy.
 
 ## Install (one per user, release = host prefix)
