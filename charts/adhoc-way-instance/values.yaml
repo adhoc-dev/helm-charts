@@ -99,6 +99,18 @@ state:
   # Claim created by adhoc-way-user (its release name). Empty = ephemeral
   # emptyDir, which is fine for a smoke test and wrong for a person.
   existingClaim: ""
+
+  # Create the claim here if it does not exist yet, instead of installing
+  # adhoc-way-user separately. Saves a command; costs the caveats documented in
+  # the readme (the claim ends up unmanaged, concurrent installs race, and
+  # `helm template` cannot see the cluster). Off by default.
+  createIfMissing: false
+
+  # Only used when createIfMissing creates the claim.
+  size: 1Gi
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
   # Everything the user owns lives under the home: agent state in dotfiles and
   # projects in workspace/.
   mountPath: /home/odoo

@@ -1,0 +1,37 @@
+{{- /*
+Creación oportunista del disco del usuario: si no existe, lo crea; si existe, no
+lo toca. Apagado por default — ver la sección "Un solo comando" del readme antes
+de prenderlo, porque `lookup` tiene tres aristas que no se ven en el template.
+*/}}
+{{- if .Values.state.createIfMissing }}
+{{- $claimName := required "state.createIfMissing necesita state.existingClaim: es el nombre del disco del usuario" .Values.state.existingClaim }}
+{{- $existing := lookup "v1" "PersistentVolumeClaim" .Release.Namespace $claimName }}
+{{- if not $existing }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.adhocLabels" . | nindent 4 }}
+    app.kubernetes.io/component: way-user-state
+    app.kubernetes.io/part-of: adhoc-way
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    # Sin esto, desinstalar la superficie que resultó ser la primera se lleva los
+    # archivos del usuario. De estos datos no hay backup.
+    "helm.sh/resource-policy": keep
+    {{- with .Values.user.email }}
+    adhoc.ar/way-user-email: {{ . | quote }}
+    {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.state.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.state.size | quote }}
+  {{- with .Values.state.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

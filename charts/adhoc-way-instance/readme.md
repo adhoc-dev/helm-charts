@@ -48,6 +48,41 @@ helm install <prefix> adhoc-dev/adhoc-way-instance -n <ns> \
 It mounts on `/home/odoo`, where everything the user owns lives: agent state in
 dotfiles and projects in `workspace/`. One mount, nothing else to wire.
 
+### One command instead of two: `state.createIfMissing`
+
+With `state.createIfMissing=true` this chart creates the claim itself when it is
+not there yet, using Helm's `lookup`, so the orchestrator does a single install
+per surface. **It works** — verified on a live cluster:
+
+| Scenario | Result |
+|---|---|
+| First surface, no claim yet | creates it, with `resource-policy: keep` |
+| Second surface, same user | `lookup` finds it, skips — no duplicate, no ownership error |
+| `helm upgrade` of the surface that created it | claim untouched |
+| `helm uninstall` of the surface that created it | **claim survives** |
+
+Three caveats, none of which risks the data but all of which surprise:
+
+1. **`lookup` is blind without a cluster.** `helm template` and `--dry-run`
+   render the claim even when it already exists, so what CI validates is not what
+   gets applied.
+2. **The claim ends up owned by a release that may no longer exist.** After
+   uninstalling the surface that created it, the claim keeps
+   `meta.helm.sh/release-name` pointing at a gone release. Harmless while every
+   other surface only reads it, but nothing manages it anymore: deleting it for
+   real needs `kubectl`.
+3. **Concurrent installs race.** Two surfaces of the same user created at the same
+   moment both see "no claim" and both try to create it; one fails. Same thing if
+   the caller lacks RBAC to *read* claims, because `lookup` returns empty instead
+   of failing — and then the create hits an ownership error that says nothing
+   about permissions.
+
+So: convenient for a hand-driven install, and **the explicit
+[`adhoc-way-user`](../adhoc-way-user/) release is what an orchestrator should
+use** — or, better for a module that already talks to Kubernetes, create the claim
+through the API, where "create if missing" is a plain 409 to swallow instead of a
+render-time guess.
+
 **Without `state.existingClaim` the state is an `emptyDir`** — fine for a smoke
 test, wrong for a person: closing the workspace loses whatever they had not
 pushed.
@@ -70,6 +105,7 @@ land on the same node — see the [`adhoc-way-user`](../adhoc-way-user/) readme.
 |---|---|---|
 | `host` | `""` (required) | pod FQDN, `<prefix>.<platform-domain>` |
 | `state.existingClaim` | `""` | per-user claim (chart `adhoc-way-user`); empty = ephemeral `emptyDir` |
+| `state.createIfMissing` | `false` | create the claim here if absent (see caveats above) |
 | `state.mountPath` / `state.subPath` | `/home/odoo` / `home` | where the user's volume lands |
 | `podSecurityContext.fsGroup` | `1001` | must match the tool image's user group |
 | `user.id` / `user.email` | `""` | owning user (annotations) |
