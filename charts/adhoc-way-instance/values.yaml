@@ -86,6 +86,28 @@ networkPolicy:
   enabled: true
   gatewayNamespace: istio-system
 
+# --- User state ---
+# The volume lives in its own release (chart adhoc-way-user) because it belongs to
+# the USER, not to this instance: a user may open more than one surface and all of
+# them must see the same files.
+state:
+  # Claim created by adhoc-way-user (its release name). Empty = ephemeral
+  # emptyDir, which is fine for a smoke test and wrong for a person.
+  existingClaim: ""
+  # Everything the user owns lives under the home: agent state in dotfiles and
+  # projects in workspace/.
+  mountPath: /home/odoo
+  # Mounting a subdirectory instead of the volume root lets the same disk hold
+  # more than one thing later, and keeps the filesystem's lost+found out of the
+  # user's home.
+  subPath: home
+
+# fsGroup must match the group of the tool image's user (1001 in
+# adhocWayWorkspace), or the pod cannot write to its own volume.
+podSecurityContext:
+  fsGroup: 1001
+  fsGroupChangePolicy: OnRootMismatch
+
 volumes: []
 podAnnotations: {}
 nodeSelector: {}

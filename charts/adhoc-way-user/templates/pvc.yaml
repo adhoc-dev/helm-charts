@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "adhoc-way-user.claimName" . }}
+  labels:
+    {{- include "adhoc-way-user.labels" . | nindent 4 }}
+    {{- with .Values.state.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- if .Values.state.retainOnUninstall }}
+    # `helm uninstall` leaves the claim behind. Deleting a surface must never
+    # delete the user's files, and there is no backup to fall back on.
+    "helm.sh/resource-policy": keep
+    {{- end }}
+    {{- with .Values.user.id }}
+    adhoc.ar/way-user-id: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.user.email }}
+    adhoc.ar/way-user-email: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.state.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.state.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.state.size | quote }}
+  {{- with .Values.state.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}

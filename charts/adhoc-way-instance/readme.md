@@ -28,11 +28,50 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 > `127.0.0.1` inside the pod. Prefer a tool that binds loopback (anti-bypass) —
 > either way the Service + NetworkPolicy keep the tool off the network.
 
+## User state: one volume per USER, not per instance
+
+An instance is a **user × surface** pair; the state is not. A user may open more
+than one surface and **all of them must see the same files**, so the volume lives
+in its own release — chart [`adhoc-way-user`](../adhoc-way-user/) — and this chart
+only references it:
+
+```sh
+# once per user
+helm install way-user-<id> adhoc-dev/adhoc-way-user -n <ns> \
+  --set user.id=<id> --set user.email=<email>
+
+# once per surface, pointing at that claim
+helm install <prefix> adhoc-dev/adhoc-way-instance -n <ns> \
+  --set state.existingClaim=way-user-<id> ...
+```
+
+It mounts on `/home/odoo`, where everything the user owns lives: agent state in
+dotfiles and projects in `workspace/`. One mount, nothing else to wire.
+
+**Without `state.existingClaim` the state is an `emptyDir`** — fine for a smoke
+test, wrong for a person: closing the workspace loses whatever they had not
+pushed.
+
+Two details that are easy to get wrong:
+
+- **`podSecurityContext.fsGroup` must match the group of the tool image's user**
+  (`1001` for `adhocWayWorkspace`). A freshly provisioned disk belongs to root, so
+  without it the pod starts and dies unable to write its own home.
+- **`state.subPath`** (default `home`) mounts a subdirectory instead of the volume
+  root. That lets the same disk hold more than one thing later and keeps the
+  filesystem's `lost+found` out of the user's home.
+
+With `ReadWriteOnce`, two surfaces of the same user can run at once only if they
+land on the same node — see the [`adhoc-way-user`](../adhoc-way-user/) readme.
+
 ## Main values
 
 | Key | Default | Description |
 |---|---|---|
 | `host` | `""` (required) | pod FQDN, `<prefix>.<platform-domain>` |
+| `state.existingClaim` | `""` | per-user claim (chart `adhoc-way-user`); empty = ephemeral `emptyDir` |
+| `state.mountPath` / `state.subPath` | `/home/odoo` / `home` | where the user's volume lands |
+| `podSecurityContext.fsGroup` | `1001` | must match the tool image's user group |
 | `user.id` / `user.email` | `""` | owning user (annotations) |
 | `tool.image.tag` | `open-code-server-20260701-1` | tool image (default: openCode) |
 | `tool.port` | `4096` | tool localhost port |

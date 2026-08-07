@@ -1,0 +1,4 @@
+# Minimal values for `helm lint` / `helm template`.
+user:
+  id: "1"
+  email: "user@example.com"
