@@ -13,6 +13,8 @@ spec:
       name: http
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
+    # El pod de CNPG hereda los app.kubernetes.io/* del chart: sin esto entra al selector.
+    adhoc.ar/app-name: "odoo"
 ---
 {{- $usewebsocket  := .Values.odoo.performance.workers | toString | int -}}
 {{- if gt $usewebsocket 0 }}
@@ -31,4 +33,6 @@ spec:
       name: websocket
   selector:
     {{- include "adhoc-odoo.selectorLabels" . | nindent 4 }}
+    # El pod de CNPG hereda los app.kubernetes.io/* del chart: sin esto entra al selector.
+    adhoc.ar/app-name: "odoo"
 {{- end }}
