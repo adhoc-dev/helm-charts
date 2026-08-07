@@ -86,6 +86,11 @@ networkPolicy:
   enabled: true
   gatewayNamespace: istio-system
 
+# Fleet-wide identification labels (adhoc-odoo / weblate convention).
+adhoc:
+  product: adhocway
+  appName: adhoc-way-instance
+
 # --- User state ---
 # The volume lives in its own release (chart adhoc-way-user) because it belongs to
 # the USER, not to this instance: a user may open more than one surface and all of

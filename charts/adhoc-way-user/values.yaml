@@ -6,6 +6,11 @@ user:
   id: ""
   email: ""
 
+# Fleet-wide identification labels (adhoc-odoo / weblate convention).
+adhoc:
+  product: adhocway
+  appName: adhoc-way-user
+
 state:
   # Claim name. Empty = the release name. This is the name each surface of the
   # user references as `state.existingClaim`.

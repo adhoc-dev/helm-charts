@@ -30,6 +30,26 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/component: way-user-state
 app.kubernetes.io/part-of: adhoc-way
+{{ include "adhoc-way-user.adhocLabels" . }}
+{{- end }}
+
+{{/*
+Adhoc labels — same convention as the rest of the fleet (adhoc-odoo, weblate,
+adhoc-pg): `adhoc.ar/app-name` identifies the workload and `adhoc.ar/product`
+matches the label already on the namespace, which is what cost reporting groups
+by.
+
+Note these are KUBERNETES labels. They do NOT reach the GCP disk: a provisioned
+PD only carries the cluster-level labels (env, team, iac) plus goog-* ones, and
+the PVC name lands in its description, which cannot be grouped by in billing.
+Putting our labels on the disk itself would take a dedicated StorageClass.
+*/}}
+{{- define "adhoc-way-user.adhocLabels" -}}
+adhoc.ar/product: {{ .Values.adhoc.product | quote }}
+adhoc.ar/app-name: {{ .Values.adhoc.appName | quote }}
+{{- with .Values.user.id }}
+adhoc.ar/way-user-id: {{ . | quote }}
+{{- end }}
 {{- end }}
 
 {{/*

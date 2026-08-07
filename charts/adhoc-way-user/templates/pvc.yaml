@@ -13,10 +13,9 @@ metadata:
     # delete the user's files, and there is no backup to fall back on.
     "helm.sh/resource-policy": keep
     {{- end }}
-    {{- with .Values.user.id }}
-    adhoc.ar/way-user-id: {{ . | quote }}
-    {{- end }}
     {{- with .Values.user.email }}
+    # Como annotation y no como label: un mail lleva "@", que no es válido en el
+    # valor de un label. El id sí va como label, que es por lo que se selecciona.
     adhoc.ar/way-user-email: {{ . | quote }}
     {{- end }}
     {{- with .Values.state.annotations }}

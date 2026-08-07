@@ -33,3 +33,16 @@ app.kubernetes.io/name: {{ include "adhoc-way-instance.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: way-instance
 {{- end }}
+
+{{/*
+Adhoc labels — convención de la flota (adhoc-odoo, weblate, adhoc-pg):
+`adhoc.ar/app-name` identifica el workload y `adhoc.ar/product` coincide con el
+label del namespace, que es por donde agrupa el reporte de costos.
+*/}}
+{{- define "adhoc-way-instance.adhocLabels" -}}
+adhoc.ar/product: {{ .Values.adhoc.product | quote }}
+adhoc.ar/app-name: {{ .Values.adhoc.appName | quote }}
+{{- with .Values.user.id }}
+adhoc.ar/way-user-id: {{ . | quote }}
+{{- end }}
+{{- end }}

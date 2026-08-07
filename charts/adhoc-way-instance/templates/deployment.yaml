@@ -22,6 +22,7 @@ spec:
     metadata:
       labels:
         {{- include "adhoc-way-instance.selectorLabels" . | nindent 8 }}
+        {{- include "adhoc-way-instance.adhocLabels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
