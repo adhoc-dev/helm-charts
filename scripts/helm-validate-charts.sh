@@ -72,13 +72,17 @@ fi
 echo "Charts a validar:" >&2
 printf ' - %s\n' "${charts[@]##$repo_root/}" >&2
 
+# Chequeo de selectores: corre sobre el render, no reemplaza a lint/template.
+check_selectors=("python3" "$repo_root/scripts/helm-check-selectors.py")
+fail=0
+
 for chart in "${charts[@]}"; do
   echo >&2
   echo "==> helm lint ${chart##$repo_root/}" >&2
   helm lint "$chart"
 
   echo "==> helm template ${chart##$repo_root/}" >&2
-  helm template "$chart" >/dev/null
+  helm template "$chart" | "${check_selectors[@]}" || fail=1
 
   # Fixtures de CI (convención chart-testing): cada ci/*-values.yaml es un set
   # de values que el chart debe renderizar sin error. Sirven como regresión de
@@ -87,7 +91,7 @@ for chart in "${charts[@]}"; do
     shopt -s nullglob
     for fixture in "$chart"/ci/*-values.yaml; do
       echo "==> helm template ${chart##$repo_root/} -f ${fixture##$repo_root/}" >&2
-      helm template "$chart" -f "$fixture" >/dev/null
+      helm template "$chart" -f "$fixture" | "${check_selectors[@]}" || fail=1
     done
     shopt -u nullglob
   fi
@@ -95,4 +99,8 @@ for chart in "${charts[@]}"; do
 done
 
 echo >&2
+if [[ "$fail" -ne 0 ]]; then
+  echo "FALLO: la validación de Helm encontró problemas." >&2
+  exit 1
+fi
 echo "OK: validación de Helm completada." >&2
