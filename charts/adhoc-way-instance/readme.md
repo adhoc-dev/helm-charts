@@ -61,27 +61,28 @@ per surface. **It works** — verified on a live cluster:
 | `helm upgrade` of the surface that created it | claim untouched |
 | `helm uninstall` of the surface that created it | **claim survives** |
 
-Three caveats, none of which risks the data but all of which surprise:
+Three things to know. None of them risks the data.
 
-1. **`lookup` is blind without a cluster.** `helm template` and `--dry-run`
-   render the claim even when it already exists, so what CI validates is not what
-   gets applied.
-2. **The claim ends up owned by a release that may no longer exist.** After
+1. **The caller needs `get` on claims, not just `create`.** `lookup` returns empty
+   when it is *not allowed to read* — it does not fail — so a missing permission
+   looks exactly like "the claim is not there", and the create that follows dies
+   with an ownership error that says nothing about permissions. This is the one to
+   get right in RBAC.
+2. **`lookup` is blind without a cluster.** `helm template` and `--dry-run` render
+   the claim even when it already exists, so what CI validates is not what gets
+   applied.
+3. **The claim ends up owned by a release that may no longer exist.** After
    uninstalling the surface that created it, the claim keeps
-   `meta.helm.sh/release-name` pointing at a gone release. Harmless while every
-   other surface only reads it, but nothing manages it anymore: deleting it for
-   real needs `kubectl`.
-3. **Concurrent installs race.** Two surfaces of the same user created at the same
-   moment both see "no claim" and both try to create it; one fails. Same thing if
-   the caller lacks RBAC to *read* claims, because `lookup` returns empty instead
-   of failing — and then the create hits an ownership error that says nothing
-   about permissions.
+   `meta.helm.sh/release-name` pointing at a gone release. Harmless while the other
+   surfaces only read it, but nothing manages it anymore: deleting it for real
+   needs `kubectl`.
 
-So: convenient for a hand-driven install, and **the explicit
-[`adhoc-way-user`](../adhoc-way-user/) release is what an orchestrator should
-use** — or, better for a module that already talks to Kubernetes, create the claim
-through the API, where "create if missing" is a plain 409 to swallow instead of a
-render-time guess.
+What is *not* a concern here: two surfaces of the same user racing to create the
+claim. Installs are triggered by a person opening a workspace, one at a time.
+
+The separate [`adhoc-way-user`](../adhoc-way-user/) release stays as the explicit
+option — it is what you want to pre-provision a user, or to manage the volume's
+life independently of any surface.
 
 **Without `state.existingClaim` the state is an `emptyDir`** — fine for a smoke
 test, wrong for a person: closing the workspace loses whatever they had not
