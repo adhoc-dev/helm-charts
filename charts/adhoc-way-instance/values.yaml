@@ -92,25 +92,33 @@ adhoc:
   appName: adhoc-way-instance
 
 # --- User state ---
-# The volume lives in its own release (chart adhoc-way-user) because it belongs to
-# the USER, not to this instance: a user may open more than one surface and all of
-# them must see the same files.
+# The volume belongs to the USER, not to this instance: a user may open more than
+# one surface and all of them must see the same files. So the claim is named after
+# the user, lives outside this release's lifecycle (it is kept on uninstall), and
+# any surface of that user creates it if it is not there yet.
 state:
-  # Claim created by adhoc-way-user (its release name). Empty = ephemeral
-  # emptyDir, which is fine for a smoke test and wrong for a person.
-  existingClaim: ""
+  # false = ephemeral emptyDir. Fine for a smoke test, wrong for a person: closing
+  # the workspace loses whatever they had not pushed.
+  persistent: true
 
-  # Create the claim here if it does not exist yet, instead of installing
-  # adhoc-way-user separately. Saves a command; costs the caveats documented in
-  # the readme (the claim ends up unmanaged, concurrent installs race, and
-  # `helm template` cannot see the cluster). Off by default.
-  createIfMissing: false
+  # Claim name. Empty derives it from the user id (way-user-<id>), which is what
+  # makes two surfaces of the same person share one volume.
+  claimName: ""
 
-  # Only used when createIfMissing creates the claim.
+  # Create the claim when it does not exist. Set to false to require that someone
+  # provisioned it beforehand.
+  #
+  # The identity running the install needs `get` on claims, not only `create`:
+  # Helm's lookup returns EMPTY when it may not read, instead of failing, so a
+  # missing permission looks exactly like "the claim is not there" and the create
+  # that follows dies with an ownership error that never mentions permissions.
+  create: true
+
   size: 1Gi
   storageClassName: ""
   accessModes:
     - ReadWriteOnce
+
   # Everything the user owns lives under the home: agent state in dotfiles and
   # projects in workspace/.
   mountPath: /home/odoo

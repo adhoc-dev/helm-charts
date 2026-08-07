@@ -31,82 +31,74 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 ## User state: one volume per USER, not per instance
 
 An instance is a **user × surface** pair; the state is not. A user may open more
-than one surface and **all of them must see the same files**, so the volume lives
-in its own release — chart [`adhoc-way-user`](../adhoc-way-user/) — and this chart
-only references it:
+than one surface and **all of them must see the same files**.
+
+So the claim is named after the **user** (`way-user-<id>`, derived from
+`user.id`), not after the release, and any surface of that user creates it if it
+is not there yet. The second surface finds the same claim and mounts it. Nothing
+extra to install:
 
 ```sh
-# once per user
-helm install way-user-<id> adhoc-dev/adhoc-way-user -n <ns> \
-  --set user.id=<id> --set user.email=<email>
-
-# once per surface, pointing at that claim
 helm install <prefix> adhoc-dev/adhoc-way-instance -n <ns> \
-  --set state.existingClaim=way-user-<id> ...
+  --set host=<prefix>.<platform-domain> \
+  --set user.id=<id> --set user.email=<email>
 ```
 
 It mounts on `/home/odoo`, where everything the user owns lives: agent state in
 dotfiles and projects in `workspace/`. One mount, nothing else to wire.
 
-### One command instead of two: `state.createIfMissing`
+**The volume outlives the surface.** It carries `helm.sh/resource-policy: keep`,
+so uninstalling a surface — even the one that happened to create it — leaves the
+files alone. Deleting them for real is a deliberate `kubectl delete pvc`. There is
+no backup of this data, so that asymmetry is on purpose.
 
-With `state.createIfMissing=true` this chart creates the claim itself when it is
-not there yet, using Helm's `lookup`, so the orchestrator does a single install
-per surface. **It works** — verified on a live cluster:
+Verified on a live cluster: first surface creates the claim, second surface of the
+same user reuses it without duplicating or failing, `helm upgrade` does not touch
+it, and `helm uninstall` of the surface that created it leaves it Bound.
 
-| Scenario | Result |
-|---|---|
-| First surface, no claim yet | creates it, with `resource-policy: keep` |
-| Second surface, same user | `lookup` finds it, skips — no duplicate, no ownership error |
-| `helm upgrade` of the surface that created it | claim untouched |
-| `helm uninstall` of the surface that created it | **claim survives** |
+Four things worth knowing:
 
-Three things to know. None of them risks the data.
-
-1. **The caller needs `get` on claims, not just `create`.** `lookup` returns empty
-   when it is *not allowed to read* — it does not fail — so a missing permission
-   looks exactly like "the claim is not there", and the create that follows dies
-   with an ownership error that says nothing about permissions. This is the one to
-   get right in RBAC.
-2. **`lookup` is blind without a cluster.** `helm template` and `--dry-run` render
-   the claim even when it already exists, so what CI validates is not what gets
-   applied.
-3. **The claim ends up owned by a release that may no longer exist.** After
-   uninstalling the surface that created it, the claim keeps
-   `meta.helm.sh/release-name` pointing at a gone release. Harmless while the other
-   surfaces only read it, but nothing manages it anymore: deleting it for real
-   needs `kubectl`.
-
-What is *not* a concern here: two surfaces of the same user racing to create the
-claim. Installs are triggered by a person opening a workspace, one at a time.
-
-The separate [`adhoc-way-user`](../adhoc-way-user/) release stays as the explicit
-option — it is what you want to pre-provision a user, or to manage the volume's
-life independently of any surface.
-
-**Without `state.existingClaim` the state is an `emptyDir`** — fine for a smoke
-test, wrong for a person: closing the workspace loses whatever they had not
-pushed.
-
-Two details that are easy to get wrong:
-
+- **The installing identity needs `get` on claims, not only `create`.** Helm's
+  `lookup` returns empty when it may not read — it does not fail — so a missing
+  permission looks exactly like "the claim is not there", and the create that
+  follows dies with an ownership error that never mentions permissions.
+- **`lookup` is blind without a cluster**, so `helm template` and `--dry-run`
+  render the claim even when it already exists. What CI validates is not what gets
+  applied.
 - **`podSecurityContext.fsGroup` must match the group of the tool image's user**
   (`1001` for `adhocWayWorkspace`). A freshly provisioned disk belongs to root, so
   without it the pod starts and dies unable to write its own home.
 - **`state.subPath`** (default `home`) mounts a subdirectory instead of the volume
-  root. That lets the same disk hold more than one thing later and keeps the
-  filesystem's `lost+found` out of the user's home.
+  root: the same disk can hold more than one thing later, and the filesystem's
+  `lost+found` stays out of the user's home.
 
-With `ReadWriteOnce`, two surfaces of the same user can run at once only if they
-land on the same node — see the [`adhoc-way-user`](../adhoc-way-user/) readme.
+`state.persistent=false` swaps the claim for an `emptyDir` — fine for a smoke
+test, wrong for a person.
+
+### Two surfaces at the same time
+
+`ReadWriteOnce` does **not** mean "one pod". It means one *node*: several pods can
+mount the volume as long as they are scheduled together.
+
+| Situation | Works with ReadWriteOnce |
+|---|---|
+| One surface at a time | yes |
+| Two surfaces, co-scheduled on one node | yes |
+| Two surfaces on different nodes, at once | **no** — needs a ReadWriteMany class |
+
+Co-scheduling is a scheduling constraint, not a guarantee: if the node has no room
+the second surface stays `Pending`. Decide this before promising simultaneous
+surfaces to users.
 
 ## Main values
 
 | Key | Default | Description |
 |---|---|---|
 | `host` | `""` (required) | pod FQDN, `<prefix>.<platform-domain>` |
-| `state.existingClaim` | `""` | per-user claim (chart `adhoc-way-user`); empty = ephemeral `emptyDir` |
-| `state.createIfMissing` | `false` | create the claim here if absent (see caveats above) |
+| `state.persistent` | `true` | `false` swaps the user's claim for an ephemeral `emptyDir` |
+| `state.claimName` | `""` | defaults to `way-user-<user.id>` |
+| `state.create` | `true` | create the claim when missing (needs `get` on claims) |
+| `state.size` | `1Gi` | only used when creating it |
 | `state.mountPath` / `state.subPath` | `/home/odoo` / `home` | where the user's volume lands |
 | `podSecurityContext.fsGroup` | `1001` | must match the tool image's user group |
 | `user.id` / `user.email` | `""` | owning user (annotations) |

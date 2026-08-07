@@ -134,12 +134,12 @@ spec:
           {{- end }}
       volumes:
         - name: user-state
-          {{- if .Values.state.existingClaim }}
+          {{- if .Values.state.persistent }}
           persistentVolumeClaim:
-            claimName: {{ .Values.state.existingClaim }}
+            claimName: {{ include "adhoc-way-instance.claimName" . }}
           {{- else }}
-          # Sin claim el estado es efímero: sirve para un smoke, no para una
-          # persona (al cerrar el workspace pierde todo lo que no pusheó).
+          # Estado efímero: sirve para un smoke, no para una persona (al cerrar
+          # el workspace pierde todo lo que no pusheó).
           emptyDir: {}
           {{- end }}
         {{- with .Values.volumes }}

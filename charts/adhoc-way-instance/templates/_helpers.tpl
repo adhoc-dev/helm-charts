@@ -46,3 +46,20 @@ adhoc.ar/app-name: {{ .Values.adhoc.appName | quote }}
 adhoc.ar/way-user-id: {{ . | quote }}
 {{- end }}
 {{- end }}
+
+{{/*
+Claim name for this user's state.
+
+Derived from the user id so that every surface of the same person lands on the
+same volume without the caller having to pass anything: the whole point is that
+the state belongs to the user, not to the surface.
+*/}}
+{{- define "adhoc-way-instance.claimName" -}}
+{{- if .Values.state.claimName }}
+{{- .Values.state.claimName }}
+{{- else if .Values.user.id }}
+{{- printf "way-user-%v" .Values.user.id }}
+{{- else }}
+{{- printf "%s-state" (include "adhoc-way-instance.fullname" .) }}
+{{- end }}
+{{- end }}
