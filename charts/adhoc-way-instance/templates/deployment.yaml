@@ -22,11 +22,20 @@ spec:
     metadata:
       labels:
         {{- include "adhoc-way-instance.selectorLabels" . | nindent 8 }}
+        {{- include "adhoc-way-instance.adhocLabels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
+      # fsGroup no es opcional cuando hay volumen: un disco recién provisionado
+      # es de root, y el tool corre como usuario no-root. Sin esto el pod arranca
+      # y muere al no poder escribir su propio home.
+      # OnRootMismatch evita que kubelet recorra y chownee el volumen entero en
+      # cada arranque — con un checkout de fuentes adentro, eso se nota.
+      securityContext:
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy }}
       containers:
         # --- gate: the only exposed port of the pod ---
         - name: auth-proxy
@@ -106,20 +115,36 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- end }}
-          {{- with .Values.tool.volumeMounts }}
           volumeMounts:
+            # Un solo montaje: adentro de /home/odoo viven la configuración de
+            # los agentes y los proyectos del usuario.
+            - name: user-state
+              mountPath: {{ .Values.state.mountPath }}
+              {{- with .Values.state.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+            {{- with .Values.tool.volumeMounts }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- end }}
           resources:
             {{- toYaml .Values.tool.resources | nindent 12 }}
           {{- with .Values.tool.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.volumes }}
       volumes:
+        - name: user-state
+          {{- if .Values.state.persistent }}
+          persistentVolumeClaim:
+            claimName: {{ include "adhoc-way-instance.claimName" . }}
+          {{- else }}
+          # Estado efímero: sirve para un smoke, no para una persona (al cerrar
+          # el workspace pierde todo lo que no pusheó).
+          emptyDir: {}
+          {{- end }}
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

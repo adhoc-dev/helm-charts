@@ -28,11 +28,79 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 > `127.0.0.1` inside the pod. Prefer a tool that binds loopback (anti-bypass) —
 > either way the Service + NetworkPolicy keep the tool off the network.
 
+## User state: one volume per USER, not per instance
+
+An instance is a **user × surface** pair; the state is not. A user may open more
+than one surface and **all of them must see the same files**.
+
+So the claim is named after the **user** (`way-user-<id>`, derived from
+`user.id`), not after the release, and any surface of that user creates it if it
+is not there yet. The second surface finds the same claim and mounts it. Nothing
+extra to install:
+
+```sh
+helm install <prefix> adhoc-dev/adhoc-way-instance -n <ns> \
+  --set host=<prefix>.<platform-domain> \
+  --set user.id=<id> --set user.email=<email>
+```
+
+It mounts on `/home/odoo`, where everything the user owns lives: agent state in
+dotfiles and projects in `workspace/`. One mount, nothing else to wire.
+
+**The volume outlives the surface.** It carries `helm.sh/resource-policy: keep`,
+so uninstalling a surface — even the one that happened to create it — leaves the
+files alone. Deleting them for real is a deliberate `kubectl delete pvc`. There is
+no backup of this data, so that asymmetry is on purpose.
+
+Verified on a live cluster: first surface creates the claim, second surface of the
+same user reuses it without duplicating or failing, `helm upgrade` does not touch
+it, and `helm uninstall` of the surface that created it leaves it Bound.
+
+Four things worth knowing:
+
+- **The installing identity needs `get` on claims, not only `create`.** Helm's
+  `lookup` returns empty when it may not read — it does not fail — so a missing
+  permission looks exactly like "the claim is not there", and the create that
+  follows dies with an ownership error that never mentions permissions.
+- **`lookup` is blind without a cluster**, so `helm template` and `--dry-run`
+  render the claim even when it already exists. What CI validates is not what gets
+  applied.
+- **`podSecurityContext.fsGroup` must match the group of the tool image's user**
+  (`1001` for `adhocWayWorkspace`). A freshly provisioned disk belongs to root, so
+  without it the pod starts and dies unable to write its own home.
+- **`state.subPath`** (default `home`) mounts a subdirectory instead of the volume
+  root: the same disk can hold more than one thing later, and the filesystem's
+  `lost+found` stays out of the user's home.
+
+`state.persistent=false` swaps the claim for an `emptyDir` — fine for a smoke
+test, wrong for a person.
+
+### Two surfaces at the same time
+
+`ReadWriteOnce` does **not** mean "one pod". It means one *node*: several pods can
+mount the volume as long as they are scheduled together.
+
+| Situation | Works with ReadWriteOnce |
+|---|---|
+| One surface at a time | yes |
+| Two surfaces, co-scheduled on one node | yes |
+| Two surfaces on different nodes, at once | **no** — needs a ReadWriteMany class |
+
+Co-scheduling is a scheduling constraint, not a guarantee: if the node has no room
+the second surface stays `Pending`. Decide this before promising simultaneous
+surfaces to users.
+
 ## Main values
 
 | Key | Default | Description |
 |---|---|---|
 | `host` | `""` (required) | pod FQDN, `<prefix>.<platform-domain>` |
+| `state.persistent` | `true` | `false` swaps the user's claim for an ephemeral `emptyDir` |
+| `state.claimName` | `""` | defaults to `way-user-<user.id>` |
+| `state.create` | `true` | create the claim when missing (needs `get` on claims) |
+| `state.size` | `1Gi` | only used when creating it |
+| `state.mountPath` / `state.subPath` | `/home/odoo` / `home` | where the user's volume lands |
+| `podSecurityContext.fsGroup` | `1001` | must match the tool image's user group |
 | `user.id` / `user.email` | `""` | owning user (annotations) |
 | `tool.image.tag` | `open-code-server-20260701-1` | tool image (default: openCode) |
 | `tool.port` | `4096` | tool localhost port |

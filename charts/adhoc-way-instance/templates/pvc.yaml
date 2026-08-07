@@ -1,0 +1,46 @@
+{{- /*
+The user's state volume.
+
+It is created here, by whichever surface of this user happens to be installed
+first, and then left alone: the claim is named after the USER, so the second
+surface finds it instead of making its own.
+
+`lookup` is what makes that work — and it is also the sharp edge. It returns
+empty when it is not allowed to read, instead of failing, so a missing `get`
+permission looks exactly like "the claim is not there" and the create that
+follows dies with an ownership error that never mentions permissions.
+*/}}
+{{- if and .Values.state.persistent .Values.state.create }}
+{{- $claimName := include "adhoc-way-instance.claimName" . }}
+{{- if not (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $claimName) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "adhoc-way-instance.adhocLabels" . | nindent 4 }}
+    app.kubernetes.io/component: way-user-state
+    app.kubernetes.io/part-of: adhoc-way
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    # Uninstalling a surface must never take the user's files with it, and there
+    # is no backup to fall back on. Deleting the volume for real is a deliberate
+    # `kubectl delete pvc`.
+    "helm.sh/resource-policy": keep
+    {{- with .Values.user.email }}
+    # As an annotation and not a label: a mail carries "@", which is not valid in
+    # a label value. The id does go as a label — that is what you select by.
+    adhoc.ar/way-user-email: {{ . | quote }}
+    {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.state.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.state.size | quote }}
+  {{- with .Values.state.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -86,6 +86,53 @@ networkPolicy:
   enabled: true
   gatewayNamespace: istio-system
 
+# Fleet-wide identification labels (adhoc-odoo / weblate convention).
+adhoc:
+  product: adhocway
+  appName: adhoc-way-instance
+
+# --- User state ---
+# The volume belongs to the USER, not to this instance: a user may open more than
+# one surface and all of them must see the same files. So the claim is named after
+# the user, lives outside this release's lifecycle (it is kept on uninstall), and
+# any surface of that user creates it if it is not there yet.
+state:
+  # false = ephemeral emptyDir. Fine for a smoke test, wrong for a person: closing
+  # the workspace loses whatever they had not pushed.
+  persistent: true
+
+  # Claim name. Empty derives it from the user id (way-user-<id>), which is what
+  # makes two surfaces of the same person share one volume.
+  claimName: ""
+
+  # Create the claim when it does not exist. Set to false to require that someone
+  # provisioned it beforehand.
+  #
+  # The identity running the install needs `get` on claims, not only `create`:
+  # Helm's lookup returns EMPTY when it may not read, instead of failing, so a
+  # missing permission looks exactly like "the claim is not there" and the create
+  # that follows dies with an ownership error that never mentions permissions.
+  create: true
+
+  size: 1Gi
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+
+  # Everything the user owns lives under the home: agent state in dotfiles and
+  # projects in workspace/.
+  mountPath: /home/odoo
+  # Mounting a subdirectory instead of the volume root lets the same disk hold
+  # more than one thing later, and keeps the filesystem's lost+found out of the
+  # user's home.
+  subPath: home
+
+# fsGroup must match the group of the tool image's user (1001 in
+# adhocWayWorkspace), or the pod cannot write to its own volume.
+podSecurityContext:
+  fsGroup: 1001
+  fsGroupChangePolicy: OnRootMismatch
+
 volumes: []
 podAnnotations: {}
 nodeSelector: {}

@@ -33,3 +33,33 @@ app.kubernetes.io/name: {{ include "adhoc-way-instance.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: way-instance
 {{- end }}
+
+{{/*
+Adhoc labels — convención de la flota (adhoc-odoo, weblate, adhoc-pg):
+`adhoc.ar/app-name` identifica el workload y `adhoc.ar/product` coincide con el
+label del namespace, que es por donde agrupa el reporte de costos.
+*/}}
+{{- define "adhoc-way-instance.adhocLabels" -}}
+adhoc.ar/product: {{ .Values.adhoc.product | quote }}
+adhoc.ar/app-name: {{ .Values.adhoc.appName | quote }}
+{{- with .Values.user.id }}
+adhoc.ar/way-user-id: {{ . | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+Claim name for this user's state.
+
+Derived from the user id so that every surface of the same person lands on the
+same volume without the caller having to pass anything: the whole point is that
+the state belongs to the user, not to the surface.
+*/}}
+{{- define "adhoc-way-instance.claimName" -}}
+{{- if .Values.state.claimName }}
+{{- .Values.state.claimName }}
+{{- else if .Values.user.id }}
+{{- printf "way-user-%v" .Values.user.id }}
+{{- else }}
+{{- printf "%s-state" (include "adhoc-way-instance.fullname" .) }}
+{{- end }}
+{{- end }}
