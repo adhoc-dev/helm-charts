@@ -1,0 +1,16 @@
+# Enciende los recursos con selector que los values default dejan apagados (CNPG,
+# monitoring de Odoo y del reverse proxy). Sin esto, el chequeo de selectores no los
+# ve: fue justamente el caso de las NetworkPolicies que quedaron huérfanas sin que
+# ningún render de CI las ejercitara.
+cloudNativePG:
+  enabled: true
+
+odoo:
+  monitoring:
+    enabled: true
+
+ingress:
+  reverseProxy:
+    enabled: true
+    monitoring:
+      enabled: true
