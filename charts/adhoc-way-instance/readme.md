@@ -36,7 +36,7 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 | `user.id` / `user.email` | `""` | owning user (annotations) |
 | `tool.image.tag` | `open-code-server-20260701-1` | tool image (default: openCode) |
 | `tool.port` | `4096` | tool localhost port |
-| `tool.publicUrlEnvVar` | `OPENCODE_PUBLIC_URL` | env for the tool's public URL (`https://<host>`); `""` to skip |
+| `tool.publicUrlEnvVar` | `PUBLIC_URL` | env for the tool's public URL (`https://<host>`); `""` to skip |
 | `authProxy.maxEntryTtl` | `10m` | max entry-token lifetime the proxy accepts |
 | `authProxy.entryPubKeyConfigMap` | `adhoc-way-platform-entry-pubkey` | platform ConfigMap |
 | `ingress.istio.gateway` | `adhoc-way-platform-gateway` | platform Gateway |

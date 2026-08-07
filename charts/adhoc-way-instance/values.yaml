@@ -18,12 +18,12 @@ user:
 tool:
   image:
     repository: docker.io/adhoc/ops-tools
-    tag: open-code-server-20260701-1
+    tag: adhocWayWorkspace-2026.08.07.1
     # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
     digest: ""
     pullPolicy: Always
   # Port the tool listens on (localhost).
-  port: 4096
+  port: 3001
   # Env var name to receive the tool's own public URL, injected as https://<host>.
   # openCode needs it (OPENCODE_PUBLIC_URL) for its web/OAuth flows behind a proxy.
   # Set to "" for tools that don't need it.
