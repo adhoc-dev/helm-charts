@@ -4,8 +4,13 @@
 # Ojo con el alcance: en un namespace sin ninguna NetworkPolicy efectiva, la primera que
 # matchee un pod convierte ese ingress de "todo permitido" a "denegado lo no listado". Por
 # eso la allowlist de abajo tiene que cubrir TODO el tráfico legítimo hacia la base, no
-# solo el de Odoo. Las probes del kubelet no hacen falta listarlas: no las filtra
-# NetworkPolicy (verificado — el pod sigue Ready y sin restarts con esta policy activa).
+# solo el de Odoo. Las probes del kubelet no hacen falta listarlas: Kubernetes NetworkPolicy
+# no filtra el tráfico del nodo hacia el pod (validado además en GKE Dataplane V2).
+#
+# Lo que esta allowlist NO cubre, si alguna vez aparece: poolers (pgBouncer / Pooler de
+# CNPG), standby o subscribers lógicos fuera del namespace, y tooling externo que conecte
+# por SQL (dumps, BI, CDC, migraciones ad-hoc desde otro pod). Hoy no existe ninguno en la
+# flota; el día que se sume uno hay que darle su regla acá.
 #
 # El selector va con el helper de nombre del Cluster, no con adhoc-odoo.fullname: los pods
 # los etiqueta el operador a partir del nombre del CR, que se arma con sanitizedPgName.
@@ -28,6 +33,15 @@ spec:
         - podSelector:
             matchLabels:
               adhoc.ar/app-name: "odoo"
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Hook wait-pg del propio chart: corre pg_isready en post-install y post-upgrade. Sin
+    # esta regla el hook falla y con él el helm upgrade entero.
+    - from:
+        - podSelector:
+            matchLabels:
+              adhoc.ar/app-name: "pg-hook"
       ports:
         - protocol: TCP
           port: 5432
