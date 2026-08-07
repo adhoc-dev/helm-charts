@@ -108,10 +108,9 @@ state:
   # Create the claim when it does not exist. Set to false to require that someone
   # provisioned it beforehand.
   #
-  # The identity running the install needs `get` on claims, not only `create`:
-  # Helm's lookup returns EMPTY when it may not read, instead of failing, so a
-  # missing permission looks exactly like "the claim is not there" and the create
-  # that follows dies with an ownership error that never mentions permissions.
+  # The identity running the install needs `get` on claims, not only `create`.
+  # Without it the install stops at render time with a message that names the
+  # permission and the service account — lookup propagates the 403.
   create: true
 
   size: 1Gi
