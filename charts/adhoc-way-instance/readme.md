@@ -58,10 +58,19 @@ it, and `helm uninstall` of the surface that created it leaves it Bound.
 
 Four things worth knowing:
 
-- **The installing identity needs `get` on claims, not only `create`.** Helm's
-  `lookup` returns empty when it may not read — it does not fail — so a missing
-  permission looks exactly like "the claim is not there", and the create that
-  follows dies with an ownership error that never mentions permissions.
+- **The installing identity needs `get` on claims, not only `create`.** Without it
+  the install stops at render time — `lookup` propagates the 403 instead of
+  swallowing it, so the message names the permission, the service account and the
+  namespace:
+
+  ```
+  error calling lookup: persistentvolumeclaims "way-user-2" is forbidden:
+  User "system:serviceaccount:devops:helm-runner-ksa" cannot get resource
+  "persistentvolumeclaims" in API group "" in the namespace "way"
+  ```
+
+  Note it fails *before* creating anything, so a half-installed surface is not a
+  state you can end up in this way.
 - **`lookup` is blind without a cluster**, so `helm template` and `--dry-run`
   render the claim even when it already exists. What CI validates is not what gets
   applied.

@@ -5,10 +5,9 @@ It is created here, by whichever surface of this user happens to be installed
 first, and then left alone: the claim is named after the USER, so the second
 surface finds it instead of making its own.
 
-`lookup` is what makes that work — and it is also the sharp edge. It returns
-empty when it is not allowed to read, instead of failing, so a missing `get`
-permission looks exactly like "the claim is not there" and the create that
-follows dies with an ownership error that never mentions permissions.
+`lookup` is what makes that work, and it needs `get` on claims — not just
+`create`. Without the permission the install stops here at render time, with a
+403 that names the service account and the namespace.
 */}}
 {{- if and .Values.state.persistent .Values.state.create }}
 {{- $claimName := include "adhoc-way-instance.claimName" . }}
