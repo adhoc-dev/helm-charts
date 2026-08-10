@@ -354,6 +354,35 @@ resources:
     memory: 250Mi
 ```
 
+## Cambiar el `spec.selector` del Deployment (campo inmutable)
+
+`spec.selector` de un Deployment **no se puede modificar**: un `helm upgrade` normal falla con
+`spec.selector: Invalid value: ... field is immutable` y **deja la release en `failed`**. Hay que
+recrear el Deployment, pero eso **no implica downtime** si se hace con `--cascade=orphan`:
+
+```bash
+# 1. Borra SOLO el objeto Deployment. El ReplicaSet y los pods siguen corriendo y sirviendo.
+kubectl -n <ns> delete deploy <release>-adhoc-odoo --cascade=orphan
+
+# 2. Helm lo recrea con el selector nuevo y ADOPTA el ReplicaSet que quedó huérfano.
+helm upgrade <release> <chart> -n <ns> --reuse-values --timeout 5m
+```
+
+La adopción funciona porque el `pod-template-hash` se calcula sobre el **pod template**, que no
+cambia: el Deployment nuevo llega al mismo hash, encuentra el ReplicaSet existente y lo toma. Los
+pods ni se enteran. Validado en `test-biomega-10-08-1`: mismo pod, `restartCount` 0, `startedAt`
+sin cambios, HTTP 200 durante todo el procedimiento, y sin pods duplicados.
+
+Tres condiciones que hay que respetar:
+
+- **El pod template no puede cambiar en el mismo upgrade.** Si cambia, el hash cambia, no hay
+  adopción y se hace un rolling update normal — que con `replicaCount: 1` sí produce un blip.
+  Conviene aislar este cambio en su propio upgrade.
+- **No intentar el `helm upgrade` normal primero.** Falla y deja la release en `failed`; el
+  procedimiento funciona igual después, pero ensucia el historial sin necesidad.
+- Entre el paso 1 y el 2 hay unos segundos **sin Deployment**: si justo ahí se cae un pod, nadie
+  lo recrea hasta el paso 2. Encadenar los dos comandos.
+
 ## Changelog reciente
 
 | Versión | Cambios principales |

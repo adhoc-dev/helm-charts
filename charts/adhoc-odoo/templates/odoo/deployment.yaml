@@ -27,6 +27,9 @@ spec:
   selector:
     matchLabels:
       {{- include "adhoc-odoo.selectorLabels" . | nindent 6 }}
+      # El pod de CNPG hereda los app.kubernetes.io/* del chart: sin esto entra al selector.
+      # OJO: spec.selector es inmutable — cambiarlo exige recrear el Deployment (ver doc).
+      adhoc.ar/app-name: "odoo"
   strategy:
     type: RollingUpdate
     rollingUpdate:
