@@ -1,0 +1,143 @@
+{{- /*
+Recrea el Deployment de Odoo cuando su spec.selector todavía no discrimina por
+adhoc.ar/app-name. Ese campo es INMUTABLE: sin esto, el helm upgrade falla con
+"field is immutable" y la release queda en failed.
+
+El hook existe SOLO en las releases que lo necesitan: el lookup mira el Deployment vivo
+y, si su selector ya tiene el label, no se renderiza nada. O sea que cada release lo
+ejecuta una única vez en su vida y después desaparece solo.
+
+No hay downtime: el delete es con propagationPolicy Orphan, así que se lleva el objeto
+Deployment pero deja el ReplicaSet y los pods sirviendo. Cuando helm lo recrea, el
+pod-template-hash es el mismo (el pod template no cambia) y adopta el ReplicaSet
+existente en vez de crear uno nuevo.
+
+lookup devuelve vacío en `helm template` y en --dry-run=client: ahí este archivo no
+renderiza nada, que es lo correcto — el hook solo tiene sentido contra un cluster real.
+*/ -}}
+{{- $fullname := include "adhoc-odoo.fullname" . }}
+{{- $dep := lookup "apps/v1" "Deployment" .Release.Namespace $fullname }}
+{{- if and $dep (not (dig "spec" "selector" "matchLabels" "adhoc.ar/app-name" "" $dep)) }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $fullname }}-selector-migration
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $fullname }}-selector-migration
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+  # resourceNames acota el borrado a ESTE Deployment: el permiso no alcanza a ningún
+  # otro objeto del namespace ni siquiera si el script del Job se equivoca de nombre.
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ $fullname | quote }}]
+    verbs: ["get", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $fullname }}-selector-migration
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+subjects:
+  - kind: ServiceAccount
+    name: {{ $fullname }}-selector-migration
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $fullname }}-selector-migration
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullname }}-selector-migration
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 120
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "adhoc-odoo.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ $fullname }}-selector-migration
+      containers:
+        - name: selector-migration
+          # alpine/helm ya se usa en el ecosistema y trae curl; se habla con la API REST
+          # para no sumar una imagen con kubectl solo para un DELETE.
+          image: alpine/helm:3.14.4
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              API=https://kubernetes.default.svc
+              SA=/var/run/secrets/kubernetes.io/serviceaccount
+              DEP={{ $fullname | quote }}
+              NS={{ .Release.Namespace | quote }}
+              code=$(curl -sS -o /tmp/out -w '%{http_code}' -X DELETE \
+                --cacert "$SA/ca.crt" \
+                -H "Authorization: Bearer $(cat $SA/token)" \
+                -H 'Content-Type: application/json' \
+                -d '{"propagationPolicy":"Orphan"}' \
+                "$API/apis/apps/v1/namespaces/$NS/deployments/$DEP")
+              # 200 = borrado; 202 = aceptado y en curso (la API puede responder async);
+              # 404 = ya no está, sea porque alguien lo borró o porque el hook reintenta.
+              case "$code" in
+                200|202|404) ;;
+                *)
+                  echo "ERROR: DELETE devolvió HTTP $code" >&2
+                  cat /tmp/out >&2
+                  exit 1
+                  ;;
+              esac
+              # Con 202 el borrado sigue en curso: si helm recreara el Deployment antes de
+              # que termine, el apply chocaría. Se espera a que el GET dé 404.
+              i=0
+              while [ "$i" -lt 30 ]; do
+                get=$(curl -sS -o /dev/null -w '%{http_code}' \
+                  --cacert "$SA/ca.crt" \
+                  -H "Authorization: Bearer $(cat $SA/token)" \
+                  "$API/apis/apps/v1/namespaces/$NS/deployments/$DEP")
+                if [ "$get" = "404" ]; then
+                  echo "Deployment $DEP liberado (DELETE $code); los pods siguen corriendo."
+                  exit 0
+                fi
+                i=$((i + 1))
+                sleep 1
+              done
+              echo "ERROR: el Deployment $DEP sigue presente 30s después del DELETE" >&2
+              exit 1
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+{{- end }}
