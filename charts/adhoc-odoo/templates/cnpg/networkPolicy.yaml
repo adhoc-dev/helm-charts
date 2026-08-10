@@ -7,6 +7,11 @@
 # solo el de Odoo. Las probes del kubelet no hacen falta listarlas: Kubernetes NetworkPolicy
 # no filtra el tráfico del nodo hacia el pod (validado además en GKE Dataplane V2).
 #
+# Al agregar o cambiar reglas acá, tener presente que lo que conecta a la base NO es solo
+# Odoo en régimen: los flujos EPISÓDICOS (crear, restaurar, actualizar) usan jobs propios y
+# son los que no se ven mirando una base ya andando. Validar contra una creación de base
+# completa, no contra pg_stat_activity de una base en régimen.
+#
 # Lo que esta allowlist NO cubre, si alguna vez aparece: poolers (pgBouncer / Pooler de
 # CNPG), standby o subscribers lógicos fuera del namespace, y tooling externo que conecte
 # por SQL (dumps, BI, CDC, migraciones ad-hoc desde otro pod). Hoy no existe ninguno en la
@@ -42,6 +47,19 @@ spec:
         - podSelector:
             matchLabels:
               adhoc.ar/app-name: "pg-hook"
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Jobs del pipeline SaaS (fixdb, restore, ...). NO los crea este chart, así que no
+    # aparecen en el render: los crea el provider en el namespace de la base y todos llevan
+    # la clave adhoc.ar/odoo-job. Se matchea por Exists para cubrir los que se sumen.
+    # Sin esta regla la creación de una base queda colgada en "Waiting until the database
+    # server is listening..." y nunca termina.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: adhoc.ar/odoo-job
+                operator: Exists
       ports:
         - protocol: TCP
           port: 5432
