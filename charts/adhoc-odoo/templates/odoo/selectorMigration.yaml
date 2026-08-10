@@ -106,13 +106,32 @@ spec:
                 -H 'Content-Type: application/json' \
                 -d '{"propagationPolicy":"Orphan"}' \
                 "$API/apis/apps/v1/namespaces/$NS/deployments/$DEP")
-              # 404 = ya no está: alguien lo borró antes o el hook reintenta. No es error.
-              if [ "$code" = "200" ] || [ "$code" = "404" ]; then
-                echo "Deployment $DEP liberado (HTTP $code); los pods siguen corriendo."
-                exit 0
-              fi
-              echo "ERROR: DELETE devolvio HTTP $code" >&2
-              cat /tmp/out >&2
+              # 200 = borrado; 202 = aceptado y en curso (la API puede responder async);
+              # 404 = ya no está, sea porque alguien lo borró o porque el hook reintenta.
+              case "$code" in
+                200|202|404) ;;
+                *)
+                  echo "ERROR: DELETE devolvió HTTP $code" >&2
+                  cat /tmp/out >&2
+                  exit 1
+                  ;;
+              esac
+              # Con 202 el borrado sigue en curso: si helm recreara el Deployment antes de
+              # que termine, el apply chocaría. Se espera a que el GET dé 404.
+              i=0
+              while [ "$i" -lt 30 ]; do
+                get=$(curl -sS -o /dev/null -w '%{http_code}' \
+                  --cacert "$SA/ca.crt" \
+                  -H "Authorization: Bearer $(cat $SA/token)" \
+                  "$API/apis/apps/v1/namespaces/$NS/deployments/$DEP")
+                if [ "$get" = "404" ]; then
+                  echo "Deployment $DEP liberado (DELETE $code); los pods siguen corriendo."
+                  exit 0
+                fi
+                i=$((i + 1))
+                sleep 1
+              done
+              echo "ERROR: el Deployment $DEP sigue presente 30s después del DELETE" >&2
               exit 1
           resources:
             requests:
