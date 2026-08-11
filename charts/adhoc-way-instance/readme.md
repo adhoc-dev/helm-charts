@@ -28,6 +28,17 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 > `127.0.0.1` inside the pod. Prefer a tool that binds loopback (anti-bypass) —
 > either way the Service + NetworkPolicy keep the tool off the network.
 
+## Upgrades replace the pod, they do not roll it
+
+The Deployment uses `strategy: Recreate`. Two reasons, both of them the volume: a
+ReadWriteOnce disk attaches to one node, so a new pod started before the old one is
+gone waits for it (and fails to attach outright if it lands on another node); and a
+rolling update keeps serving the old pod until the new one is ready, so a person who
+reopens the workspace during an upgrade gets the old image and does not see the change.
+
+The cost is that the workspace is down for the seconds the pod takes to come back. That
+is what the platform's waiting page is for.
+
 ## User state: one volume per USER, not per instance
 
 An instance is a **user × surface** pair; the state is not. A user may open more
