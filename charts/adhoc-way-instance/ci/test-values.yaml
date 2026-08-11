@@ -3,3 +3,8 @@ host: instance.example.com
 user:
   id: "1"
   email: "user@example.com"
+# Exercises the credential path: the projected token and the tool's env.
+github:
+  credentialUrl: https://adhocway.example.com/adhocway/github/credential
+serviceAccount:
+  name: instance-cli

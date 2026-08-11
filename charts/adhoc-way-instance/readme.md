@@ -117,6 +117,32 @@ surfaces to users.
 | `authProxy.maxEntryTtl` | `10m` | max entry-token lifetime the proxy accepts |
 | `authProxy.entryPubKeyConfigMap` | `adhoc-way-platform-entry-pubkey` | platform ConfigMap |
 | `ingress.istio.gateway` | `adhoc-way-platform-gateway` | platform Gateway |
+| `github.credentialUrl` | `""` | where the pod asks for git credentials; empty means no GitHub access |
+| `github.tokenAudience` | `adhocway-credential` | audience of the pod's token; must match what the platform validates |
+| `github.tokenExpirationSeconds` | `600` | lifetime of each projected token |
+| `serviceAccount.name` | `""` | identity of the pod; defaults to the release's full name |
+
+## GitHub access
+
+The pod holds **no GitHub credential**. `git` asks the platform for one per operation
+through the credential helper the tool image ships, and the token it gets back is an
+installation token of a GitHub App that expires in an hour and is never written to disk.
+
+How the pod proves which instance is asking: Kubernetes projects a **service account
+token** into it, minted for `github.tokenAudience` and signed by the cluster. The
+platform validates it against the cluster's public JWKS — no credential of the platform
+is involved and the API server is not called. Two consequences worth knowing:
+
+- **`serviceAccount.name` is the identity.** The subject of the token names it, and that
+  is what the platform resolves to an instance, so the orchestrator sets it to the name
+  it knows that instance by.
+- **Only expiry invalidates a token.** Validating it offline cannot tell that the pod is
+  gone, so `github.tokenExpirationSeconds` is the window in which a leaked one still
+  works. 600 is the shortest the kubelet honours.
+
+The pod also runs with `automountServiceAccountToken: false`: the default mount is a
+token the API server accepts, nothing in the pod talks to it, and the projected one is
+good for the platform and for nothing else.
 
 ## Integration contract (for the orchestrator)
 

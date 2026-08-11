@@ -86,6 +86,37 @@ networkPolicy:
   enabled: true
   gatewayNamespace: istio-system
 
+# --- GitHub access ---
+# The pod carries no GitHub credential. git asks the platform for one per operation
+# through a credential helper, and proves which instance is asking with the service
+# account token Kubernetes projects into it: audience-scoped, rotated by the kubelet,
+# and stored nowhere.
+#
+# Leave credentialUrl empty and the workspace runs with no access to GitHub, which is
+# a workspace that cannot push and not a broken one.
+github:
+  credentialUrl: ""
+  # Audience the token is minted for. Its own and not the cluster's default, so a token
+  # minted for anything else cannot be replayed against the platform. Must match what
+  # the platform validates.
+  tokenAudience: adhocway-credential
+  # How long each token is valid. This is the window in which a leaked one still works:
+  # validating it offline cannot tell that the pod is gone, so only expiry closes it.
+  # 600 is the shortest the kubelet honours.
+  tokenExpirationSeconds: 600
+  # Where the token is projected. The helper reads it from there on every call, so a
+  # rotation lands without restarting anything.
+  tokenMountPath: /var/run/adhocway
+
+# --- Identity of the pod ---
+# The subject of the projected token names this service account, which is how the
+# platform resolves which instance is asking. The platform names it after the instance;
+# empty falls back to the release's full name.
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
 # Fleet-wide identification labels (adhoc-odoo / weblate convention).
 adhoc:
   product: adhocway

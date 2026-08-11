@@ -63,3 +63,13 @@ the state belongs to the user, not to the surface.
 {{- printf "%s-state" (include "adhoc-way-instance.fullname" .) }}
 {{- end }}
 {{- end }}
+
+{{/*
+Service account of the pod.
+
+Its token is how the platform knows which instance is asking for a credential, so the
+platform passes the instance name. The fallback keeps a standalone install working.
+*/}}
+{{- define "adhoc-way-instance.serviceAccountName" -}}
+{{- default (include "adhoc-way-instance.fullname" .) .Values.serviceAccount.name }}
+{{- end }}
