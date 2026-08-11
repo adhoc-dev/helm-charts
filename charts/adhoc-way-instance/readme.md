@@ -121,6 +121,29 @@ surfaces to users.
 | `github.tokenAudience` | `adhocway-credential` | audience of the pod's token; must match what the platform validates |
 | `github.tokenExpirationSeconds` | `600` | lifetime of each projected token |
 | `serviceAccount.name` | `""` | identity of the pod; defaults to the release's full name |
+| `projects` | `[]` | repositories the workspace clones and keeps up to date |
+
+## Projects
+
+`projects` is the list of repositories this workspace works on. They are cloned on
+start if missing and brought up to date if already there, keeping whatever the person
+had in progress. `components` are repositories cloned **inside** another one, at a
+path relative to it, to any depth.
+
+```yaml
+projects:
+  - path: tech-experts
+    url: https://github.com/adhoc-way/tech-experts.git
+    components:
+      - path: memory
+        url: https://github.com/adhoc-way/memory.git
+```
+
+Written as YAML here and handed to the image as JSON in `ADHOCWAY_PROJECTS`.
+
+When reapplying the person's changes conflicts, **the conflict is left in the tree**
+so the agent in the workspace resolves it before pushing; nothing is lost. The image's
+readme has the rest of the behaviour.
 
 ## GitHub access
 

@@ -108,6 +108,21 @@ github:
   # rotation lands without restarting anything.
   tokenMountPath: /var/run/adhocway
 
+# --- Projects the workspace works on ---
+# Cloned on start if missing, brought up to date if already there, keeping whatever
+# the person had in progress; a conflict is left in the tree for the agent to resolve.
+# `components` are repositories cloned inside another one, at a path relative to it.
+#
+#   projects:
+#     - path: tech-experts
+#       url: https://github.com/adhoc-way/tech-experts.git
+#       components:
+#         - path: memory
+#           url: https://github.com/adhoc-way/memory.git
+#
+# Passed as YAML and handed to the image as JSON.
+projects: []
+
 # --- Identity of the pod ---
 # The subject of the projected token names this service account, which is how the
 # platform resolves which instance is asking. Empty uses the release name, which is
