@@ -20,7 +20,7 @@ user:
 tool:
   image:
     repository: docker.io/adhoc/ops-tools
-    tag: adhocWayWorkspace-2026.08.07.1
+    tag: adhocWayWorkspace-2026.08.11.4
     # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
     digest: ""
     pullPolicy: Always
@@ -52,7 +52,7 @@ tool:
 authProxy:
   image:
     repository: docker.io/adhoc/ops-tools
-    tag: adhocwayAuthProxy-2026.08.04.1
+    tag: adhocwayAuthProxy-2026.08.11.3
     digest: ""
     pullPolicy: Always
   listenPort: 8080
