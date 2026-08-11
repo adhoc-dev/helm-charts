@@ -78,6 +78,9 @@ spec:
         - name: State
           type: string
           jsonPath: .status.state
+        - name: Reason
+          type: string
+          jsonPath: .status.lastSleepReason
         - name: Idle-Checks
           type: integer
           jsonPath: .status.idleConsecutiveChecks
