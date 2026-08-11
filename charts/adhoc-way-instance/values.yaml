@@ -4,9 +4,11 @@ fullnameOverride: ""
 # Full host served by the pod, e.g. <prefix>.<platform-domain>.  (REQUIRED)
 host: ""
 
-# Odoo user that owns this instance (informational; goes to annotations).
+# Odoo user that owns this instance. The name and the email are the identity git
+# commits with inside the workspace; the id also names the user's volume.
 user:
   id: ""
+  name: ""
   email: ""
 
 # --- The third-party web tool that runs in the pod ---
@@ -107,6 +109,30 @@ github:
   # Where the token is projected. The helper reads it from there on every call, so a
   # rotation lands without restarting anything.
   tokenMountPath: /var/run/adhocway
+
+# --- What the workspace works on ---
+# Projects are cloned on start if missing and brought up to date if already there,
+# keeping whatever the person had in progress; a conflict is left in the tree for the
+# agent to resolve. `path` is relative to the workspace root, and a component's to the
+# project that mounts it. `access` is what the person may do with that repository.
+#
+#   workspace:
+#     projects:
+#       - path: handbook
+#         clone_url: https://git.example.com/acme/handbook
+#         access: write
+#         components:
+#           - path: memory
+#             clone_url: https://git.example.com/acme/handbook-memory
+#             access: read
+#
+# `components` and `access` are optional; `access` is `read` or `write` and is
+# informational — what a credential is actually good for is decided when it is asked
+# for. `clone_url` has to be https: the pod authenticates through the credential
+# helper and holds no ssh key.
+#
+# Passed as YAML and handed to the image as JSON.
+workspace: {}
 
 # --- Identity of the pod ---
 # The subject of the projected token names this service account, which is how the

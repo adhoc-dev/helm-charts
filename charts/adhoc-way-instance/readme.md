@@ -121,6 +121,47 @@ surfaces to users.
 | `github.tokenAudience` | `adhocway-credential` | audience of the pod's token; must match what the platform validates |
 | `github.tokenExpirationSeconds` | `600` | lifetime of each projected token |
 | `serviceAccount.name` | `""` | identity of the pod; defaults to the release's full name |
+| `workspace` | `{}` | what the workspace works on: its projects (see below) |
+| `user.name` / `user.email` | `""` | the identity git commits with inside the workspace |
+
+## Workspace
+
+`workspace.projects` is what this workspace works on. Each project is cloned on start
+if missing and brought up to date if already there, keeping whatever the person had in
+progress. A project's `path` is relative to the workspace root and a component's to the
+project that mounts it, to any depth.
+
+```yaml
+user:
+  name: Jane Doe (jd)
+  email: jane.doe@example.com
+workspace:
+  projects:
+    - path: handbook
+      clone_url: https://git.example.com/acme/handbook
+      access: write
+      components:
+        - path: memory
+          clone_url: https://git.example.com/acme/handbook-memory
+          access: read
+```
+
+Written as YAML here and handed to the image as JSON in `ADHOCWAY_WORKSPACE`.
+
+`user.name` and `user.email` are exported as `ADHOCWAY_USER_NAME` and
+`ADHOCWAY_USER_EMAIL`, and become the git identity of the workspace. Without them git
+refuses to commit at all (*"Please tell me who you are"*), so a workspace meant for
+work needs both. `user.email` used to be informational only, in an annotation; it still
+is one, and now it is also this.
+
+`components` and `access` are optional. `access` (`read` or `write`) is informational:
+what a credential is good for is decided when it is asked for. `clone_url` has to be
+https — the pod authenticates through the credential helper and holds no ssh key.
+
+When reapplying the person's changes conflicts, **the conflict is left in the tree** so
+the agent in the workspace resolves it before pushing; nothing is lost. `access` lands in
+each repository's local config, which is what an agent can read before trying to push.
+The image's readme has the rest of the behaviour.
 
 ## GitHub access
 
