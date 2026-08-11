@@ -109,16 +109,25 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.projects }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace .Values.user.name .Values.user.email }}
           env:
             {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
             - name: {{ .Values.tool.publicUrlEnvVar | quote }}
               value: {{ printf "https://%s" .Values.host | quote }}
             {{- end }}
-            {{- with .Values.projects }}
-            # Rendered as JSON: the entrypoint clones or updates each of these.
-            - name: ADHOCWAY_PROJECTS
+            {{- with .Values.user.name }}
+            # The identity git commits with inside the workspace.
+            - name: ADHOCWAY_USER_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.user.email }}
+            - name: ADHOCWAY_USER_EMAIL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.workspace }}
+            # Rendered as JSON: the entrypoint clones or updates what is in it.
+            - name: ADHOCWAY_WORKSPACE
               value: {{ toJson . | quote }}
             {{- end }}
             {{- with .Values.github.credentialUrl }}

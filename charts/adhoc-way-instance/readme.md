@@ -121,29 +121,40 @@ surfaces to users.
 | `github.tokenAudience` | `adhocway-credential` | audience of the pod's token; must match what the platform validates |
 | `github.tokenExpirationSeconds` | `600` | lifetime of each projected token |
 | `serviceAccount.name` | `""` | identity of the pod; defaults to the release's full name |
-| `projects` | `[]` | repositories the workspace clones and keeps up to date |
+| `workspace` | `{}` | what the workspace works on: its projects (see below) |
+| `user.name` / `user.email` | `""` | the identity git commits with inside the workspace |
 
-## Projects
+## Workspace
 
-`projects` is the list of repositories this workspace works on. They are cloned on
-start if missing and brought up to date if already there, keeping whatever the person
-had in progress. `components` are repositories cloned **inside** another one, at a
-path relative to it, to any depth.
+`workspace.projects` is what this workspace works on. Each project is cloned on start
+if missing and brought up to date if already there, keeping whatever the person had in
+progress. A project's `path` is relative to the workspace root and a component's to the
+project that mounts it, to any depth.
 
 ```yaml
-projects:
-  - path: tech-experts
-    url: https://github.com/adhoc-way/tech-experts.git
-    components:
-      - path: memory
-        url: https://github.com/adhoc-way/memory.git
+user:
+  name: Virginia Bonservizi (vib)
+  email: vib@adhoc.inc
+workspace:
+  projects:
+    - path: oba-19
+      clone_url: https://github.com/ingadhoc/oba-project
+      access: write
+      components:
+        - path: project-memory
+          clone_url: https://github.com/ingadhoc/oba-project-memory
+          access: read
 ```
 
-Written as YAML here and handed to the image as JSON in `ADHOCWAY_PROJECTS`.
+Written as YAML here and handed to the image as JSON in `ADHOCWAY_WORKSPACE`.
 
-When reapplying the person's changes conflicts, **the conflict is left in the tree**
-so the agent in the workspace resolves it before pushing; nothing is lost. The image's
-readme has the rest of the behaviour.
+`user.name` and `user.email` are what git commits with inside the workspace, so without
+them its commits have no author.
+
+When reapplying the person's changes conflicts, **the conflict is left in the tree** so
+the agent in the workspace resolves it before pushing; nothing is lost. `access` lands in
+each repository's local config, which is what an agent can read before trying to push.
+The image's readme has the rest of the behaviour.
 
 ## GitHub access
 
