@@ -18,8 +18,14 @@ spec:
   # The old pod has to be gone before the new one starts: they share one volume, and a
   # ReadWriteOnce disk attaches to a single node. Rolling would also keep serving the
   # old pod until the new one is ready, so an upgrade would not be visible to the person.
+  #
+  # maxSurge 0 and not `type: Recreate`, which does the same at one replica but cannot be
+  # applied to a Deployment that already exists: the default rollingUpdate stays in the
+  # object and the API server refuses it next to Recreate.
   strategy:
-    type: Recreate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       {{- include "adhoc-way-instance.selectorLabels" . | nindent 6 }}
