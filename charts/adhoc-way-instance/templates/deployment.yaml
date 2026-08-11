@@ -15,6 +15,11 @@ metadata:
     {{- end }}
 spec:
   replicas: 1
+  # The old pod has to be gone before the new one starts: they share one volume, and a
+  # ReadWriteOnce disk attaches to a single node. Rolling would also keep serving the
+  # old pod until the new one is ready, so an upgrade would not be visible to the person.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "adhoc-way-instance.selectorLabels" . | nindent 6 }}
