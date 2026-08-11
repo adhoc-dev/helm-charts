@@ -10,9 +10,9 @@ description: >
 
 type: application
 
-version: 0.4.7
+version: 0.4.8
 
-appVersion: "odooWakeupController-2026.07.31.40"
+appVersion: "odooWakeupController-2026.08.11.42"
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
