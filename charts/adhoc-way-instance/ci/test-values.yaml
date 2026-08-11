@@ -6,5 +6,3 @@ user:
 # Exercises the credential path: the projected token and the tool's env.
 github:
   credentialUrl: https://adhocway.example.com/adhocway/github/credential
-serviceAccount:
-  name: instance-cli

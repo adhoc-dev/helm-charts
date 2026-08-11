@@ -110,8 +110,8 @@ github:
 
 # --- Identity of the pod ---
 # The subject of the projected token names this service account, which is how the
-# platform resolves which instance is asking. The platform names it after the instance;
-# empty falls back to the release's full name.
+# platform resolves which instance is asking. Empty uses the release name, which is
+# already the instance: the orchestrator does not have to pass it.
 serviceAccount:
   create: true
   name: ""
