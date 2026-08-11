@@ -118,13 +118,18 @@ github:
 #
 #   workspace:
 #     projects:
-#       - path: oba-19
-#         clone_url: https://github.com/ingadhoc/oba-project
+#       - path: handbook
+#         clone_url: https://git.example.com/acme/handbook
 #         access: write
 #         components:
-#           - path: project-memory
-#             clone_url: https://github.com/ingadhoc/oba-project-memory
+#           - path: memory
+#             clone_url: https://git.example.com/acme/handbook-memory
 #             access: read
+#
+# `components` and `access` are optional; `access` is `read` or `write` and is
+# informational — what a credential is actually good for is decided when it is asked
+# for. `clone_url` has to be https: the pod authenticates through the credential
+# helper and holds no ssh key.
 #
 # Passed as YAML and handed to the image as JSON.
 workspace: {}

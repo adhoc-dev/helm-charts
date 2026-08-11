@@ -133,23 +133,30 @@ project that mounts it, to any depth.
 
 ```yaml
 user:
-  name: Virginia Bonservizi (vib)
-  email: vib@adhoc.inc
+  name: Jane Doe (jd)
+  email: jane.doe@example.com
 workspace:
   projects:
-    - path: oba-19
-      clone_url: https://github.com/ingadhoc/oba-project
+    - path: handbook
+      clone_url: https://git.example.com/acme/handbook
       access: write
       components:
-        - path: project-memory
-          clone_url: https://github.com/ingadhoc/oba-project-memory
+        - path: memory
+          clone_url: https://git.example.com/acme/handbook-memory
           access: read
 ```
 
 Written as YAML here and handed to the image as JSON in `ADHOCWAY_WORKSPACE`.
 
-`user.name` and `user.email` are what git commits with inside the workspace, so without
-them its commits have no author.
+`user.name` and `user.email` are exported as `ADHOCWAY_USER_NAME` and
+`ADHOCWAY_USER_EMAIL`, and become the git identity of the workspace. Without them git
+refuses to commit at all (*"Please tell me who you are"*), so a workspace meant for
+work needs both. `user.email` used to be informational only, in an annotation; it still
+is one, and now it is also this.
+
+`components` and `access` are optional. `access` (`read` or `write`) is informational:
+what a credential is good for is decided when it is asked for. `clone_url` has to be
+https — the pod authenticates through the credential helper and holds no ssh key.
 
 When reapplying the person's changes conflicts, **the conflict is left in the tree** so
 the agent in the workspace resolves it before pushing; nothing is lost. `access` lands in
