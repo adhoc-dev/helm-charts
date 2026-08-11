@@ -36,6 +36,11 @@ spec:
       securityContext:
         fsGroup: {{ .Values.podSecurityContext.fsGroup }}
         fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy }}
+      serviceAccountName: {{ include "adhoc-way-instance.serviceAccountName" . }}
+      # The default mount is a token the API server accepts; nothing here talks to it.
+      # The only token in the pod is the one projected below, which is good for the
+      # platform and for nothing else.
+      automountServiceAccountToken: false
       containers:
         # --- gate: the only exposed port of the pod ---
         - name: auth-proxy
@@ -104,12 +109,20 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl }}
           env:
             {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
             - name: {{ .Values.tool.publicUrlEnvVar | quote }}
               value: {{ printf "https://%s" .Values.host | quote }}
+            {{- end }}
+            {{- with .Values.github.credentialUrl }}
+            # Where the git credential helper asks, and the token it proves itself with.
+            # A file and not a value: the projected token rotates, an env var cannot.
+            - name: ADHOCWAY_CREDENTIAL_URL
+              value: {{ . | quote }}
+            - name: ADHOCWAY_WORKSPACE_TOKEN_FILE
+              value: {{ printf "%s/token" (trimSuffix "/" $.Values.github.tokenMountPath) | quote }}
             {{- end }}
             {{- with .Values.tool.env }}
             {{- toYaml . | nindent 12 }}
@@ -123,6 +136,11 @@ spec:
               {{- with .Values.state.subPath }}
               subPath: {{ . }}
               {{- end }}
+            {{- if .Values.github.credentialUrl }}
+            - name: workspace-token
+              mountPath: {{ trimSuffix "/" .Values.github.tokenMountPath | quote }}
+              readOnly: true
+            {{- end }}
             {{- with .Values.tool.volumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -142,6 +160,18 @@ spec:
           # el workspace pierde todo lo que no pusheó).
           emptyDir: {}
           {{- end }}
+        {{- if .Values.github.credentialUrl }}
+        # Minted by the kubelet for this audience and refreshed before it expires, so
+        # nothing long-lived sits in the pod.
+        - name: workspace-token
+          projected:
+            defaultMode: 0444
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: {{ .Values.github.tokenAudience | quote }}
+                  expirationSeconds: {{ .Values.github.tokenExpirationSeconds }}
+        {{- end }}
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
