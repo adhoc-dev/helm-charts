@@ -309,7 +309,6 @@ cloudNativePG:
   enabled: false
   version: "15.0"
   instances: 1
-  evictionProtectedAppTypes: [new, old, trainp]   # appTypes con safe-to-evict=false
   persistence:
     size: 10          # GB
     storageClass: gpc-ssd-d   # gcp-ssd-r (retain) | gcp-ssd-d (delete)
@@ -330,13 +329,14 @@ cloudNativePG:
 
 > Para GCP: activar "Programación de instantáneas" en el disco persistente del cluster PG.
 
-> **`evictionProtectedAppTypes`** — el pod de Postgres lleva
-> `cluster-autoscaler.kubernetes.io/safe-to-evict`, sin lo cual el autoscaler no vacía el
-> nodo (los pods de CNPG no pertenecen a un controller). El costo de dejarlo desalojable es
-> que el PV es zonal: el pod tiene que volver a la misma zona y, si ahí no hay memoria,
-> la base espera (tarea 72293). Los appType de esta lista se marcan `false` — un nodo con
-> una de esas bases no consolida mientras ella viva ahí. El pod de Odoo queda siempre
-> desalojable: es stateless y arranca en cualquier zona.
+> **`safeToEvict`** — valor con el que **nace** la anotación
+> `cluster-autoscaler.kubernetes.io/safe-to-evict` del pod de Postgres. Es **create-only**: en un
+> Cluster que ya existe, el chart refleja el valor vivo en vez del values. Quien la gobierna es el
+> cron `_cron_k8s_checks` de `saas_k8s`, según la ventana de mantenimiento y si la base está
+> dormida; si el chart la fijara, cada `helm upgrade` pisaría esa decisión — la misma razón por la
+> que el chart no declara `nodeMaintenanceWindow` para `prod`. Importa porque el PV es zonal:
+> desalojar obliga al pod a volver a la misma zona y, si ahí no hay memoria, la base espera
+> (tarea 72293).
 
 ### Metadata Adhoc
 

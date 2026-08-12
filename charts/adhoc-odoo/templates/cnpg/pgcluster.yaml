@@ -48,7 +48,7 @@ metadata:
     {{- include "adhoc-odoo.labels" . | nindent 4 }}
   annotations:
     cnpg.io/hibernation: {{ .Values.cloudNativePG.hibernation | default "off" | quote }}
-    {{- /* La que gobierna el drain/scale-down es la de inheritedMetadata: el autoscaler mira el POD, no este CR. Acá va por consistencia. */}}
+    {{- /* La que gobierna el drain es la de inheritedMetadata (la heredan los pods); acá va por consistencia. */}}
     cluster-autoscaler.kubernetes.io/safe-to-evict: {{ include "cnpg.safeToEvict" . | quote }}
     {{- /*
     # For manual intervention

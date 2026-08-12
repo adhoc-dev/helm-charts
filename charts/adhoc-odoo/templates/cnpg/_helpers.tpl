@@ -23,20 +23,23 @@ CNPG Cluster object name (single source of truth for the lookup name).
 {{- end }}
 
 {{- /*
-safe-to-evict del pod de Postgres, según adhoc.appType.
+safe-to-evict del pod de Postgres — create-only: en un Cluster que ya existe se
+refleja el valor vivo, no el del values.
 
-El autoscaler no vacía un nodo con pods que no pertenecen a un controller —y los de
-CNPG los crea el operador—, así que sin esta anotación en "true" no hay consolidación.
-El costo es que al desalojar el pod, su PV zonal lo obliga a volver a LA MISMA zona: si
-ahí no hay memoria queda Pending hasta que aparezca (tarea 72293). Por eso los appType
-donde esa espera se paga con una fecha comprometida se marcan como no desalojables:
-ese nodo no consolida mientras la base viva ahí.
+Quién manda es el cron `_cron_k8s_checks` (saas_k8s), que lo mueve según la ventana
+de mantenimiento y si la base está dormida (CRD del wakeup-controller). Si el chart
+lo fijara, cada `helm upgrade` —cada deploy, cada canary— pisaría esa decisión; es
+la misma razón por la que el chart no declara `nodeMaintenanceWindow` para prod.
+
+`lookup` devuelve vacío también cuando no puede leer (dry-run, permisos), y ahí cae
+al default del values: fail-open a "true", que es el comportamiento histórico y a lo
+sumo devuelve una base al estado desalojable hasta la próxima pasada del cron.
 */}}
 {{- define "cnpg.safeToEvict" -}}
-{{- $appType := .Values.adhoc.appType | toString -}}
-{{- if has $appType (.Values.cloudNativePG.evictionProtectedAppTypes | default list) -}}
-{{- "false" -}}
-{{- else -}}
-{{- "true" -}}
+{{- $existing := lookup "postgresql.cnpg.io/v1" "Cluster" .Release.Namespace (include "cnpg.pgClusterName" .) -}}
+{{- $live := "" -}}
+{{- if $existing -}}
+{{- $live = dig "spec" "inheritedMetadata" "annotations" "cluster-autoscaler.kubernetes.io/safe-to-evict" "" $existing -}}
 {{- end -}}
+{{- $live | default (.Values.cloudNativePG.safeToEvict | toString) -}}
 {{- end }}
