@@ -10,3 +10,8 @@ rules:
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["list", "delete"]
+  # Read-only, for pv-zone-stuck: a pod stranded by its disk does not say WHICH zone
+  # it is stuck in — that is only on the PV its claim is bound to.
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims", "persistentvolumes"]
+    verbs: ["get"]
