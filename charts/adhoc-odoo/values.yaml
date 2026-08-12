@@ -457,6 +457,12 @@ cloudNativePG:
   # sets this to "on" when a database is inactivated (see saas_k8s
   # _k8s_inactivate) and back to "off" on reactivation. See cnpg/pgcluster.yaml.
   hibernation: "off"
+  # appTypes cuyo pod de Postgres NO se deja desalojar por el autoscaler
+  # (safe-to-evict=false). El PV es zonal: desalojar obliga a volver a la misma zona y,
+  # si ahí no hay memoria, la base espera. Se protege donde esa espera cuesta una fecha
+  # comprometida (migraciones) o un train productivo; el resto sigue consolidando.
+  # Contrapartida: un nodo con una de estas bases no consolida mientras ella viva ahí.
+  evictionProtectedAppTypes: [new, old, trainp]
   superUserPassword: Rgd20sGT5JKUheTbRM5VWW4sDSLHJjzh6P3JwAqtRrsnURCKzPbX4FNJ5fGWwgh8
   resources:
     requests:

@@ -309,6 +309,7 @@ cloudNativePG:
   enabled: false
   version: "15.0"
   instances: 1
+  evictionProtectedAppTypes: [new, old, trainp]   # appTypes con safe-to-evict=false
   persistence:
     size: 10          # GB
     storageClass: gpc-ssd-d   # gcp-ssd-r (retain) | gcp-ssd-d (delete)
@@ -328,6 +329,14 @@ cloudNativePG:
 ```
 
 > Para GCP: activar "Programación de instantáneas" en el disco persistente del cluster PG.
+
+> **`evictionProtectedAppTypes`** — el pod de Postgres lleva
+> `cluster-autoscaler.kubernetes.io/safe-to-evict`, sin lo cual el autoscaler no vacía el
+> nodo (los pods de CNPG no pertenecen a un controller). El costo de dejarlo desalojable es
+> que el PV es zonal: el pod tiene que volver a la misma zona y, si ahí no hay memoria,
+> la base espera (tarea 72293). Los appType de esta lista se marcan `false` — un nodo con
+> una de esas bases no consolida mientras ella viva ahí. El pod de Odoo queda siempre
+> desalojable: es stateless y arranca en cualquier zona.
 
 ### Metadata Adhoc
 
