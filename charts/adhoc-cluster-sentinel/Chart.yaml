@@ -6,13 +6,14 @@ description: >
   Plataforma genérica de supervisión de un cluster Kubernetes: corre múltiples
   checks enchufables que observan el cluster y, ante algo "sano para k8s pero roto
   de verdad" sostenido, actúan (recrear un pod, etc.) con guardrails uniformes.
-  Checks: gcsfuse-mount (fuente k8s), memory-pressure (fuente Prometheus).
+  Checks: gcsfuse-mount (fuente k8s), memory-pressure (fuente Prometheus),
+  pv-zone-stuck (fuente k8s, solo observa).
 
 type: application
 
-version: 0.1.0
+version: 0.1.1
 
-appVersion: "clusterSentinel-2026.07.27.1"
+appVersion: "clusterSentinel-2026.08.12.5"
 
 home: "https://github.com/adhoc-dev/helm-charts"
 sources:
