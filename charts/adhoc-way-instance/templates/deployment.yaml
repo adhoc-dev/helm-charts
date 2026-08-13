@@ -120,7 +120,7 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email .Values.sources }}
           env:
             {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
@@ -140,6 +140,16 @@ spec:
             # Rendered as JSON: the entrypoint clones or updates what is in it.
             - name: ADHOCWAY_WORKSPACE
               value: {{ toJson .Values.workspace | quote }}
+            {{- end }}
+            {{- if .Values.sources }}
+            {{- $links := list }}
+            {{- range .Values.sources }}
+            {{- $target := printf "%s/%s" (include "adhoc-way-instance.sourceMount" .) (.srcPath | trimPrefix "/") }}
+            {{- $links = append $links (dict "target" (clean $target) "link" .dstPath) }}
+            {{- end }}
+            # Where each mount is and where it goes: the entrypoint links them.
+            - name: ADHOCWAY_SOURCES
+              value: {{ toJson $links | quote }}
             {{- end }}
             {{- with .Values.github.credentialUrl }}
             # Where the git credential helper asks, and the token it proves itself with.
@@ -166,10 +176,9 @@ spec:
               mountPath: {{ trimSuffix "/" .Values.github.tokenMountPath | quote }}
               readOnly: true
             {{- end }}
-            {{- if .Values.odooSource.enabled }}
-            # Inside the volume above, which is mounted first: kubelet orders them by path.
-            - name: odoo-source
-              mountPath: {{ .Values.odooSource.mountPath | quote }}
+            {{- range .Values.sources }}
+            - name: {{ include "adhoc-way-instance.sourceName" . }}
+              mountPath: {{ include "adhoc-way-instance.sourceMount" . | quote }}
               readOnly: true
             {{- end }}
             {{- with .Values.tool.volumeMounts }}
@@ -203,12 +212,12 @@ spec:
                   audience: {{ .Values.github.tokenAudience | quote }}
                   expirationSeconds: {{ .Values.github.tokenExpirationSeconds }}
         {{- end }}
-        {{- if .Values.odooSource.enabled }}
+        {{- range .Values.sources }}
         # The image itself as the volume: no copy to make and nothing to keep in sync.
-        - name: odoo-source
+        - name: {{ include "adhoc-way-instance.sourceName" . }}
           image:
-            reference: {{ .Values.odooSource.image | quote }}
-            pullPolicy: {{ .Values.odooSource.pullPolicy }}
+            reference: {{ .image | quote }}
+            pullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
         {{- end }}
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

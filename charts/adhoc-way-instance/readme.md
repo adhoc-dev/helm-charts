@@ -44,30 +44,35 @@ server filled in by default stays in the object, and it refuses that next to `Re
 The cost is that the workspace is down for the seconds the pod takes to come back. That
 is what the sidecar's waiting page is for.
 
-## The Odoo source, mounted from its own image
+## Sources: reading code that is not the person's
 
-`odooSource` mounts `dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0` as a volume under
-`workspace/.oba-19`, so whoever works in the workspace reads the framework's source
+`sources` mounts images read-only so whoever works in the workspace reads the real source
 instead of guessing at it. The image *is* the volume: there is no copy to make and
-nothing to keep in sync. It cannot be written, not even by root.
+nothing to keep in sync, and it cannot be written, not even by root. The default is the
+Odoo image, showing up as `workspace/.oba-19`.
 
-**The mount is the whole image, not its source directory.** Under `.oba-19` there is a
-full root filesystem, and the source lives inside it:
-
+```yaml
+sources:
+  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
+    srcPath: home/odoo/src     # the directory to expose, inside the image
+    dstPath: .oba-19           # where it shows up, from the workspace root
 ```
-.oba-19/home/odoo/src/{odoo,enterprise,repositories,oba-project-memory,...}
-```
 
-`subPath` does not narrow this: on a volume of this kind kubelet ignores it and mounts
-the image root all the same (tested, not assumed). Exposing only `src` would mean
-mounting the image elsewhere and leaving a symlink in the workspace — worth doing if the
-extra depth gets in the way, but it is an image change and not a chart one.
+**Mounted under `/mnt`, linked into the workspace.** A mount of this kind is always the
+whole image: under it there is a full root filesystem with the source a few directories
+in. `subPath` does not narrow it — kubelet ignores it here (tested, not assumed). So the
+chart mounts at `/mnt/<dstPath>` and passes `ADHOCWAY_SOURCES` to the image, whose
+entrypoint leaves `workspace/<dstPath>` as a link to `srcPath` inside the mount. What the
+person sees is the directory they asked for; the rootfs around it stays out of the way.
 
-It is pulled like any image, and this one weighs about 4 GB uncompressed: a node that
-does not have it yet holds the pod until it is down. With `IfNotPresent` that cost stays
-out of every start, at the price of a node keeping whatever `19.0` meant when it first
-pulled it — so two workspaces on different nodes may read a slightly different source.
-Pin an exact tag if that matters.
+An image that the node does not have yet holds the pod until it is down, and these weigh
+GBs. `pullPolicy` defaults to `IfNotPresent`, which keeps that cost out of every start at
+the price of a node keeping whatever a moving tag meant when it first pulled it — two
+workspaces on different nodes may then read a slightly different source. Pin an exact tag
+where that matters.
+
+An image with no `dstPath` collision can be added to the list; the mount path and the
+volume name both come from it.
 
 ## User state: one volume per USER, not per instance
 

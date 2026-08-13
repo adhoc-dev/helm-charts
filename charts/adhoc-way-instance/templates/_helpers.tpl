@@ -73,3 +73,18 @@ name is that instance, so nobody has to pass it.
 {{- define "adhoc-way-instance.serviceAccountName" -}}
 {{- default .Release.Name .Values.serviceAccount.name }}
 {{- end }}
+
+{{/*
+Volume name of a source. Its destination in the workspace, made a valid name.
+*/}}
+{{- define "adhoc-way-instance.sourceName" -}}
+{{- printf "source-%s" (.dstPath | trimPrefix "." | replace "/" "-" | replace "_" "-" | lower) -}}
+{{- end }}
+
+{{/*
+Where a source is mounted. Under /mnt and not in the workspace: what belongs in the
+workspace is the directory inside the image, and a link is the only way to expose it.
+*/}}
+{{- define "adhoc-way-instance.sourceMount" -}}
+{{- printf "/mnt/%s" (.dstPath | trimPrefix "." | trimPrefix "/") -}}
+{{- end }}
