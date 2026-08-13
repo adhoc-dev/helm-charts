@@ -51,6 +51,9 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: watcher
           image: busybox:latest
+          # Un sleep loop: sin requests arrastraba la QoS del pod entero hacia abajo.
+          resources:
+            {{- toYaml .Values.watcherResources | nindent 12 }}
           command:
             - /bin/sh
             - -c

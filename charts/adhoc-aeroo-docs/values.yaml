@@ -85,6 +85,15 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+# El sidecar watchdog es un sleep loop de busybox: consume ~0 pero sin requests
+# arrastra la QoS del pod entero hacia abajo en la cola de eviction del kubelet.
+watcherResources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
+
 autoscaling:
   enabled: false
   minReplicas: 1
