@@ -57,9 +57,10 @@ rules:
     resources: ["wakeupinstances/status"]
     verbs: ["get", "update", "patch"]
   # CNPG Clusters: hibernate/resume the PostgreSQL cluster backing a sleeping
-  # instance (opt-in via WakeupInstance.spec.hibernateCnpg). "get" reads the
-  # cluster + polls its status; "update" covers replace_namespaced_custom_object
-  # (PUT) used to set the cnpg.io/hibernation annotation.
+  # instance (opt-in via WakeupInstance.spec.hibernateCnpg), and hold/release its
+  # pod on every sleep and wake. "update" is the replace (PUT) of the hibernation
+  # annotation; "patch" the merge patch of the disruption policy; "list" finds the
+  # cluster of a namespace whose instance does not declare spec.cnpgCluster.
   - apiGroups: ["postgresql.cnpg.io"]
     resources: ["clusters"]
-    verbs: ["get", "update"]
+    verbs: ["get", "list", "patch", "update"]
