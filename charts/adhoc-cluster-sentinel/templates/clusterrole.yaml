@@ -15,3 +15,18 @@ rules:
   - apiGroups: [""]
     resources: ["persistentvolumeclaims", "persistentvolumes"]
     verbs: ["get"]
+  # Read-only, for node-memory-pressure: allocatable and schedulability of every node,
+  # to prove a concrete destination exists before moving anything. Deliberately WITHOUT
+  # `patch`: the v1 never cordons, so it cannot make a node unschedulable even by bug.
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list"]
+  # node-memory-pressure again: `get` on replicasets resolves pod -> Deployment, `get` on
+  # deployments reads the real rollout strategy (the zero-downtime guarantee is verified,
+  # never assumed), and `patch` is the rollout restart itself.
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
