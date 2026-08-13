@@ -73,3 +73,61 @@ name is that instance, so nobody has to pass it.
 {{- define "adhoc-way-instance.serviceAccountName" -}}
 {{- default .Release.Name .Values.serviceAccount.name }}
 {{- end }}
+
+{{/*
+The name of a source, checked. Everything else about it is derived from this, so what is
+not a name in the root of the workspace is refused here instead of rendering a pod that
+kubelet or the entrypoint would turn down.
+*/}}
+{{- define "adhoc-way-instance.sourceKey" -}}
+{{- $name := trimPrefix "." (.dstPath | default "") -}}
+{{- if not (regexMatch "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$" $name) -}}
+{{- fail (printf "sources: dstPath %q is not a name in the root of the workspace (an optional dot, then lowercase letters, digits and dashes)" .dstPath) -}}
+{{- end -}}
+{{- if gt (len $name) 56 -}}
+{{- /* 56 and not 63: the volume name is this with `source-` in front. */ -}}
+{{- fail (printf "sources: dstPath %q is longer than 56 characters, which is what a volume name leaves for it" .dstPath) -}}
+{{- end -}}
+{{- $name -}}
+{{- end }}
+
+{{/*
+Refuse two sources that would render the same volume.
+*/}}
+{{- define "adhoc-way-instance.validateSources" -}}
+{{- $keys := list -}}
+{{- range .Values.sources -}}
+{{- $keys = append $keys (include "adhoc-way-instance.sourceKey" .) -}}
+{{- end -}}
+{{- if ne (len $keys) (len (uniq $keys)) -}}
+{{- fail (printf "sources: two entries share a dstPath (%v)" $keys) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Volume name of a source.
+*/}}
+{{- define "adhoc-way-instance.sourceName" -}}
+{{- printf "source-%s" (include "adhoc-way-instance.sourceKey" .) -}}
+{{- end }}
+
+{{/*
+Where a source is mounted. Under /mnt and not in the workspace: what belongs in the
+workspace is the directory inside the image, and a link is the only way to expose it.
+*/}}
+{{- define "adhoc-way-instance.sourceMount" -}}
+{{- printf "/mnt/%s" (include "adhoc-way-instance.sourceKey" .) -}}
+{{- end }}
+
+{{/*
+What a source links to: srcPath inside its mount. Refused if it leaves the mount, which
+is the same mistake as a dstPath that is not a name, one directory down.
+*/}}
+{{- define "adhoc-way-instance.sourceTarget" -}}
+{{- $mount := include "adhoc-way-instance.sourceMount" . -}}
+{{- $target := clean (printf "%s/%s" $mount (.srcPath | default "" | trimPrefix "/")) -}}
+{{- if not (or (eq $target $mount) (hasPrefix (printf "%s/" $mount) $target)) -}}
+{{- fail (printf "sources: srcPath %q leaves the mount of %q" .srcPath .dstPath) -}}
+{{- end -}}
+{{- $target -}}
+{{- end }}

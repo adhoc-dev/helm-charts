@@ -30,14 +30,53 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 
 ## Upgrades replace the pod, they do not roll it
 
-The Deployment uses `strategy: Recreate`. Two reasons, both of them the volume: a
-ReadWriteOnce disk attaches to one node, so a new pod started before the old one is
-gone waits for it (and fails to attach outright if it lands on another node); and a
-rolling update keeps serving the old pod until the new one is ready, so a person who
-reopens the workspace during an upgrade gets the old image and does not see the change.
+The Deployment rolls with `maxSurge: 0`, which at one replica means the old pod is gone
+before the new one starts. Two reasons, both of them the volume: a ReadWriteOnce disk
+attaches to one node, so a new pod started before the old one is gone waits for it (and
+fails to attach outright if it lands on another node); and an ordinary rolling update
+keeps serving the old pod until the new one is ready, so a person who reopens the
+workspace during an upgrade gets the old image and does not see the change.
+
+`maxSurge: 0` and not `type: Recreate`, which says the same thing more plainly but
+cannot be applied to a Deployment that already exists: the `rollingUpdate` the API
+server filled in by default stays in the object, and it refuses that next to `Recreate`.
 
 The cost is that the workspace is down for the seconds the pod takes to come back. That
-is what the platform's waiting page is for.
+is what the sidecar's waiting page is for.
+
+## Sources: reading code that is not the person's
+
+`sources` mounts images read-only so whoever works in the workspace reads the real source
+instead of guessing at it. The image *is* the volume: there is no copy to make and
+nothing to keep in sync, and it cannot be written, not even by root. The default is the
+Odoo image, showing up as `workspace/.oba-19`.
+
+```yaml
+sources:
+  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
+    srcPath: home/odoo/src     # the directory to expose, inside the image
+    dstPath: .oba-19           # where it shows up, from the workspace root
+```
+
+**Mounted under `/mnt`, linked into the workspace.** A mount of this kind is always the
+whole image: under it there is a full root filesystem with the source a few directories
+in. `subPath` does not narrow it — kubelet ignores it here (tested, not assumed). So the
+chart mounts at `/mnt/<dstPath>` and passes `ADHOCWAY_SOURCES` to the image, whose
+entrypoint leaves `workspace/<dstPath>` as a link to `srcPath` inside the mount. What the
+person sees is the directory they asked for; the rootfs around it stays out of the way.
+
+An image that the node does not have yet holds the pod until it is down, and these weigh
+GBs. `pullPolicy` defaults to `IfNotPresent`, which keeps that cost out of every start at
+the price of a node keeping whatever a moving tag meant when it first pulled it — two
+workspaces on different nodes may then read a slightly different source. Pin an exact tag
+where that matters.
+
+Images are added to the list, and the mount path and the volume name both come from the
+`dstPath`. Because everything is derived from it, it has to be a **name** —an optional
+dot, then lowercase letters, digits and dashes— and no two may repeat; a `srcPath` that
+leaves the mount is refused too. All three fail at render time with a message that names
+the entry, which is better than a Deployment the API server turns down or a link the
+entrypoint quietly skips.
 
 ## User state: one volume per USER, not per instance
 

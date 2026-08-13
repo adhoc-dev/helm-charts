@@ -1,3 +1,4 @@
+{{- include "adhoc-way-instance.validateSources" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -120,7 +121,7 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email .Values.sources }}
           env:
             {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
@@ -140,6 +141,15 @@ spec:
             # Rendered as JSON: the entrypoint clones or updates what is in it.
             - name: ADHOCWAY_WORKSPACE
               value: {{ toJson .Values.workspace | quote }}
+            {{- end }}
+            {{- if .Values.sources }}
+            {{- $links := list }}
+            {{- range .Values.sources }}
+            {{- $links = append $links (dict "target" (include "adhoc-way-instance.sourceTarget" .) "link" .dstPath) }}
+            {{- end }}
+            # Where each mount is and where it goes: the entrypoint links them.
+            - name: ADHOCWAY_SOURCES
+              value: {{ toJson $links | quote }}
             {{- end }}
             {{- with .Values.github.credentialUrl }}
             # Where the git credential helper asks, and the token it proves itself with.
@@ -164,6 +174,11 @@ spec:
             {{- if .Values.github.credentialUrl }}
             - name: workspace-token
               mountPath: {{ trimSuffix "/" .Values.github.tokenMountPath | quote }}
+              readOnly: true
+            {{- end }}
+            {{- range .Values.sources }}
+            - name: {{ include "adhoc-way-instance.sourceName" . }}
+              mountPath: {{ include "adhoc-way-instance.sourceMount" . | quote }}
               readOnly: true
             {{- end }}
             {{- with .Values.tool.volumeMounts }}
@@ -196,6 +211,13 @@ spec:
                   path: token
                   audience: {{ .Values.github.tokenAudience | quote }}
                   expirationSeconds: {{ .Values.github.tokenExpirationSeconds }}
+        {{- end }}
+        {{- range .Values.sources }}
+        # The image itself as the volume: no copy to make and nothing to keep in sync.
+        - name: {{ include "adhoc-way-instance.sourceName" . }}
+          image:
+            reference: {{ .image | quote }}
+            pullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
         {{- end }}
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
