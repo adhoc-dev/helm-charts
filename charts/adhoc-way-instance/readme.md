@@ -71,8 +71,12 @@ the price of a node keeping whatever a moving tag meant when it first pulled it 
 workspaces on different nodes may then read a slightly different source. Pin an exact tag
 where that matters.
 
-An image with no `dstPath` collision can be added to the list; the mount path and the
-volume name both come from it.
+Images are added to the list, and the mount path and the volume name both come from the
+`dstPath`. Because everything is derived from it, it has to be a **name** —an optional
+dot, then lowercase letters, digits and dashes— and no two may repeat; a `srcPath` that
+leaves the mount is refused too. All three fail at render time with a message that names
+the entry, which is better than a Deployment the API server turns down or a link the
+entrypoint quietly skips.
 
 ## User state: one volume per USER, not per instance
 

@@ -136,8 +136,9 @@ workspace: {}
 
 # --- Sources the workspace reads ---
 # Images mounted read-only under /mnt, each linked into the workspace. `srcPath` is the
-# directory to expose, inside the image; `dstPath` is where it shows up, relative to the
-# workspace root. `pullPolicy` is optional (default IfNotPresent). See the readme.
+# directory to expose, inside the image; `dstPath` is the name it shows up under, in the
+# root of the workspace (an optional dot, then lowercase letters, digits and dashes).
+# `pullPolicy` is optional (default IfNotPresent). See the readme.
 sources:
   - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
     srcPath: home/odoo/src

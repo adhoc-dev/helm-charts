@@ -1,3 +1,4 @@
+{{- include "adhoc-way-instance.validateSources" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -144,8 +145,7 @@ spec:
             {{- if .Values.sources }}
             {{- $links := list }}
             {{- range .Values.sources }}
-            {{- $target := printf "%s/%s" (include "adhoc-way-instance.sourceMount" .) (.srcPath | trimPrefix "/") }}
-            {{- $links = append $links (dict "target" (clean $target) "link" .dstPath) }}
+            {{- $links = append $links (dict "target" (include "adhoc-way-instance.sourceTarget" .) "link" .dstPath) }}
             {{- end }}
             # Where each mount is and where it goes: the entrypoint links them.
             - name: ADHOCWAY_SOURCES
