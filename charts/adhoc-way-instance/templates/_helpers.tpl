@@ -84,6 +84,10 @@ kubelet or the entrypoint would turn down.
 {{- if not (regexMatch "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$" $name) -}}
 {{- fail (printf "sources: dstPath %q is not a name in the root of the workspace (an optional dot, then lowercase letters, digits and dashes)" .dstPath) -}}
 {{- end -}}
+{{- if gt (len $name) 56 -}}
+{{- /* 56 and not 63: the volume name is this with `source-` in front. */ -}}
+{{- fail (printf "sources: dstPath %q is longer than 56 characters, which is what a volume name leaves for it" .dstPath) -}}
+{{- end -}}
 {{- $name -}}
 {{- end }}
 
