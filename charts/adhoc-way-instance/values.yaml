@@ -134,6 +134,27 @@ github:
 # Passed as YAML and handed to the image as JSON.
 workspace: {}
 
+# --- Odoo source to read ---
+# The Odoo image mounted as a volume, so whoever works in the workspace reads the
+# framework's own source instead of guessing at it. Read-only by construction: a volume
+# of this kind cannot be written, not even by root.
+#
+# It is pulled like any image, and this one weighs a few GB: on a node that does not
+# have it yet, the pod does not start until it is down. `IfNotPresent` keeps that cost
+# out of every start, at the price of a node holding whatever `19.0` meant when it first
+# pulled it. Pin an exact tag if two workspaces reading a different source is a problem.
+#
+# What is mounted is the whole image, so the source is a few directories in:
+# `.oba-19/home/odoo/src/{odoo,enterprise,repositories,...}`. `subPath` does not narrow
+# it — kubelet ignores it on a volume of this kind. See the readme.
+#
+# The path is inside the workspace so an agent finds it without being told where to look.
+odooSource:
+  enabled: true
+  image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
+  pullPolicy: IfNotPresent
+  mountPath: /home/odoo/workspace/.oba-19
+
 # --- Identity of the pod ---
 # The subject of the projected token names this service account, which is how the
 # platform resolves which instance is asking. Empty uses the release name, which is

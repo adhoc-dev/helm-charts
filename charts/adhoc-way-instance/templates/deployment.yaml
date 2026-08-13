@@ -166,6 +166,12 @@ spec:
               mountPath: {{ trimSuffix "/" .Values.github.tokenMountPath | quote }}
               readOnly: true
             {{- end }}
+            {{- if .Values.odooSource.enabled }}
+            # Inside the volume above, which is mounted first: kubelet orders them by path.
+            - name: odoo-source
+              mountPath: {{ .Values.odooSource.mountPath | quote }}
+              readOnly: true
+            {{- end }}
             {{- with .Values.tool.volumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -196,6 +202,13 @@ spec:
                   path: token
                   audience: {{ .Values.github.tokenAudience | quote }}
                   expirationSeconds: {{ .Values.github.tokenExpirationSeconds }}
+        {{- end }}
+        {{- if .Values.odooSource.enabled }}
+        # The image itself as the volume: no copy to make and nothing to keep in sync.
+        - name: odoo-source
+          image:
+            reference: {{ .Values.odooSource.image | quote }}
+            pullPolicy: {{ .Values.odooSource.pullPolicy }}
         {{- end }}
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

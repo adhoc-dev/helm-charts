@@ -30,14 +30,44 @@ from `host`) are preset. Override `tool.*` to run a different tool.
 
 ## Upgrades replace the pod, they do not roll it
 
-The Deployment uses `strategy: Recreate`. Two reasons, both of them the volume: a
-ReadWriteOnce disk attaches to one node, so a new pod started before the old one is
-gone waits for it (and fails to attach outright if it lands on another node); and a
-rolling update keeps serving the old pod until the new one is ready, so a person who
-reopens the workspace during an upgrade gets the old image and does not see the change.
+The Deployment rolls with `maxSurge: 0`, which at one replica means the old pod is gone
+before the new one starts. Two reasons, both of them the volume: a ReadWriteOnce disk
+attaches to one node, so a new pod started before the old one is gone waits for it (and
+fails to attach outright if it lands on another node); and an ordinary rolling update
+keeps serving the old pod until the new one is ready, so a person who reopens the
+workspace during an upgrade gets the old image and does not see the change.
+
+`maxSurge: 0` and not `type: Recreate`, which says the same thing more plainly but
+cannot be applied to a Deployment that already exists: the `rollingUpdate` the API
+server filled in by default stays in the object, and it refuses that next to `Recreate`.
 
 The cost is that the workspace is down for the seconds the pod takes to come back. That
-is what the platform's waiting page is for.
+is what the sidecar's waiting page is for.
+
+## The Odoo source, mounted from its own image
+
+`odooSource` mounts `dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0` as a volume under
+`workspace/.oba-19`, so whoever works in the workspace reads the framework's source
+instead of guessing at it. The image *is* the volume: there is no copy to make and
+nothing to keep in sync. It cannot be written, not even by root.
+
+**The mount is the whole image, not its source directory.** Under `.oba-19` there is a
+full root filesystem, and the source lives inside it:
+
+```
+.oba-19/home/odoo/src/{odoo,enterprise,repositories,oba-project-memory,...}
+```
+
+`subPath` does not narrow this: on a volume of this kind kubelet ignores it and mounts
+the image root all the same (tested, not assumed). Exposing only `src` would mean
+mounting the image elsewhere and leaving a symlink in the workspace — worth doing if the
+extra depth gets in the way, but it is an image change and not a chart one.
+
+It is pulled like any image, and this one weighs about 4 GB uncompressed: a node that
+does not have it yet holds the pod until it is down. With `IfNotPresent` that cost stays
+out of every start, at the price of a node keeping whatever `19.0` meant when it first
+pulled it — so two workspaces on different nodes may read a slightly different source.
+Pin an exact tag if that matters.
 
 ## User state: one volume per USER, not per instance
 
