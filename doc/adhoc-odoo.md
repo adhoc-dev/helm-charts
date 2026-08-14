@@ -187,6 +187,8 @@ ingress:
       generic: 1000r/m
       rpc: 60r/m
       debugHeaders: false
+      reportMaxConcurrency: 3
+    sessionAffinity: false
     imageCacheEnabled: false
     image:
       repository: dockerhub.adhoc.inc/adhoc/ops-tools
@@ -203,6 +205,27 @@ ingress:
       mode: ""     # maintenance | upgrade | manual
       eta: 0       # unix timestamp
 ```
+
+#### Límite de reportes concurrentes
+
+`rateLimit.reportMaxConcurrency` acota cuántos `/report/pdf` + `/report/download` tiene **un cliente** en vuelo. Es concurrencia, no tasa: un PDF retiene un worker HTTP de Odoo varios segundos esperando a kwkhtmltopdf, así que la tasa no es la dimensión que se agota — la concurrencia mapea 1:1 a workers. `/report/barcode` queda deliberadamente afuera: lo pide kwkhtmltopdf mientras renderiza un PDF que ya tiene un worker tomado.
+
+Dimensionarlo contra el **pool total** (`odoo.performance.workers` × `replicaCount`), no como número suelto. Criterio usado: que un cliente no retenga más de ~1/3 del pool, porque cada PDF padre arrastra sub-requests que reentran al mismo pool.
+
+**El límite se cuenta por instancia de nginx.** La zona de `limit_conn` vive en memoria compartida de un nginx y no se comparte entre pods, así que con `scale: 2` el techo real por cliente es el doble del configurado — salvo que el cliente caiga siempre en el mismo pod.
+
+#### Afinidad de cliente hacia el reverse proxy
+
+Si un cliente reparte sus requests entre los pods del proxy, el límite de arriba se multiplica por la cantidad de pods. Cada ingress lo resuelve distinto:
+
+| Ingress | Afinidad | Qué hace falta |
+| --- | --- | --- |
+| Nginx (legacy, adhocprod) | Ya existe | El template emite `nginx.ingress.kubernetes.io/affinity: cookie` de forma incondicional. Nada que configurar. |
+| Istio (cell0X) | No existe por default | `reverseProxy.sessionAffinity: true` emite una `DestinationRule` con hash consistente. |
+
+`sessionAffinity` viene **apagado** por dos motivos: afecta el balanceo de todo el tráfico de la instancia (no solo el de reportes), y hasta su incorporación no había ninguna `DestinationRule` en la plataforma.
+
+El hash va por `x-forwarded-for` y **no** por la cookie de sesión a propósito. Con `consistentHash.httpCookie`, si se le agrega un `ttl`, Envoy **genera** la cookie cuando falta; como acá se llamaría `session_id`, pisaría la sesión de Odoo. El header no tiene esa trampa.
 
 ### Configuración Odoo
 

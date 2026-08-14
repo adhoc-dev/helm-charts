@@ -1,0 +1,17 @@
+{{- if and .Values.ingress.istio.enabled .Values.ingress.reverseProxy.enabled .Values.ingress.reverseProxy.sessionAffinity -}}
+{{- $srvNginx := printf "%s-nginx" (include "adhoc-odoo.serviceNameSuffix" .) -}}
+# Pins each client to one proxy pod so limit_conn counts per client, not per pod.
+# Hash by header, never by cookie: with a ttl, Envoy mints the cookie and would clobber Odoo's session_id.
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ $srvNginx | quote }}
+  labels:
+    {{- include "adhoc-odoo.labels" . | nindent 4 }}
+spec:
+  host: {{ $srvNginx | quote }}
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: x-forwarded-for
+{{- end }}
