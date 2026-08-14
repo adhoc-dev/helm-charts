@@ -461,7 +461,8 @@ cloudNativePG:
   # del pod de Postgres. Solo aplica a la creación: en un Cluster que ya existe el chart
   # refleja el valor vivo, porque quien manda es el cron de saas_k8s (ventana de
   # mantenimiento + base dormida) y un helm upgrade no debe pisarlo.
-  safeToEvict: true
+  # Nace retenida, igual que enablePDB, que nace en el default true del CRD.
+  safeToEvict: false
   superUserPassword: Rgd20sGT5JKUheTbRM5VWW4sDSLHJjzh6P3JwAqtRrsnURCKzPbX4FNJ5fGWwgh8
   resources:
     requests:

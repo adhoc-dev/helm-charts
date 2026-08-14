@@ -337,9 +337,10 @@ cloudNativePG:
 > abierta `enablePDB` no tiene efecto.
 
 > **`safeToEvict`** — valor con el que **nace** la anotación
-> `cluster-autoscaler.kubernetes.io/safe-to-evict` del pod de Postgres. Es **create-only**: en un
-> Cluster que ya existe, el chart refleja el valor vivo en vez del values. Quien la gobierna es el
-> cron `_cron_k8s_checks` de `saas_k8s`, según la ventana de mantenimiento y si la base está
+> `cluster-autoscaler.kubernetes.io/safe-to-evict` del pod de Postgres. Nace en `false`, o sea
+> retenida, para que el estado inicial sea coherente con `enablePDB`, que nace en el default
+> `true` del CRD. Es **create-only**: en un Cluster que ya existe, el chart refleja el valor vivo
+> en vez del values. Quien la gobierna es el cron `_cron_k8s_checks` de `saas_k8s`, según la ventana de mantenimiento y si la base está
 > dormida; si el chart la fijara, cada `helm upgrade` pisaría esa decisión — la misma razón por la
 > que el chart no declara `nodeMaintenanceWindow` para `prod`. Importa porque el PV es zonal:
 > desalojar obliga al pod a volver a la misma zona y, si ahí no hay memoria, la base espera
