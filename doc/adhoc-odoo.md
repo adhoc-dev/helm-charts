@@ -329,6 +329,13 @@ cloudNativePG:
 
 > Para GCP: activar "Programación de instantáneas" en el disco persistente del cluster PG.
 
+> **Política de disrupción (`safeToEvict`, `enablePDB`, ventana de mantenimiento)** — el chart
+> ya no declara `enablePDB` ni `nodeMaintenanceWindow`, y tampoco crea un PDB propio para el
+> primary: los gobierna el cron `_cron_k8s_checks` de `saas_k8s` con un solo criterio (ventana
+> de mantenimiento o base dormida). `nodeMaintenanceWindow` queda jubilado — CNPG lo
+> desaconseja porque limita self-healing, rolling updates y el propio PDB, y mientras está
+> abierta `enablePDB` no tiene efecto.
+
 > **`safeToEvict`** — valor con el que **nace** la anotación
 > `cluster-autoscaler.kubernetes.io/safe-to-evict` del pod de Postgres. Es **create-only**: en un
 > Cluster que ya existe, el chart refleja el valor vivo en vez del values. Quien la gobierna es el

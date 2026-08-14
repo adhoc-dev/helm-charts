@@ -23,21 +23,6 @@ data:
   password: {{ .Values.cloudNativePG.services.externalService.password | b64enc | quote }}
 ---
 {{- end }}
-{{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: {{ include "adhoc-odoo.fullname" . }}-pg-primary
-  labels:
-    {{- include "adhoc-odoo.labels" . | nindent 4 }}
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      cnpg.io/cluster: {{ include "cnpg.sanitizedPgName" . }}-pg
-      cnpg.io/instanceRole: primary
----
-{{- end }}
 # kubectl explain --api-version=postgresql.cnpg.io/v1 Cluster.spec
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -78,14 +63,7 @@ spec:
       {{- include "adhoc-odoo.labels" . | nindent 6 }}
   imageName: "ghcr.io/cloudnative-pg/postgresql:{{ .Values.cloudNativePG.version | default "15.0" }}"
   primaryUpdateStrategy: unsupervised
-  {{- if or (ne .Values.adhoc.appType "prod") (gt (.Values.cloudNativePG.instances | default 1 | int ) 1) }}
-  enablePDB: false
-  {{- end }}
-  {{- if ne .Values.adhoc.appType "prod" }}
-  nodeMaintenanceWindow:
-    inProgress: true
-    reusePVC: true
-  {{- end }}
+  {{- /* enablePDB y la ventana los gobierna el cron de saas_k8s: ver doc/adhoc-odoo.md. */}}
   instances: {{ .Values.cloudNativePG.instances | default 1 }}
   {{- if .Values.cloudNativePG.topologySpreadConstraints.enabled }}
   {{- /* Enhance the probabilities to re colocate pods in the same node after failure/redeploy. With this we try to minimize the disruption reattaching pvc */}}
