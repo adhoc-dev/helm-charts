@@ -23,6 +23,9 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "adhoc-cluster-sentinel.serviceAccountName" . }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534

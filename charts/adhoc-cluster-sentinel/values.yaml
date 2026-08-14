@@ -8,6 +8,11 @@ image:
 # Kubernetes namespace where the controller is deployed.
 namespace: adhoc-cluster-sentinel
 
+# Empty = the cluster's globalDefault. Set it above the workload the controller watches:
+# the kubelet evicts from lowest priority up, so a supervisor left on the default class is
+# the first thing to die on the node it was supposed to rescue.
+priorityClassName: ""
+
 # Per-check config (interval, thresholds, selector, mode) lives as code defaults on
 # each Check. These are the only global knobs.
 
