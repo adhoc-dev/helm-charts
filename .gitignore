@@ -30,3 +30,4 @@ dest
 
 .claude/*
 !.claude/settings.json
+wt-*
