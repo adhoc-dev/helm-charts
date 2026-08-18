@@ -13,17 +13,24 @@ data:
     ODOO_SERVER={{ include "adhoc-odoo.serviceNameSuffix" . }}-http:80
     ODOO_WS_SERVER={{ include "adhoc-odoo.serviceNameSuffix" . }}-websocket:80
     {{ end }}
+    {{- $reportCap := .Values.ingress.reverseProxy.rateLimit.reportMaxConcurrency | default 0 | int }}
     {{ if .Values.ingress.reverseProxy.rateLimit.enabled }}
     RATE_LIMIT_ENABLED={{ .Values.ingress.reverseProxy.rateLimit.enabled | quote }}
     RATE_LIMIT_STATIC={{ .Values.ingress.reverseProxy.rateLimit.static | quote }}
     RATE_LIMIT_ACCESS={{ .Values.ingress.reverseProxy.rateLimit.access | quote }}
     RATE_LIMIT_GENERIC={{ .Values.ingress.reverseProxy.rateLimit.generic | quote }}
     RATE_LIMIT_RPC={{ .Values.ingress.reverseProxy.rateLimit.rpc | quote }}
-    RATE_LIMIT_WHITELIST={{ .Values.ingress.reverseProxy.whitelistedIps | join "," | quote }}
-    REPORT_MAX_CONCURRENCY={{ .Values.ingress.reverseProxy.rateLimit.reportMaxConcurrency | default 3 | quote }}
     {{ if .Values.ingress.reverseProxy.rateLimit.debugHeaders }}
     RATE_LIMIT_DEBUG=1
     {{- end }}
+    {{- end }}
+    {{- if or .Values.ingress.reverseProxy.rateLimit.enabled (gt $reportCap 0) }}
+    {{/* Shared by both limiters: feeds the $limit_key bypass. */}}
+    RATE_LIMIT_WHITELIST={{ .Values.ingress.reverseProxy.whitelistedIps | join "," | quote }}
+    {{- end }}
+    {{- if gt $reportCap 0 }}
+    {{/* Own gate: capping reports must not require turning on brute-force rate limiting. */}}
+    REPORT_MAX_CONCURRENCY={{ $reportCap | quote }}
     {{- end }}
     INACTIVE_MODE={{ .Values.ingress.reverseProxy.inactive.mode | quote }}
     INACTIVE_ETA={{ .Values.ingress.reverseProxy.inactive.eta | quote }}
