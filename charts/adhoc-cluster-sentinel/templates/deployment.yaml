@@ -10,6 +10,14 @@ spec:
   # windows) lives in-process and is not shared, so a second replica could delete
   # past MAX_RECREATIONS_PER_TICK and ignore cooldowns. Needs leader election first.
   replicas: 1
+  # Recreate, not the default RollingUpdate: on 1 replica maxSurge rounds UP to 1, so a
+  # rollout would briefly run two controllers. With node-memory-pressure now cordoning,
+  # that window is worse than a gap in coverage — the one-cordoned-node-cluster-wide
+  # budget is derived from the nodes, which bounds durable state but does not serialize
+  # two deciders, so both could read "no cordons" and close a node each. Old pod goes
+  # away before the new one starts.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "adhoc-cluster-sentinel.selectorLabels" . | nindent 6 }}
