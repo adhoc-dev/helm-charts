@@ -23,6 +23,12 @@ modeOverride: ""
 # Comma-separated check names to disable entirely (e.g. "memory-pressure").
 disabledChecks: ""
 
+# Comma-separated check names that run in enforce (actúan), overriding the code default.
+# Which checks actuate is a rollout decision and differs per cell, so it lives here and not
+# in the image. `modeOverride` wins over this. A name that matches no check, or a check with
+# no act() (pv-zone-stuck only measures), aborts startup instead of failing silently.
+enforceChecks: ""
+
 # Prometheus HTTP API base, shared by Prometheus-sourced checks.
 prometheusUrl: "http://prometheus-operated.monitoring:9090"
 
