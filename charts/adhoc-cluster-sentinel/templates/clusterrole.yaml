@@ -15,12 +15,15 @@ rules:
   - apiGroups: [""]
     resources: ["persistentvolumeclaims", "persistentvolumes"]
     verbs: ["get"]
-  # Read-only, for node-memory-pressure: allocatable and schedulability of every node,
-  # to prove a concrete destination exists before moving anything. Deliberately WITHOUT
-  # `patch`: the v1 never cordons, so it cannot make a node unschedulable even by bug.
+  # node-memory-pressure: `list` reads allocatable and schedulability of every node, to
+  # prove a concrete destination exists before moving anything, and to find cordons left
+  # by a dead incarnation. `patch` is the cordon itself — the node under pressure looks
+  # roomy to the scheduler, so closing it for the seconds the surge takes is the only way
+  # the replacement cannot land back on it. Bounded by one cordoned node cluster-wide and
+  # released in a `finally`, with the annotation as the reconciliation key.
   - apiGroups: [""]
     resources: ["nodes"]
-    verbs: ["list"]
+    verbs: ["list", "patch"]
   # node-memory-pressure again: `get` on replicasets resolves pod -> Deployment, `get` on
   # deployments reads the real rollout strategy (the zero-downtime guarantee is verified,
   # never assumed), and `patch` is the rollout restart itself.
