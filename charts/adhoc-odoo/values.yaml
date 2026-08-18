@@ -275,8 +275,8 @@ ingress:
       generic: 1000r/m
       rpc: 60r/m
       debugHeaders: false
-      # Max in-flight reports per client. Counted per nginx pod — see doc/adhoc-odoo.md
-      reportMaxConcurrency: 3
+      # Max in-flight reports per client; 0 disables it. Counted per nginx pod — see doc/adhoc-odoo.md
+      reportMaxConcurrency: 0
     # Pin each client to one proxy pod so the report limit is exact. Istio only — see doc/adhoc-odoo.md
     sessionAffinity: false
     imageCacheEnabled: false
