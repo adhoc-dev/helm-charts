@@ -44,6 +44,24 @@ server filled in by default stays in the object, and it refuses that next to `Re
 The cost is that the workspace is down for the seconds the pod takes to come back. That
 is what the sidecar's waiting page is for.
 
+### The restart is what promotes an image
+
+`tool.image.tag` defaults to `adhocWayWorkspace-latest`, a moving tag, and
+`tool.image.pullPolicy` to `Always`. Together they make the restart above the moment a
+workspace picks up whatever the image build last produced — and that build now tracks
+upstream on its own, so a release of adhoc-way, of the claude CLI or of CloudCLI UI
+reaches people without anyone editing this chart.
+
+What is lost is not reproducibility of the image but the ability to name it from the
+values: two workspaces restarted a day apart run different builds. The build stamps its
+versions as labels (`inc.adhoc.pin.*`), so what a pod is actually running is a
+`docker inspect` away rather than a guess. To hold one instance still — a rollback, or
+reproducing a bug — set `tool.image.digest` to an exact image, which overrides the tag.
+
+Note that whoever installs the release may pass its own `tool.image.tag`, and that
+override wins over this default: for the fleet to follow `latest`, the installer has to
+stop pinning it.
+
 ## Sources: reading code that is not the person's
 
 `sources` mounts images read-only so whoever works in the workspace reads the real source
@@ -175,7 +193,7 @@ surfaces to users.
 | `state.mountPath` / `state.subPath` | `/home/odoo` / `home` | where the user's volume lands |
 | `podSecurityContext.fsGroup` | `1001` | must match the tool image's user group |
 | `user.id` / `user.email` | `""` | owning user (annotations) |
-| `tool.image.tag` | `open-code-server-20260701-1` | tool image (default: openCode) |
+| `tool.image.tag` | `adhocWayWorkspace-latest` | tool image; moving tag, pulled `Always` (see above) |
 | `tool.port` | `4096` | tool localhost port |
 | `tool.publicUrlEnvVar` | `PUBLIC_URL` | env for the tool's public URL (`https://<host>`); `""` to skip |
 | `authProxy.maxEntryTtl` | `10m` | max entry-token lifetime the proxy accepts |
