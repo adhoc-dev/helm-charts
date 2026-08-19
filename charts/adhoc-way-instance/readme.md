@@ -110,14 +110,18 @@ leaves the mount is refused too. All three fail at render time with a message th
 the entry, which is better than a Deployment the API server turns down or a link the
 entrypoint quietly skips.
 
-## The shared API key comes from the platform
+## The shared API keys come from the platform
 
-Every workspace answers with the same key, so it belongs to the namespace and not
-to an instance — and creating it is not this chart's job:
+Every workspace runs on the same two keys — the one the agent answers with and the
+one behind dictation and read-aloud — so they belong to the namespace and not to
+an instance, and creating them is not this chart's job:
 [`adhoc-way-platform`](../adhoc-way-platform) owns it, the same way it owns the
-signer's public key. Here it is only read, and injected into the pod as an
-environment variable. No key ever travels as a value, which would leave it in the
+signer's public key. Here they are only read, and injected into the pod as
+environment variables. No key ever travels as a value, which would leave it in the
 release's manifest and in the arguments of the Job that installs it.
+
+Two keys and not one because each lives in its own OpenAI project with its own
+spend limit: voice and agent are budgeted apart, and neither can eat the other.
 
 `tool.envFromSecret.secretName` defaults to the name that chart gives the Secret.
 If the platform was installed with `agentKeys.existingSecret`, name that one here
@@ -127,7 +131,7 @@ A pod whose Secret is missing does not start, and that is the intended failure �
 a workspace that opens with no credential reads as a broken agent instead of a
 missing Secret. A cluster with no platform Secret (a local one) sets
 `tool.envFromSecret.secretName=""`: openCode then runs on whatever credential the
-person configured.
+person configured, and voice stays off.
 
 ## User state: one volume per USER, not per instance
 
@@ -215,8 +219,8 @@ surfaces to users.
 | `tool.image.tag` | `adhocWayWorkspace-latest` | tool image; moving tag, pulled `Always` (see above) |
 | `tool.port` | `4096` | tool localhost port |
 | `tool.publicUrlEnvVar` | `PUBLIC_URL` | env for the tool's public URL (`https://<host>`); `""` to skip |
-| `tool.envFromSecret.secretName` | `adhoc-way-platform-agent-keys` | Secret with the shared API key, from the platform chart; `""` runs without it |
-| `tool.envFromSecret.keys` | `OPENAI_API_KEY: llm` | env var in the pod -> key in that Secret |
+| `tool.envFromSecret.secretName` | `adhoc-way-platform-agent-keys` | Secret with the shared API keys, from the platform chart; `""` runs without them |
+| `tool.envFromSecret.keys` | `OPENAI_API_KEY: llm`, `VOICE_API_KEY: voice` | env var in the pod -> key in that Secret |
 | `authProxy.maxEntryTtl` | `10m` | max entry-token lifetime the proxy accepts |
 | `authProxy.entryPubKeyConfigMap` | `adhoc-way-platform-entry-pubkey` | platform ConfigMap |
 | `ingress.istio.gateway` | `adhoc-way-platform-gateway` | platform Gateway |
