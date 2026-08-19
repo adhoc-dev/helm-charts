@@ -39,6 +39,14 @@ app.kubernetes.io/component: auth-svc
 {{- end }}
 
 {{/* Secret name for signing-key/grant-token (existing, or created by the chart). */}}
+{{- define "adhoc-way-platform.agentKeysSecretName" -}}
+{{- if .Values.agentKeys.existingSecret }}
+{{- .Values.agentKeys.existingSecret }}
+{{- else }}
+{{- printf "%s-agent-keys" (include "adhoc-way-platform.fullname" .) }}
+{{- end }}
+{{- end }}
+
 {{- define "adhoc-way-platform.authSvcSecretName" -}}
 {{- if .Values.authSvc.existingSecret }}
 {{- .Values.authSvc.existingSecret }}

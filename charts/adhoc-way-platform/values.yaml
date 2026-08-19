@@ -42,6 +42,13 @@ authSvc:
       cpu: 250m
       memory: 128Mi
 
+# The key every workspace answers with, read by the instances. Prod uses
+# existingSecret; the inline one is for dev. See the readme.
+agentKeys:
+  existingSecret: ""
+  secret:
+    llm: "" # OpenAI key the agent answers with
+
 gateway:
   enabled: true
   # Selector of the existing Envoy ingress gateway this Gateway binds to.
