@@ -135,7 +135,8 @@ github:
 workspace: {}
 
 # --- Sources the workspace reads ---
-# Images mounted read-only under /mnt, each linked into the workspace. `srcPath` is the
+# Images mounted read-only under `.mnt` in the workspace, each linked into its root.
+# `srcPath` is the
 # directory to expose, inside the image; `dstPath` is the name it shows up under, in the
 # root of the workspace (an optional dot, then lowercase letters, digits and dashes).
 # `pullPolicy` is optional (default IfNotPresent). See the readme.

@@ -58,12 +58,25 @@ sources:
     dstPath: .oba-19           # where it shows up, from the workspace root
 ```
 
-**Mounted under `/mnt`, linked into the workspace.** A mount of this kind is always the
-whole image: under it there is a full root filesystem with the source a few directories
-in. `subPath` does not narrow it — kubelet ignores it here (tested, not assumed). So the
-chart mounts at `/mnt/<dstPath>` and passes `ADHOCWAY_SOURCES` to the image, whose
-entrypoint leaves `workspace/<dstPath>` as a link to `srcPath` inside the mount. What the
-person sees is the directory they asked for; the rootfs around it stays out of the way.
+**Mounted under `.mnt` in the workspace, linked into its root.** A mount of this kind is
+always the whole image: under it there is a full root filesystem with the source a few
+directories in. `subPath` does not narrow it — kubelet ignores it here (tested, not
+assumed). So the chart mounts at `workspace/.mnt/<dstPath>` and passes `ADHOCWAY_SOURCES`
+to the image, whose entrypoint leaves `workspace/<dstPath>` as a link to `srcPath` inside
+the mount. What the person sees is the directory they asked for; the rootfs around it
+stays out of the way.
+
+**Why inside the workspace, and hidden.** The read permission the agents are given for a
+source is evaluated against the literal path they use, not the resolved one, so each
+source has to be allowed by both of its paths — the link and the mount. With the mount
+outside the workspace those are two unrelated trees; under `.mnt` of the root they both
+fall on the same side, which is what lets the permission be one rule over the root instead
+of two per source. Hidden because rg and globs skip hidden entries by default: a visible
+mount would make any sweep of the workspace root walk a whole rootfs.
+
+The chart also passes `WORKSPACES_ROOT`, so the root it mounts under and the root the
+entrypoint looks at cannot disagree — a mount landing elsewhere is not recognised as ours
+and the source loses its link and its permission with no error.
 
 An image that the node does not have yet holds the pod until it is down, and these weigh
 GBs. `pullPolicy` defaults to `IfNotPresent`, which keeps that cost out of every start at

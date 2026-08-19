@@ -53,6 +53,50 @@ spec:
       # The only token in the pod is the one projected below, which is good for the
       # platform and for nothing else.
       automountServiceAccountToken: false
+      {{- if .Values.sources }}
+      # Las fuentes se montan adentro del workspace, y el mountpoint lo crea el
+      # runtime ANTES del entrypoint: si la raíz no existe todavía la crea él, como
+      # root, y el pod no arranca porque el usuario no puede escribir ahí (el
+      # entrypoint lo dice y corta). fsGroup no alcanza — se aplica al montar el
+      # volumen, y esto pasa después. Creándola acá queda del usuario, y el
+      # mountpoint cuelga adentro sin cambiarle el dueño. Solo mkdir, y sin las
+      # fuentes montadas: montarlas también acá volvería a crear el mountpoint.
+      initContainers:
+        - name: workspace-root
+          image: "{{ .Values.tool.image.repository }}{{ if .Values.tool.image.digest }}@{{ .Values.tool.image.digest }}{{ else }}:{{ .Values.tool.image.tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.tool.image.pullPolicy }}
+          # El `-w` no es de más: si la raíz YA existe y es de root —un volumen que
+          # arrancó alguna vez sin este initContainer— el mkdir es no-op y el pod
+          # fallaría más adelante. Recuperarlo necesita root, así que el mensaje
+          # lo dice acá en vez de dejar que parezca un problema del entrypoint.
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p "$WORKSPACES_ROOT"
+              [ -w "$WORKSPACES_ROOT" ] || {
+                echo "ERROR: $WORKSPACES_ROOT existe y no es de este usuario:"
+                ls -ld "$WORKSPACES_ROOT"
+                echo "Lo creó el runtime como root en un arranque sin este initContainer."
+                echo "Hay que corregirle el dueño con root; desde acá no se puede."
+                exit 1
+              }
+          env:
+            - name: WORKSPACES_ROOT
+              value: {{ include "adhoc-way-instance.workspaceRoot" . | quote }}
+          volumeMounts:
+            - name: user-state
+              mountPath: {{ .Values.state.mountPath }}
+              {{- with .Values.state.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+      {{- end }}
       containers:
         # --- gate: the only exposed port of the pod ---
         - name: auth-proxy
@@ -143,10 +187,15 @@ spec:
               value: {{ toJson .Values.workspace | quote }}
             {{- end }}
             {{- if .Values.sources }}
+            {{- $wsRoot := include "adhoc-way-instance.workspaceRoot" $ }}
             {{- $links := list }}
             {{- range .Values.sources }}
-            {{- $links = append $links (dict "target" (include "adhoc-way-instance.sourceTarget" .) "link" .dstPath) }}
+            {{- $links = append $links (dict "target" (include "adhoc-way-instance.sourceTarget" (merge (dict "workspaceRoot" $wsRoot) .)) "link" .dstPath) }}
             {{- end }}
+            # Where the workspace root is, so the chart and the image cannot disagree
+            # about where the mounts land.
+            - name: WORKSPACES_ROOT
+              value: {{ $wsRoot | quote }}
             # Where each mount is and where it goes: the entrypoint links them.
             - name: ADHOCWAY_SOURCES
               value: {{ toJson $links | quote }}
@@ -176,9 +225,10 @@ spec:
               mountPath: {{ trimSuffix "/" .Values.github.tokenMountPath | quote }}
               readOnly: true
             {{- end }}
+            {{- $wsRoot := include "adhoc-way-instance.workspaceRoot" $ }}
             {{- range .Values.sources }}
             - name: {{ include "adhoc-way-instance.sourceName" . }}
-              mountPath: {{ include "adhoc-way-instance.sourceMount" . | quote }}
+              mountPath: {{ include "adhoc-way-instance.sourceMount" (merge (dict "workspaceRoot" $wsRoot) .) | quote }}
               readOnly: true
             {{- end }}
             {{- with .Values.tool.volumeMounts }}

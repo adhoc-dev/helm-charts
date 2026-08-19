@@ -112,11 +112,25 @@ Volume name of a source.
 {{- end }}
 
 {{/*
-Where a source is mounted. Under /mnt and not in the workspace: what belongs in the
-workspace is the directory inside the image, and a link is the only way to expose it.
+Where a source is mounted: under a hidden `.mnt` INSIDE the workspace. A mount of this
+kind is always the whole image, so what belongs in the workspace is the directory inside
+it and a link is still the only way to expose just that one. Inside because the read
+permission the agents are given is evaluated against the literal path: with the mount out
+of the root, one source needs permission over two unrelated trees. Hidden because rg and
+globs skip hidden entries, so a sweep of the root does not walk a whole rootfs.
 */}}
 {{- define "adhoc-way-instance.sourceMount" -}}
-{{- printf "/mnt/%s" (include "adhoc-way-instance.sourceKey" .) -}}
+{{- printf "%s/.mnt/%s" (required "sources: sourceMount needs workspaceRoot" .workspaceRoot) (include "adhoc-way-instance.sourceKey" .) -}}
+{{- end }}
+
+{{/*
+The root of the workspace, which the image derives from HOME. Passed to the pod as
+WORKSPACES_ROOT so the two cannot disagree: a mount landing outside the root the
+entrypoint looks at is not recognised as ours, and the source loses its link and its read
+permission with no error.
+*/}}
+{{- define "adhoc-way-instance.workspaceRoot" -}}
+{{- printf "%s/workspace" (trimSuffix "/" .Values.state.mountPath) -}}
 {{- end }}
 
 {{/*
