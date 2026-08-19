@@ -70,10 +70,20 @@ entrypoint leaves `workspace/<dstPath>` as a link to `srcPath` inside the mount.
 person sees is the directory they asked for; the rootfs around it stays out of the way.
 
 An image that the node does not have yet holds the pod until it is down, and these weigh
-GBs. `pullPolicy` defaults to `IfNotPresent`, which keeps that cost out of every start at
-the price of a node keeping whatever a moving tag meant when it first pulled it — two
-workspaces on different nodes may then read a slightly different source. Pin an exact tag
-where that matters.
+GBs. `pullPolicy` decides who pays that: the field defaults to `IfNotPresent`, and the
+values here set `Always` on both Odoo sources.
+
+`Always`, because the tags are moving ones and the Odoo image is baked daily. Under
+`IfNotPresent` a node keeps whatever `19.0.dev` meant when it first pulled it, so how old
+the mounted code is is not a number anyone can state — it depends on the node, and two
+workspaces on different nodes read different source. With `Always` the freshness of the
+code is decided by the restart of the workspace, which is the same event that promotes a
+new workspace image: one restart brings both up to date. The cost is that a pod landing
+on a node without the layers waits for the pull, and the `.dev` variant carries the `.git`
+of every repository, so that is a bigger wait than it used to be.
+
+Set `IfNotPresent` on a source whose tag is pinned to an exact build, where re-checking
+the registry buys nothing.
 
 Images are added to the list, and the mount path and the volume name both come from the
 `dstPath`. Because everything is derived from it, it has to be a **name** —an optional
