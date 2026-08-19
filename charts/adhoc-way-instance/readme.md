@@ -51,9 +51,13 @@ instead of guessing at it. The image *is* the volume: there is no copy to make a
 nothing to keep in sync, and it cannot be written, not even by root. The default is the
 Odoo image, showing up as `workspace/.oba-19`.
 
+The default is the `.dev` variant of that image and not the productive one: it is the
+only one whose repositories under `srcPath` carry their `.git`, so the mounted code can
+be read with `log` and `blame` and says which commit it is at. It costs ~224 MB more.
+
 ```yaml
 sources:
-  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
+  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0.dev
     srcPath: home/odoo/src     # the directory to expose, inside the image
     dstPath: .oba-19           # where it shows up, from the workspace root
 ```
