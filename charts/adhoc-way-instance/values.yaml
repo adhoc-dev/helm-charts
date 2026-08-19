@@ -140,10 +140,10 @@ workspace: {}
 # root of the workspace (an optional dot, then lowercase letters, digits and dashes).
 # `pullPolicy` is optional (default IfNotPresent). See the readme.
 sources:
-  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0
+  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0.dev
     srcPath: home/odoo/src
     dstPath: .oba-19
-  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:18.0
+  - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:18.0.dev
     srcPath: home/odoo/src
     dstPath: .oba-18
 
