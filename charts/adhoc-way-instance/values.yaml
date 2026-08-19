@@ -38,6 +38,14 @@ tool:
       value: "4096"
     - name: OPENCODE_BUNDLES
       value: ""
+  # The keys come from adhoc-way-platform's Secret; this chart only reads them.
+  # "" runs without them: openCode on the person's own credential, voice off.
+  envFromSecret:
+    secretName: adhoc-way-platform-agent-keys
+    # Env var in the pod -> key in the Secret.
+    keys:
+      OPENAI_API_KEY: llm
+      VOICE_API_KEY: voice
   volumeMounts: []
   securityContext: {}
   resources:

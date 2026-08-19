@@ -121,7 +121,7 @@ spec:
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email .Values.sources }}
+          {{- if or (and .Values.tool.publicUrlEnvVar .Values.host) .Values.tool.env .Values.tool.envFromSecret.secretName .Values.github.credentialUrl .Values.workspace.projects .Values.user.name .Values.user.email .Values.sources }}
           env:
             {{- if and .Values.tool.publicUrlEnvVar .Values.host }}
             # The tool's own public URL, derived from host (e.g. openCode's OAuth/web).
@@ -161,6 +161,17 @@ spec:
             {{- end }}
             {{- with .Values.tool.env }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.tool.envFromSecret.secretName }}
+            # Shared keys, read from the platform's Secret at pod start. Not
+            # optional: a workspace without them is an agent that cannot answer.
+            {{- range $variable, $key := .Values.tool.envFromSecret.keys }}
+            - name: {{ $variable | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.tool.envFromSecret.secretName | quote }}
+                  key: {{ $key | quote }}
+            {{- end }}
             {{- end }}
           {{- end }}
           volumeMounts:
