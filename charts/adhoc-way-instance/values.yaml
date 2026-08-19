@@ -20,7 +20,7 @@ user:
 tool:
   image:
     repository: docker.io/adhoc/ops-tools
-    tag: adhocWayWorkspace-2026.08.11.4
+    tag: adhocWayWorkspace-latest
     # digest: pin to an exact image (overrides tag). Format: sha256:<hash>
     digest: ""
     pullPolicy: Always
