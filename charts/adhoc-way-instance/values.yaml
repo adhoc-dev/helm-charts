@@ -143,9 +143,11 @@ sources:
   - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:19.0.dev
     srcPath: home/odoo/src
     dstPath: .oba-19
+    pullPolicy: Always
   - image: dockerhub.adhoc.inc/adhoc/odoo-adhoc:18.0.dev
     srcPath: home/odoo/src
     dstPath: .oba-18
+    pullPolicy: Always
 
 # --- Identity of the pod ---
 # The subject of the projected token names this service account, which is how the
