@@ -7,11 +7,12 @@ description: >
   checks enchufables que observan el cluster y, ante algo "sano para k8s pero roto
   de verdad" sostenido, actúan (recrear un pod, etc.) con guardrails uniformes.
   Checks: gcsfuse-mount (fuente k8s), memory-pressure (fuente Prometheus),
-  pv-zone-stuck (fuente k8s, solo observa).
+  pv-zone-stuck (fuente k8s, solo observa), node-memory-pressure (Prometheus + k8s),
+  helm-release-stuck (fuente k8s, solo observa).
 
 type: application
 
-version: 0.3.0
+version: 0.4.0
 
 appVersion: "clusterSentinel-2026.08.12.5"
 

@@ -114,3 +114,56 @@ Servicio Aeroo para generación de documentos en Odoo (reportes LibreOffice). Co
 ## weblate
 
 Plataforma de traducción. No forma parte del stack SaaS core — uso puntual.
+
+---
+
+## adhoc-cluster-sentinel
+
+Plataforma de supervisión del cluster: corre checks enchufables que detectan recursos
+"sanos para Kubernetes pero rotos de verdad" y, según el check, actúan o sólo miden.
+Código en `devops-ops-tools/clusterSentinel`; instalado por Pulumi en cada cell.
+
+### RBAC — qué permiso pide cada check y por qué
+
+| Permiso | Alcance | Check |
+| --- | --- | --- |
+| `pods: list, delete` | ClusterRole | El trabajo base: detectar y recrear pods rotos. |
+| `persistentvolumeclaims`, `persistentvolumes: get` | ClusterRole | `pv-zone-stuck` — el pod no dice en qué zona quedó clavado; eso está en el PV. |
+| `nodes: list, patch` | ClusterRole | `node-memory-pressure` — `list` para probar que existe un destino antes de mover nada; `patch` es el cordon del nodo de origen. |
+| `replicasets: get`, `deployments: get, patch` | ClusterRole | `node-memory-pressure` — resolver pod → Deployment, leer la estrategia real de rollout y hacer el restart. |
+| `secrets: list` | ClusterRole | `helm-release-stuck` — el estado de un release de Helm vive en un Secret. |
+| `jobs: list` | **Role en `helmJobs.namespace`** | `helm-release-stuck` — un Job de Helm vivo distingue "operación en curso" de "abandonada". |
+
+#### `secrets: list` es cluster-wide, y es la decisión sensible
+
+El storage driver de Helm es un Secret con labels `owner`/`name`/`status`/`version`, así
+que es la única forma de saber qué releases quedaron a mitad de una operación. El check
+lo pide con un selector de estado pendiente y en la práctica recibe un puñado de objetos,
+pero el **verbo** no distingue: alcanza los values de todos los releases del cluster, que
+pueden incluir credenciales.
+
+No se puede acotar por namespace sin pagar caro: los releases viven en el namespace de
+cada base, así que haría falta reconciliar un RoleBinding por base, y las bases nacen y
+mueren todo el tiempo. `resourceNames` en RBAC tampoco sirve — no aplica a `list`.
+
+La alternativa que sí lo eliminaría es exponer los labels de los Secrets vía
+kube-state-metrics (`metricLabelsAllowlist=secrets=[owner,name,status,version]`) y que el
+check lea el estado desde Prometheus: KSM lee metadata y nunca el campo `data`, así que el
+centinela no necesitaría ningún permiso sobre secrets. El costo son ~6k series nuevas,
+contra el presupuesto de `devops-cloud-infra/doc/observability/cardinality-budget.md`.
+Queda planteada, no tomada.
+
+#### `jobs: list` sí está acotado
+
+Todos los Jobs de Helm del provider viven en un solo namespace (`devops`, donde los crea
+`pylib_odoo_saas`), así que el permiso va en un Role + RoleBinding ahí y no en el
+ClusterRole.
+
+**Requerimiento:** ese namespace tiene que existir al instalar — el chart no lo crea. Con
+`helmJobs.namespace: ""` no se renderiza el Role y el check pierde esa guarda: pasa a
+reportar de más (un release pendiente de larga duración se ve como abandonado), nunca de
+menos.
+
+El value decide **dónde se crea el Role**, no dónde mira el check: eso es
+`helm_jobs_namespace`, un default de clase como el resto de los knobs por-check. Los dos
+tienen que coincidir.

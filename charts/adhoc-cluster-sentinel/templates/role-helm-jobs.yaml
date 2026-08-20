@@ -1,0 +1,32 @@
+{{- if .Values.helmJobs.namespace }}
+# helm-release-stuck: a live Helm Job means the operation is in progress, not abandoned.
+# Namespace must exist — see doc/infrastructure-charts.md.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "adhoc-cluster-sentinel.fullname" . }}-helm-jobs
+  namespace: {{ .Values.helmJobs.namespace }}
+  labels:
+    {{- include "adhoc-cluster-sentinel.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "adhoc-cluster-sentinel.fullname" . }}-helm-jobs
+  namespace: {{ .Values.helmJobs.namespace }}
+  labels:
+    {{- include "adhoc-cluster-sentinel.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "adhoc-cluster-sentinel.fullname" . }}-helm-jobs
+subjects:
+  - kind: ServiceAccount
+    # .Release.Namespace, where serviceaccount.yaml creates it — not .Values.namespace.
+    name: {{ include "adhoc-cluster-sentinel.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

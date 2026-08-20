@@ -33,3 +33,8 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "patch"]
+  # helm-release-stuck: Helm release state lives in Secrets. Cluster-wide on purpose —
+  # see doc/infrastructure-charts.md.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["list"]
