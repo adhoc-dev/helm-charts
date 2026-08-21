@@ -314,23 +314,9 @@ kubelet desaloja el pod:
 Warning  Evicted  Pod ephemeral local storage usage exceeds the total limit of containers 5Gi.
 ```
 
-De ahí el valor más alto en `devMode`: el initContainer `seed-vscode-server`
-siembra ~4.8Gi en `emptyDir` (VS Code server ~3.4Gi en `vscode-server` +
-`/opt/adhoc-dev` ~1.3Gi en `dev-tools`), con lo que 5Gi dejaban <400Mi de margen
-para las escrituras locales de Odoo (reportes, dumps a `/tmp`, logs).
-
-| | `ephemeral-storage-limit` |
-| --- | --- |
-| `adhoc.devMode: false` | `5Gi` |
-| `adhoc.devMode: true` | `12Gi` |
-
-El `request` (`100Mi`, `248Mi` en prod) no depende de `devMode`: el limit
-gobierna el desalojo, no el scheduling. Para pisar el valor en una instancia
-puntual, definir la key en `podAnnotations` — el template la omite si ya viene de
-ahí, para no emitirla duplicada (una key repetida en el map de annotations rompe
-el parseo del manifest).
-
-El pod del reverse proxy (`-nx`) queda en `5Gi`: no monta los volúmenes sembrados.
+Para pisar el valor en una instancia puntual, definir la key en `podAnnotations`
+— el template la omite si ya viene de ahí, para no emitirla duplicada (una key
+repetida en el map de annotations rompe el parseo del manifest).
 
 Para medir el uso real de un pod, la summary API de kubelet lo desglosa por
 volumen y por container:
@@ -338,6 +324,57 @@ volumen y por container:
 ```bash
 kubectl get --raw "/api/v1/nodes/<node>/proxy/stats/summary"
 ```
+
+#### devMode: el payload del sidecar se monta, no se copia
+
+En `devMode` el pod necesita el VS Code server y el tooling de agentes
+(`/opt/adhoc-dev`) **dentro del container de Odoo** — ahí viven `src`, `venv` y
+`odoo-bin`. Un container no puede ver el filesystem de otro, así que la primera
+versión los **copiaba** desde la imagen del sidecar a dos `emptyDir`: 4707 MiB
+por pod (3394 de VS Code server, 1313 del prefijo dev), que con el techo de 5Gi
+dejaban <400 MiB para las escrituras locales de Odoo → desalojos.
+
+Hoy la imagen del sidecar se monta como **volumen de imagen**
+(`volumes[].image`, k8s ≥ 1.33) en `/opt/sidecar`, y el initContainer solo crea
+**symlinks**. Las capas de imagen no cuentan como ephemeral-storage del pod, así
+que el sembrado pasó de 4707 MiB a ~32 KiB:
+
+| Volumen | Qué contiene |
+| --- | --- |
+| `sidecar-img` (volumen de imagen, ro) | el payload real, montado en `/opt/sidecar` |
+| `dev-tools` (`emptyDir` → `/opt/adhoc-dev`) | 1 symlink por entrada top-level del prefijo |
+| `vscode-server` (`emptyDir` → `~/.vscode-server`) | 1 symlink por build + `data/` y `extensions/` que escribe el server |
+
+Tres cosas que este mecanismo hace distinto de lo que dice su documentación, y
+que explican la forma del template:
+
+1. **El mount es `ro` pero NO `noexec`.** La descripción de la API dice
+   "read-only (ro) and non-executable files (noexec)"; en GKE 1.35 las mount
+   options son solo `ro,relatime,...` y los binarios ejecutan desde ahí. Sin eso
+   nada de esto funcionaría: hay que correr `node` y los CLIs.
+2. **`subPath` se ignora.** El mount es siempre la **raíz de la imagen**, de ahí
+   las rutas `/opt/sidecar/opt/adhoc-dev/...` y
+   `/opt/sidecar/home/odoo/.vscode-server/bin/...` en el initContainer.
+3. **`/opt` no es escribible por uid 1000**, así que el prefijo no se puede
+   crear en runtime: el `emptyDir` montado en `/opt/adhoc-dev` es el que sostiene
+   los symlinks. Importa que la ruta sea exactamente `/opt/adhoc-dev` — los
+   shebangs absolutos del bake apuntan ahí.
+
+El script que crea los symlinks **no vive en el chart** sino en el `ENTRYPOINT` de
+la imagen del sidecar (`vscodeSidecar/entrypoint.sh` en `devops-ops-tools`),
+versionado junto al payload que siembra. El initContainer del chart no pasa
+`command`: solo la imagen y los mounts. Ese entrypoint decide el modo por sí
+mismo — si encuentra el payload en `/opt/sidecar` linkea, y si no (chart viejo que
+no monta el volumen de imagen) cae al modo copia de siempre. Por eso el tag móvil
+de la imagen puede actualizarse sin romper instancias con el chart anterior, y
+este chart funciona con imágenes viejas del sidecar (copiando, como antes).
+
+El server no escribe nada dentro de `bin/<commit>`: sus escrituras van a
+`~/.vscode-server/{data,extensions}` (~2 MiB en un arranque limpio), que siguen
+en el `emptyDir` escribible. Si el dev necesita un build que la imagen no
+precachea, `vscode-fetch-server <commit>` lo baja al `emptyDir` (requiere
+`update.code.visualstudio.com` y `vscode.download.prss.microsoft.com` en
+`allowedHosts` bajo egress `enforce`).
 
 ### Redis
 
