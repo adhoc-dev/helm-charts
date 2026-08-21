@@ -300,6 +300,45 @@ storage:
 
 La env var de Odoo equivalente es `ADHOC_ODOO_STORAGE_MODE`.
 
+#### Ephemeral storage en bases `fuse`
+
+Con `storage.location: fuse` el Deployment emite las annotations
+`gke-gcsfuse/*` que configuran el sidecar del CSI driver. La de
+`ephemeral-storage-limit` merece atención: **es, de hecho, el límite efímero del
+pod entero**, no solo del sidecar. Kubelet obtiene el límite del pod sumando los
+limits de `ephemeral-storage` de todos sus containers, y `adhoc-odoo` no declara
+el suyo — así que ese valor topea también los `emptyDir` del pod. Si se excede,
+kubelet desaloja el pod:
+
+```
+Warning  Evicted  Pod ephemeral local storage usage exceeds the total limit of containers 5Gi.
+```
+
+De ahí el valor más alto en `devMode`: el initContainer `seed-vscode-server`
+siembra ~4.8Gi en `emptyDir` (VS Code server ~3.4Gi en `vscode-server` +
+`/opt/adhoc-dev` ~1.3Gi en `dev-tools`), con lo que 5Gi dejaban <400Mi de margen
+para las escrituras locales de Odoo (reportes, dumps a `/tmp`, logs).
+
+| | `ephemeral-storage-limit` |
+| --- | --- |
+| `adhoc.devMode: false` | `5Gi` |
+| `adhoc.devMode: true` | `12Gi` |
+
+El `request` (`100Mi`, `248Mi` en prod) no depende de `devMode`: el limit
+gobierna el desalojo, no el scheduling. Para pisar el valor en una instancia
+puntual, definir la key en `podAnnotations` — el template la omite si ya viene de
+ahí, para no emitirla duplicada (una key repetida en el map de annotations rompe
+el parseo del manifest).
+
+El pod del reverse proxy (`-nx`) queda en `5Gi`: no monta los volúmenes sembrados.
+
+Para medir el uso real de un pod, la summary API de kubelet lo desglosa por
+volumen y por container:
+
+```bash
+kubectl get --raw "/api/v1/nodes/<node>/proxy/stats/summary"
+```
+
 ### Redis
 
 ```yaml

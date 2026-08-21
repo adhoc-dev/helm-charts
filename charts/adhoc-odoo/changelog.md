@@ -4,6 +4,12 @@
 
 Fixes:
 
+- Bases `fuse` en `devMode`: `gke-gcsfuse/ephemeral-storage-limit` pasa de `5Gi`
+  a `12Gi` (sin cambio fuera de devMode). Ese limit topea el pod entero, no solo
+  el sidecar, y el sembrado de `seed-vscode-server` (~4.8Gi de emptyDirs) dejaba
+  <400Mi para las escrituras locales de Odoo: el pod terminaba `Evicted`. El
+  `request` no cambia. Detalle en `doc/adhoc-odoo.md` → Storage.
+
 - Istio VS (KEDA sin wakeup controller): `perTryTimeout` del bloque `retries`
   pasa de un hardcode de `5s` a `odoo.performance.maxTimeReal`, y `attempts`
   baja de `10` a `2`. El `5s` fijo (agregado en #115 para el cold-start de
