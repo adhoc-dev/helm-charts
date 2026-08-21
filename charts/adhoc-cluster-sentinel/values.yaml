@@ -29,6 +29,11 @@ disabledChecks: ""
 # no act() (pv-zone-stuck only measures), aborts startup instead of failing silently.
 enforceChecks: ""
 
+# Namespace where the provider runs its Helm Jobs; must exist and match the check's
+# `helm_jobs_namespace`. Empty = no Role, check loses the in-progress guard.
+helmJobs:
+  namespace: "devops"
+
 # Prometheus HTTP API base, shared by Prometheus-sourced checks.
 prometheusUrl: "http://prometheus-operated.monitoring:9090"
 
