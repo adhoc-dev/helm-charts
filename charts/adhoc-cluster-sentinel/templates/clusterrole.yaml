@@ -14,7 +14,12 @@ rules:
   # it is stuck in — that is only on the PV its claim is bound to.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims", "persistentvolumes"]
-    verbs: ["get"]
+    verbs: ["get", "list"]
+  # cnpg-resize-stuck: only the CR says whether the database is hibernated — that is the
+  # case where the pod does not exist. See doc/infrastructure-charts.md.
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters"]
+    verbs: ["list"]
   # node-memory-pressure: `list` reads allocatable and schedulability of every node, to
   # prove a concrete destination exists before moving anything, and to find cordons left
   # by a dead incarnation. `patch` is the cordon itself — the node under pressure looks
