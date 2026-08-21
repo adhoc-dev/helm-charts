@@ -58,14 +58,7 @@ spec:
         # Almacenamiento efímero de 5 GiB
         gke-gcsfuse/cpu-limit: "100m"
         gke-gcsfuse/memory-limit: 2Gi
-        {{- /* El limit efímero del sidecar de fuse es, de hecho, el limit del POD: kubelet suma
-           los limits de ephemeral-storage de TODOS los containers y adhoc-odoo no declara el
-           suyo, así que este valor topea también los emptyDirs del pod. En devMode el
-           initContainer seed-vscode-server siembra ~4.8Gi en emptyDirs (VS Code server +
-           /opt/adhoc-dev), con lo que 5Gi deja <400Mi para las escrituras locales de Odoo y el
-           pod termina Evicted ("Pod ephemeral local storage usage exceeds the total limit of
-           containers"). De ahí el valor más alto en devMode. Override puntual por
-           podAnnotations (no se pisa la key si ya viene definida ahí). */}}
+        # Pod-wide ephemeral limit (kubelet sums container limits) — see doc/adhoc-odoo.md
         {{- if not (hasKey (.Values.podAnnotations | default dict) "gke-gcsfuse/ephemeral-storage-limit") }}
         {{- if .Values.adhoc.devMode }}
         gke-gcsfuse/ephemeral-storage-limit: 12Gi

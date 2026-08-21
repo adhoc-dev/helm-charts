@@ -5,16 +5,10 @@
 Fixes:
 
 - Bases `fuse` en `devMode`: `gke-gcsfuse/ephemeral-storage-limit` pasa de `5Gi`
-  fijo a `12Gi` cuando `adhoc.devMode=true` (sin cambio fuera de devMode). Ese
-  limit del sidecar de fuse es, de hecho, el limit efímero del POD — kubelet suma
-  los limits de todos los containers y `adhoc-odoo` no declara el suyo, así que
-  también topea los emptyDirs. El initContainer `seed-vscode-server` siembra
-  ~4.8Gi (VS Code server ~3.4Gi + `/opt/adhoc-dev` ~1.3Gi), dejando <400Mi de
-  margen: cualquier escritura local de Odoo (reporte, dump a `/tmp`, logs)
-  desalojaba el pod con `Pod ephemeral local storage usage exceeds the total
-  limit of containers 5Gi`. El `request` (100Mi) no cambia, así que no afecta el
-  scheduling. Se puede pisar por `podAnnotations`. Pendiente aparte: adelgazar
-  el sembrado (la imagen del sidecar precachea 5 builds de VS Code server).
+  a `12Gi` (sin cambio fuera de devMode). Ese limit topea el pod entero, no solo
+  el sidecar, y el sembrado de `seed-vscode-server` (~4.8Gi de emptyDirs) dejaba
+  <400Mi para las escrituras locales de Odoo: el pod terminaba `Evicted`. El
+  `request` no cambia. Detalle en `doc/adhoc-odoo.md` → Storage.
 
 - Istio VS (KEDA sin wakeup controller): `perTryTimeout` del bloque `retries`
   pasa de un hardcode de `5s` a `odoo.performance.maxTimeReal`, y `attempts`
