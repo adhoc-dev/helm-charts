@@ -128,10 +128,11 @@ Código en `devops-ops-tools/clusterSentinel`; instalado por Pulumi en cada cell
 | Permiso | Alcance | Check |
 | --- | --- | --- |
 | `pods: list, delete` | ClusterRole | El trabajo base: detectar y recrear pods rotos. |
-| `persistentvolumeclaims`, `persistentvolumes: get` | ClusterRole | `pv-zone-stuck` — el pod no dice en qué zona quedó clavado; eso está en el PV. |
+| `persistentvolumeclaims`, `persistentvolumes: get, list` | ClusterRole | `pv-zone-stuck` — el pod no dice en qué zona quedó clavado; eso está en el PV. `list` es de `cnpg-resize-stuck`, que barre los PVC buscando la condition de resize. |
 | `nodes: list, patch` | ClusterRole | `node-memory-pressure` — `list` para probar que existe un destino antes de mover nada; `patch` es el cordon del nodo de origen. |
 | `replicasets: get`, `deployments: get, patch` | ClusterRole | `node-memory-pressure` — resolver pod → Deployment, leer la estrategia real de rollout y hacer el restart. |
 | `secrets: list` | ClusterRole | `helm-release-stuck` — el estado de un release de Helm vive en un Secret. |
+| `clusters: list` (`postgresql.cnpg.io`) | ClusterRole | `cnpg-resize-stuck` — sólo el CR dice si la base está hibernada y en qué phase está el Cluster. |
 | `jobs: list` | **Role en `helmJobs.namespace`** | `helm-release-stuck` — un Job de Helm vivo distingue "operación en curso" de "abandonada". |
 
 #### `secrets: list` es cluster-wide, y es la decisión sensible
@@ -167,3 +168,15 @@ menos.
 El value decide **dónde se crea el Role**, no dónde mira el check: eso es
 `helm_jobs_namespace`, un default de clase como el resto de los knobs por-check. Los dos
 tienen que coincidir.
+
+#### `clusters: list` de CNPG: por qué el CR y no los pods
+
+`cnpg-resize-stuck` necesita saber si la base está **hibernada**, y ése es justamente el
+caso en el que el pod de la instancia no existe: no hay nada que mirar del lado de los
+pods. La annotation `cnpg.io/hibernation` y la phase del Cluster viven en el CR y en
+ningún otro lado.
+
+El proxy que usa la alerta —el Deployment de odoo en 0 réplicas— no sirve acá: medido el
+2026-08-20, los 8 namespaces de cell02 con odoo dormido tenían igual su instancia de CNPG
+viva. Dormir odoo no hiberna la base, así que para distinguir "hibernada" de "deadlock"
+hace falta el CR. Es `list` read-only sobre un CRD.
